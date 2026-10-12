@@ -38,10 +38,10 @@ export const en: Content = {
   },
 
   hud: {
-    level: { value: '28', label: 'Level', caption: 'Builder' },
+    level: { value: '25', label: 'Level', caption: 'Builder' },
     slots: [
-      { id: 'energy', name: 'Energy', icon: icons.coffee, meter: 4, caption: 'Coffee · 4/5' },
-      { id: 'hema', name: 'HEMA', icon: icons.sword, meter: 3, caption: 'Longsword' },
+      { id: 'study', name: 'Studies', icon: icons.study, meter: 4, caption: 'JAMK · ICT engineering' },
+      { id: 'adventure', name: 'Adventure', icon: icons.adventure, meter: 3, caption: 'Next stop: Split' },
     ],
     bag: {
       title: 'Bag',
@@ -159,12 +159,12 @@ export const en: Content = {
       },
     ],
     languages: [
-      { id: 'react', kind: 'lang', name: 'React', tag: 'User interfaces', icon: icons.react, rarity: 'legendary', level: 90, desc: 'Components, hooks and performance – the main library in every app.' },
-      { id: 'typescript', kind: 'lang', name: 'TypeScript', tag: 'Typed code', icon: icons.typescript, rarity: 'epic', level: 85, desc: 'Typed app code and content models you can trust.' },
-      { id: 'node', kind: 'lang', name: 'Node.js', tag: 'Server & scripts', icon: icons.node, rarity: 'epic', level: 80, desc: 'APIs, build tooling and automation scripts.' },
-      { id: 'supabase', kind: 'lang', name: 'Supabase', tag: 'Database & auth', icon: icons.supabase, rarity: 'rare', level: 75, desc: 'Postgres, auth and realtime in SaaS projects.' },
-      { id: 'tailwind', kind: 'lang', name: 'Tailwind', tag: 'Styling', icon: icons.tailwind, rarity: 'epic', level: 90, desc: 'Tailwind v4 + shadcn/ui – fast, consistent UI.' },
-      { id: 'python', kind: 'lang', name: 'Python', tag: 'Data & prototypes', icon: icons.python, rarity: 'rare', level: 65, desc: 'Data processing, scripts and quick experiments.' },
+      { id: 'react', kind: 'lang', name: 'React', tag: 'User interfaces', icon: icons.react, logo: 'react', rarity: 'legendary', level: 90, desc: 'Components, hooks and performance – the main library in every app.' },
+      { id: 'typescript', kind: 'lang', name: 'TypeScript', tag: 'Typed code', icon: icons.typescript, logo: 'typescript', rarity: 'epic', level: 85, desc: 'Typed app code and content models you can trust.' },
+      { id: 'node', kind: 'lang', name: 'Node.js', tag: 'Server & scripts', icon: icons.node, logo: 'nodejs', rarity: 'epic', level: 80, desc: 'APIs, build tooling and automation scripts.' },
+      { id: 'supabase', kind: 'lang', name: 'Supabase', tag: 'Database & auth', icon: icons.supabase, logo: 'supabase', rarity: 'rare', level: 75, desc: 'Postgres, auth and realtime in SaaS projects.' },
+      { id: 'tailwind', kind: 'lang', name: 'Tailwind', tag: 'Styling', icon: icons.tailwind, logo: 'tailwind', rarity: 'epic', level: 90, desc: 'Tailwind v4 + shadcn/ui – fast, consistent UI.' },
+      { id: 'python', kind: 'lang', name: 'Python', tag: 'Data & prototypes', icon: icons.python, logo: 'python', rarity: 'rare', level: 65, desc: 'Data processing, scripts and quick experiments.' },
     ],
   },
 

@@ -3,6 +3,7 @@ import { ArrowUpRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { RARITY_COLOR } from '@/components/game/Slot'
+import { TechIcon } from '@/components/TechIcon'
 import { useLang } from '@/hooks/useLang'
 import { useSound } from '@/hooks/useSound'
 import type { Item } from '@/content'
@@ -35,7 +36,13 @@ export function ItemDialog({ item, onClose }: { item: Item | null; onClose: () =
                 )}
                 style={{ ['--rarity' as string]: RARITY_COLOR[item.rarity] }}
               >
-                <img src={item.icon} alt="" className="size-full object-cover" />
+                {item.logo ? (
+                  <span className="grid size-full place-items-center bg-[#1b2229]">
+                    <TechIcon name={item.logo} className="size-[52%]" />
+                  </span>
+                ) : (
+                  <img src={item.icon} alt="" className="size-full object-cover" />
+                )}
                 {item.kind === 'good' && <span aria-hidden className="absolute inset-x-0 top-0 h-[3px]" style={{ background: 'var(--rarity)' }} />}
                 {item.count && (
                   <span className="absolute right-1.5 bottom-1 font-display text-[0.8rem] font-bold text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.9)] tabular-nums">
@@ -60,7 +67,6 @@ export function ItemDialog({ item, onClose }: { item: Item | null; onClose: () =
                     <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-line/60">
                       <div className="h-full rounded-full bg-gradient-to-r from-ember to-gold" style={{ width: `${item.level}%` }} />
                     </div>
-                    <span className="font-display text-brass-2 tabular-nums">{item.level}</span>
                   </dd>
                 </div>
               )}

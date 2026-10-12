@@ -1,5 +1,6 @@
 import { forwardRef, type ButtonHTMLAttributes } from 'react'
 
+import { TechIcon } from '@/components/TechIcon'
 import type { Rarity } from '@/content'
 import { cn } from '@/lib/utils'
 
@@ -15,6 +16,8 @@ export const Slot = forwardRef<
   HTMLButtonElement,
   ButtonHTMLAttributes<HTMLButtonElement> & {
     icon: string
+    /** simple-icons-logo kuvan sijaan */
+    logo?: string
     name: string
     rarity: Rarity
     badge?: string
@@ -22,7 +25,7 @@ export const Slot = forwardRef<
     size?: 'sm' | 'md' | 'lg'
     dim?: boolean
   }
->(function Slot({ icon, name, rarity, badge, active, size = 'md', dim, className, ...props }, ref) {
+>(function Slot({ icon, logo, name, rarity, badge, active, size = 'md', dim, className, ...props }, ref) {
   const px = size === 'lg' ? 'size-24 md:size-28' : size === 'sm' ? 'size-14' : 'size-20 md:size-[5.5rem]'
   return (
     <button
@@ -46,7 +49,13 @@ export const Slot = forwardRef<
         className="absolute inset-0 rounded-full opacity-70 transition-opacity group-hover:opacity-100 group-data-[active]:opacity-100"
         style={{ background: 'radial-gradient(closest-side, color-mix(in oklab, var(--rarity) 35%, transparent), transparent 75%)' }}
       />
-      <img src={icon} alt="" width={512} height={512} loading="lazy" decoding="async" className="relative size-full rounded-full object-cover" />
+      {logo ? (
+        <span className="relative grid size-full place-items-center rounded-full bg-[#1b2229]">
+          <TechIcon name={logo} className="size-[52%] drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]" />
+        </span>
+      ) : (
+        <img src={icon} alt="" width={512} height={512} loading="lazy" decoding="async" className="relative size-full rounded-full object-cover" />
+      )}
       {/* kehän harvinaisuusviiva */}
       <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full border" style={{ borderColor: 'color-mix(in oklab, var(--rarity) 70%, transparent)' }} />
       {badge && (
