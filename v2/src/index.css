@@ -1,0 +1,302 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* shadcn/ui: dark-mode variant toggled with a `.dark` class (used by the
+   Koodi section, which is a dark band inside an otherwise light page). */
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
+
+/* ============================================================
+   BRAND TOKENS — Claus Laikku
+   Paletti: luu (vaalea pohja) · hiili · viini · hiekka · Havaida-sininen.
+   Koodi-osion korostukset: havaida.comin sininen/cyan.
+   ============================================================ */
+:root {
+  --radius: 0.5rem;
+
+  /* brand */
+  --luu: #f3eee4;
+  --luu-2: #faf7f1;
+  --hiili: #121214;
+  --viini: #7a2433;
+  --viini-2: #5e1a27;
+  --hiekka: #d9c9a8;
+  --hiekka-2: #ebe2cf;
+  --sininen: #1a5ac1;
+  --sininen-2: #2f5fc4;
+  --metsa: #3d5a45;
+
+  /* havaida.com — Koodi-osion tumma paletti */
+  --navy: #172061;
+  --navy-ink: #112337;
+  --blue: #1a5ac1;
+  --peri: #8088ce;
+  --lilac: #e9ebf7;
+  --cyan: #8fcbdb;
+  --glow: rgba(26, 90, 193, 0.55);
+
+  /* shadcn tokens (light) */
+  --background: var(--luu);
+  --foreground: var(--hiili);
+  --card: var(--luu-2);
+  --card-foreground: var(--hiili);
+  --popover: var(--luu-2);
+  --popover-foreground: var(--hiili);
+  --primary: var(--viini);
+  --primary-foreground: var(--luu);
+  --secondary: var(--hiekka-2);
+  --secondary-foreground: var(--hiili);
+  --muted: var(--hiekka-2);
+  --muted-foreground: #5f5a52;
+  --accent: var(--hiekka);
+  --accent-foreground: var(--hiili);
+  --destructive: #b3261e;
+  --border: #ddd4c2;
+  --input: #ddd4c2;
+  --ring: var(--viini);
+
+  --cta-bg: var(--hiili);
+  --cta-fg: var(--luu);
+  --glow-1: rgba(122, 36, 51, 0.10);
+  --glow-2: rgba(217, 201, 168, 0.45);
+  --rail: linear-gradient(180deg, transparent, var(--hiekka) 20%, var(--viini) 80%, transparent);
+
+  --font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --font-body: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-script: "Caveat", "Segoe Script", cursive;
+  color-scheme: light;
+}
+
+/* Tumma teema koko sivulle: lähes musta, lämmin, viini korostuksena.
+   Koodi-osio käyttää havaida.comin sinistä/cyania vain korostuksina. */
+.dark,
+[data-theme="dark"] {
+  --luu: #f3eee4;
+  --hiili: #121214;
+  --viini: #b84556;
+  --viini-2: #d2616f;
+  --hiekka: #d9c9a8;
+  --hiekka-2: #27232a;
+
+  --background: #0f0e11;
+  --foreground: #ece6da;
+  --card: #17161b;
+  --card-foreground: #ece6da;
+  --popover: #1b1a20;
+  --popover-foreground: #ece6da;
+  --primary: var(--viini);
+  --primary-foreground: #f8f4ec;
+  --secondary: #221f26;
+  --secondary-foreground: #ece6da;
+  --muted: #1f1d23;
+  --muted-foreground: #a69f93;
+  --accent: #d9c9a8;
+  --accent-foreground: #121214;
+  --destructive: #ff8a80;
+  --border: #2a272e;
+  --input: #332f37;
+  --ring: var(--viini-2);
+
+  --cta-bg: #1a1316;
+  --cta-fg: #f3eee4;
+  --glow-1: rgba(184, 69, 86, 0.22);
+  --glow-2: rgba(217, 201, 168, 0.08);
+  --rail: linear-gradient(180deg, transparent, #2a272e 20%, var(--viini) 80%, transparent);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* brand colours as utilities: bg-viini, text-hiili, border-hiekka… */
+  --color-luu: var(--luu);
+  --color-luu-2: var(--luu-2);
+  --color-hiili: var(--hiili);
+  --color-viini: var(--viini);
+  --color-viini-2: var(--viini-2);
+  --color-hiekka: var(--hiekka);
+  --color-hiekka-2: var(--hiekka-2);
+  --color-sininen: var(--sininen);
+  --color-sininen-2: var(--sininen-2);
+  --color-metsa: var(--metsa);
+  --color-navy: var(--navy);
+  --color-navy-ink: var(--navy-ink);
+  --color-blue: var(--blue);
+  --color-peri: var(--peri);
+  --color-lilac: var(--lilac);
+  --color-cyan: var(--cyan);
+
+  --font-display: var(--font-display);
+  --font-sans: var(--font-body);
+  --font-script: var(--font-script);
+  --color-cta: var(--cta-bg);
+  --color-cta-foreground: var(--cta-fg);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 12px);
+  --radius-hero: 32px;
+
+  --animate-ring-draw: ring-draw 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-marquee: marquee 40s linear infinite;
+}
+
+@keyframes ring-draw {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 88px;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.05;
+  }
+  img, video { display: block; max-width: 100%; }
+  ::selection { background: var(--viini); color: #f8f4ec; }
+  html { background: var(--background); }
+  body { transition: background-color 0.3s ease, color 0.3s ease; }
+  .grid > *, .flex > * { min-width: 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+@utility container-x {
+  max-width: 1240px;
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+
+/* Eyebrow — havaida.com-tyylinen pieni versaaliotsikko pisteellä */
+@utility eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  &::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background: var(--viini);
+  }
+}
+
+/* Pilleri-napin hehku havaida.comista */
+@utility glow-hover {
+  transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s, color 0.3s, border-color 0.3s;
+  &:hover, &:focus-visible { box-shadow: 0 0 18px rgba(122, 36, 51, 0.45); }
+}
+.dark .glow-hover:hover, .dark .glow-hover:focus-visible { box-shadow: 0 0 22px rgba(210, 97, 111, 0.45); }
+
+/* Hieno paperimainen rakeisuus vaaleille pinnoille */
+@utility grain {
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.35;
+    mix-blend-mode: multiply;
+  }
+  .dark &::after {
+    mix-blend-mode: screen;
+    opacity: 0.12;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
+
+/* Reveal-on-scroll (useReveal-hook lisää .in-view) */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; }
+}
+
+/* Sivun reunakiskot — ohuet pystyviivat niin kuin havaida.comissa */
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--rail);
+  opacity: 0.35;
+  z-index: 100;
+  pointer-events: none;
+}
+body::before { left: 24px; }
+body::after { right: 24px; }
+@media (max-width: 900px) {
+  body::before, body::after { display: none; }
+}

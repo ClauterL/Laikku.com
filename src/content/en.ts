@@ -1,0 +1,665 @@
+import type { Content } from './types'
+import { goods, icons, images, links } from './images'
+
+const year = new Date().getFullYear()
+
+/* ============================================================
+   ENGLISH CONTENT – mirrors fi.ts.
+   ============================================================ */
+export const en: Content = {
+  htmlLang: 'en',
+  title: 'Claus Laikku – Builder & adventurer',
+  description:
+    'Claus Laikku – developer and entrepreneur from Jyväskylä, Finland. A portfolio shaped like a game menu: gear, projects, map and quests.',
+  name: 'Claus Laikku',
+  role: 'Builder & adventurer',
+
+  start: {
+    eyebrow: 'Portfolio · Jyväskylä, Finland',
+    press: 'Press any key to start',
+    hint: 'This page has sound effects – press M to mute.',
+    loading: 'Loading profile',
+  },
+
+  nav: {
+    menu: 'Menu',
+    tabs: [
+      { id: 'skills', label: 'Skills' },
+      { id: 'inventory', label: 'Projects' },
+      { id: 'items', label: 'Items' },
+      { id: 'map', label: 'Map' },
+      { id: 'quests', label: 'Quests' },
+      { id: 'order', label: 'Havaida' },
+      { id: 'codex', label: 'Codex' },
+    ],
+    contact: 'Contact',
+    sound: 'Sound on',
+    soundOff: 'Sound off',
+  },
+
+  hud: {
+    level: { value: '28', label: 'Level', caption: 'Builder' },
+    slots: [
+      { id: 'energy', name: 'Energy', icon: icons.coffee, meter: 4, caption: 'Coffee · 4/5' },
+      { id: 'hema', name: 'HEMA', icon: icons.sword, meter: 3, caption: 'Longsword' },
+    ],
+    bag: {
+      title: 'Bag',
+      rows: [
+        { key: 'commits', label: 'contributions / 12 mo' },
+        { key: 'repos', label: 'public repos' },
+        { key: 'sites', label: 'demo sites', value: '9' },
+        { key: 'tech', label: 'technologies', value: '16' },
+      ],
+    },
+  },
+
+  inventory: {
+    title: 'Projects',
+    gearTitle: 'Gear',
+    itemsTitle: 'Projects',
+    langTitle: 'Languages & tools',
+    rarity: { common: 'Common', rare: 'Rare', epic: 'Epic', legendary: 'Legendary' },
+    levelLabel: 'Level',
+    statusLabel: 'Status',
+    techLabel: 'Tech',
+    linksLabel: 'Links',
+    equipped: 'Equipped',
+    gear: [
+      {
+        id: 'code',
+        kind: 'gear',
+        name: 'Code',
+        tag: 'Web & SaaS',
+        icon: icons.code,
+        rarity: 'legendary',
+        level: 90,
+        desc: 'Main weapon. React and TypeScript apps, SaaS products and websites – from design to deploy.',
+        tech: ['React', 'TypeScript', 'Vite', 'Next.js', 'Node.js', 'Supabase', 'Tailwind'],
+      },
+      {
+        id: 'ai',
+        kind: 'gear',
+        name: 'Automation & AI',
+        tag: 'Agents & workflows',
+        icon: icons.ai,
+        rarity: 'epic',
+        level: 85,
+        desc: 'Repetitive work off the desk: AI agents, MCP servers, integrations and test automation that actually run.',
+        tech: ['Claude Code', 'MCP servers', 'Playwright', 'Python', 'Docker'],
+      },
+      {
+        id: 'electronics',
+        kind: 'gear',
+        name: 'Electronics',
+        tag: 'Hardware',
+        icon: icons.electronics,
+        rarity: 'rare',
+        level: 70,
+        desc: 'Smart lighting, circuit boards, microcontrollers and 3D-printed enclosures. A home lab where ideas get tested before they become products.',
+        tech: ['Smart lighting', 'Arduino', 'Raspberry Pi', '3D printing'],
+      },
+      {
+        id: 'drones',
+        kind: 'gear',
+        name: 'Drones',
+        tag: 'Things that fly',
+        icon: icons.drone,
+        rarity: 'rare',
+        level: 70,
+        desc: 'Building, flight data and autonomy. The goal: a flight-data SaaS and fleet management on a map.',
+        tech: ['Building', 'Autonomy', 'Flight data'],
+      },
+    ],
+    items: [
+      {
+        id: 'waretrack',
+        kind: 'item',
+        name: 'WareTrack',
+        tag: 'Warehouse management',
+        icon: icons.waretrack,
+        rarity: 'epic',
+        status: 'in progress',
+        desc: 'Warehouse management with a 3D view: racks, pallets and stock levels in one scene, extended into a full WMS.',
+        tech: ['React', 'Three.js', 'Supabase'],
+      },
+      {
+        id: 'kerros',
+        kind: 'item',
+        name: 'Kerros',
+        tag: 'Housing-company dashboard',
+        icon: icons.kerros,
+        rarity: 'epic',
+        status: 'in progress',
+        desc: 'A dashboard for housing companies where the building is drawn as a 3D block from open map data.',
+        tech: ['React', 'Three.js', 'OpenStreetMap'],
+      },
+      {
+        id: 'nfc',
+        kind: 'item',
+        name: 'NFC apps',
+        tag: 'CardTap & DoorTap',
+        icon: icons.nfc,
+        rarity: 'rare',
+        status: 'in progress',
+        desc: 'CardTap shares a business card phone to phone. DoorTap puts the house key on your phone with a custom ESP32 reader.',
+        tech: ['NFC', 'React', 'ESP32'],
+      },
+      {
+        id: 'games',
+        kind: 'item',
+        name: 'Havaida Games',
+        tag: 'Six browser games',
+        icon: icons.games,
+        rarity: 'rare',
+        status: 'released',
+        desc: 'Ticket Slash, Network Connect, Access Crossing, Signal Command, Bug Breaker and Uptime Keeper – company-themed mini games built as a portfolio.',
+        tech: ['React', 'Canvas', 'Vite'],
+        links: [{ label: 'GitHub', href: links.games }],
+      },
+    ],
+    languages: [
+      { id: 'react', kind: 'lang', name: 'React', tag: 'User interfaces', icon: icons.react, rarity: 'legendary', level: 90, desc: 'Components, hooks and performance – the main library in every app.' },
+      { id: 'typescript', kind: 'lang', name: 'TypeScript', tag: 'Typed code', icon: icons.typescript, rarity: 'epic', level: 85, desc: 'Typed app code and content models you can trust.' },
+      { id: 'node', kind: 'lang', name: 'Node.js', tag: 'Server & scripts', icon: icons.node, rarity: 'epic', level: 80, desc: 'APIs, build tooling and automation scripts.' },
+      { id: 'supabase', kind: 'lang', name: 'Supabase', tag: 'Database & auth', icon: icons.supabase, rarity: 'rare', level: 75, desc: 'Postgres, auth and realtime in SaaS projects.' },
+      { id: 'tailwind', kind: 'lang', name: 'Tailwind', tag: 'Styling', icon: icons.tailwind, rarity: 'epic', level: 90, desc: 'Tailwind v4 + shadcn/ui – fast, consistent UI.' },
+      { id: 'python', kind: 'lang', name: 'Python', tag: 'Data & prototypes', icon: icons.python, rarity: 'rare', level: 65, desc: 'Data processing, scripts and quick experiments.' },
+    ],
+  },
+
+  goods: {
+    title: 'Items',
+    lead: 'What is in the bag: workstation parts, devices and tools, and the services the work gets done with. Hover a tile – Enter opens the details.',
+    countLabel: 'Count',
+    specLabel: 'Details',
+    hint: 'Arrow keys move in the grid, Tab switches group.',
+    xp: { label: 'Experience', value: 6184, max: 7900 },
+    resources: [
+      { id: 'repos', label: 'Repos', icon: goods.github, key: 'repos' },
+      { id: 'commits', label: 'Contributions', icon: goods.claudecode, key: 'commits' },
+      { id: 'models', label: 'AI models', icon: goods.ollama, value: '38' },
+      { id: 'domains', label: 'Domains', icon: goods.netlify, value: '4' },
+      { id: 'agents', label: 'Agents', icon: goods.n8n, value: '35' },
+      { id: 'storage', label: 'Storage', icon: goods.pool, value: '6 TB' },
+    ],
+    groups: [
+      {
+        id: 'pc',
+        title: 'Workstation parts',
+        items: [
+          {
+            id: 'cpu', kind: 'good', name: 'Processor', tag: 'Intel Core i7-12700K', icon: goods.cpu, rarity: 'legendary',
+            desc: 'The heart of the workstation: 12 cores and 20 threads. Compiles, builds and runs local AI models at the same time.',
+            spec: [
+              { label: 'Cores', value: '8 P + 4 E · 20 threads' },
+              { label: 'Socket', value: 'LGA1700' },
+            ],
+          },
+          {
+            id: 'ram', kind: 'good', name: 'Memory', tag: '96 GB', icon: goods.ram, rarity: 'epic', count: '96 GB',
+            desc: 'Enough for virtual machines, Docker stacks and large language models at once – running out of memory is no longer an excuse.',
+            spec: [{ label: 'Used by', value: 'WSL2 · Docker · Ollama' }],
+          },
+          {
+            id: 'gpu', kind: 'good', name: 'Graphics card', tag: 'NVIDIA RTX 3060', icon: goods.gpu, rarity: 'epic', count: '12 GB',
+            desc: 'The local AI accelerator: Ollama models, Blender renders and the occasional game.',
+            spec: [
+              { label: 'Memory', value: '12 GB GDDR6' },
+              { label: 'Duties', value: 'Ollama · Blender · CUDA' },
+            ],
+          },
+          {
+            id: 'nvme', kind: 'good', name: 'NVMe drive', tag: 'Samsung 980', icon: goods.nvme, rarity: 'rare', count: '1 TB',
+            desc: 'System drive. Windows, tools and everything that has to open instantly.',
+            spec: [{ label: 'Interface', value: 'M.2 NVMe' }],
+          },
+          {
+            id: 'ssd', kind: 'good', name: 'SATA SSD', tag: 'WD Blue SA510', icon: goods.ssd, rarity: 'common', count: '1 TB',
+            desc: 'Second SSD: Steam library, WSL Ubuntu and Docker data.',
+            spec: [{ label: 'Interface', value: 'SATA 2.5"' }],
+          },
+          {
+            id: 'pool', kind: 'good', name: 'Storage Space', tag: 'H: drive', icon: goods.pool, rarity: 'rare', count: '2 TB',
+            desc: 'Home of Havaida, projects and simulations. Repos, models, Blender scenes and virtual machines.',
+            spec: [
+              { label: 'Type', value: 'Thin-provisioned NTFS' },
+              { label: 'Contents', value: 'Havaida · dev · sim · ollama · vm' },
+            ],
+          },
+          {
+            id: 'mobo', kind: 'good', name: 'Motherboard', tag: 'LGA1700 ATX', icon: goods.mobo, rarity: 'rare',
+            desc: 'The foundation of everything. Four memory slots filled and the M.2 slots in use.',
+          },
+          {
+            id: 'monitor', kind: 'good', name: 'Monitors', tag: 'Desk', icon: goods.monitor, rarity: 'common',
+            desc: 'More than one screen – one for code, one for watching the agents, and the whole desktop remotely from the tablet via RustDesk.',
+          },
+        ],
+      },
+      {
+        id: 'gear',
+        title: 'Devices & tools',
+        items: [
+          {
+            id: 'excavator', kind: 'good', name: 'Excavator', tag: 'Remote-control project', icon: goods.excavator, rarity: 'legendary',
+            desc: 'An old machine of my own getting a second life: remote control from home with joysticks, autonomy later.',
+            spec: [{ label: 'Status', value: 'prototype stage' }],
+          },
+          {
+            id: 'drone', kind: 'good', name: 'Drone', tag: 'Flight data', icon: goods.drone, rarity: 'epic',
+            desc: 'Build-and-data platform. The base for Havaida\'s drone line: flight-data SaaS and fleet management on a map.',
+          },
+          {
+            id: 'robot', kind: 'good', name: 'Tracked robot', tag: 'Remote-controlled', icon: goods.robot, rarity: 'epic',
+            desc: 'A tracked robot being converted for berry picking and, in winter, snow clearing.',
+          },
+          {
+            id: 'boat', kind: 'good', name: 'Solar boat', tag: 'USV · planned', icon: goods.boat, rarity: 'rare',
+            desc: 'An autonomous solar boat meant to sail from a Finnish harbour to Houston. Still on the drawing board.',
+            spec: [{ label: 'Status', value: 'planned' }],
+          },
+          {
+            id: 'streamdeck', kind: 'good', name: 'Stream Deck', tag: 'Control panel', icon: goods.streamdeck, rarity: 'rare', count: '15',
+            desc: 'The workstation control panel on the tablet: scripts, agents and lights behind one button.',
+          },
+          {
+            id: 'tablet', kind: 'good', name: 'Tablet', tag: 'Android · remote', icon: goods.tablet, rarity: 'rare',
+            desc: 'Second screen and remote control: into the workstation over Tailscale with Moonlight or RustDesk.',
+          },
+          {
+            id: 'esp32', kind: 'good', name: 'ESP32', tag: 'Microcontroller', icon: goods.esp32, rarity: 'common', count: '×3',
+            desc: 'The brains of DoorTap\'s own reader and other home-lab experiments. Wi-Fi and Bluetooth on one chip.',
+          },
+          {
+            id: 'nfctags', kind: 'good', name: 'NFC tags', tag: 'CardTap & DoorTap', icon: goods.nfctags, rarity: 'common', count: '×12',
+            desc: 'Cards and stickers for testing: a business card phone to phone and a door key in the phone.',
+          },
+          {
+            id: 'solder', kind: 'good', name: 'Soldering iron', tag: 'Home lab', icon: goods.solder, rarity: 'common',
+            desc: 'Circuit boards and repairs. In the home lab ideas get soldered down before they become products.',
+          },
+          {
+            id: 'meter', kind: 'good', name: 'Multimeter', tag: 'Home lab', icon: goods.meter, rarity: 'common',
+            desc: 'The first tool out when something does not work. Voltage, current, continuity.',
+          },
+          {
+            id: 'keyboard', kind: 'good', name: 'Keyboard', tag: 'Mechanical', icon: goods.keyboard, rarity: 'common',
+            desc: 'Main weapon for close combat with code.',
+          },
+          {
+            id: 'mouse', kind: 'good', name: 'Mouse', tag: 'Wireless', icon: goods.mouse, rarity: 'common',
+            desc: 'Precision weapon for 3D views and Blender.',
+          },
+          {
+            id: 'headset', kind: 'good', name: 'Headset', tag: 'With microphone', icon: goods.headset, rarity: 'common',
+            desc: 'Meetings, customer calls and focus music.',
+          },
+        ],
+      },
+      {
+        id: 'services',
+        title: 'Services & software',
+        items: [
+          {
+            id: 'claude', kind: 'good', name: 'Claude Max', tag: 'AI partner', icon: goods.claude, rarity: 'legendary',
+            desc: 'Agents, code and design. The single most important tool for Havaida and for studies.',
+          },
+          {
+            id: 'claudecode', kind: 'good', name: 'Claude Code', tag: 'Agentic coding', icon: goods.claudecode, rarity: 'epic',
+            desc: 'A developer agent living in the terminal: repos, tests and releases without the manual labour.',
+          },
+          {
+            id: 'ollama', kind: 'good', name: 'Ollama', tag: 'Local models', icon: goods.ollama, rarity: 'epic', count: '38',
+            desc: 'Language models running on my own hardware. 38 models tested, about 650 GB of models on the H: drive.',
+            spec: [{ label: 'Models', value: '~650 GB' }],
+          },
+          {
+            id: 'higgsfield', kind: 'good', name: 'Higgsfield', tag: 'Images & video', icon: goods.higgsfield, rarity: 'epic',
+            desc: 'The character, items and emblem intro on this site were made here with my own reference character.',
+          },
+          {
+            id: 'supabase', kind: 'good', name: 'Supabase', tag: 'Database', icon: goods.supabase, rarity: 'rare',
+            desc: 'Postgres, auth and realtime in SaaS projects – in the cloud and self-hosted in Docker.',
+          },
+          {
+            id: 'netlify', kind: 'good', name: 'Netlify', tag: 'Hosting', icon: goods.netlify, rarity: 'rare', count: '4',
+            desc: 'Four personal-brand domains straight from GitHub repos to the web.',
+            spec: [{ label: 'Domains', value: 'laikku.com · clausl.com · laikku.dev · clauster.dev' }],
+          },
+          {
+            id: 'n8n', kind: 'good', name: 'n8n', tag: 'Automation', icon: goods.n8n, rarity: 'rare',
+            desc: 'Workflows that wire services together – running locally on my own machine.',
+          },
+          {
+            id: 'blender', kind: 'good', name: 'Blender', tag: '3D', icon: goods.blender, rarity: 'rare',
+            desc: '3D models, visualisations and MCP-driven modelling.',
+          },
+          {
+            id: 'vast', kind: 'good', name: 'Vast.ai', tag: 'Compute', icon: goods.vast, rarity: 'rare',
+            desc: 'Rented GPU power for when the 3060 is not enough.',
+          },
+          {
+            id: 'github', kind: 'good', name: 'GitHub', tag: 'Repos', icon: goods.github, rarity: 'common',
+            desc: 'All code under version control. Public repos show up in the Codex.',
+            links: [{ label: 'github.com/ClauterL', href: links.github }],
+          },
+          {
+            id: 'docker', kind: 'good', name: 'Docker', tag: 'Containers', icon: goods.docker, rarity: 'common',
+            desc: 'Supabase stacks, n8n and other services neatly in their own containers.',
+          },
+          {
+            id: 'tailscale', kind: 'good', name: 'Tailscale', tag: 'Network', icon: goods.tailscale, rarity: 'common',
+            desc: 'A private mesh VPN: workstation, tablet and servers on one network from anywhere.',
+          },
+          {
+            id: 'oskeys', kind: 'good', name: 'Operating systems', tag: 'Windows 11 + Ubuntu', icon: goods.oskeys, rarity: 'common', count: '×2',
+            desc: 'Dual boot: Windows for work and games, native Ubuntu and WSL2 for development.',
+          },
+          {
+            id: 'obsidian', kind: 'good', name: 'Obsidian', tag: 'Notes', icon: goods.obsidian, rarity: 'common',
+            desc: 'A vault on the H: drive: ideas, decisions and study notes, all linked.',
+          },
+        ],
+      },
+    ],
+  },
+
+  skills: {
+    title: 'Skills',
+    lead: 'Unlocked skills in three branches. The percentage says how at home I am with the tool.',
+    unlocked: 'unlocked',
+    mastery: 'mastery',
+    branches: [
+      {
+        title: 'Web & SaaS',
+        nodes: [
+          { name: 'React', icon: 'react', level: 90, desc: 'Components, hooks, performance.' },
+          { name: 'TypeScript', icon: 'typescript', level: 85, desc: 'Typed app code and content models.' },
+          { name: 'Tailwind', icon: 'tailwind', level: 90, desc: 'Tailwind v4 + shadcn/ui.' },
+          { name: 'Node.js', icon: 'nodejs', level: 80, desc: 'APIs, scripts and build tooling.' },
+          { name: 'Supabase', icon: 'supabase', level: 75, desc: 'Postgres, auth and realtime.' },
+          { name: 'Next.js', icon: 'nextjs', level: 70, desc: 'Server rendering and routing.' },
+        ],
+      },
+      {
+        title: 'Automation & AI',
+        nodes: [
+          { name: 'Claude Code', icon: 'claude', level: 90, desc: 'Agent-driven development and workflows.' },
+          { name: 'MCP servers', icon: 'ai', level: 80, desc: 'Tools and integrations for agents.' },
+          { name: 'Playwright', icon: 'playwright', level: 70, desc: 'Browser testing and automation.' },
+          { name: 'Python', icon: 'python', level: 65, desc: 'Data, scripts and prototypes.' },
+          { name: 'Docker', icon: 'docker', level: 55, desc: 'Self-hosting and environments.' },
+        ],
+      },
+      {
+        title: 'Hardware',
+        nodes: [
+          { name: 'Smart lighting', icon: 'lighting', level: 75, desc: 'Lighting control systems.' },
+          { name: 'Drones', icon: 'drone', level: 70, desc: 'Building and flight data.' },
+          { name: '3D printing', icon: 'printer', level: 70, desc: 'Enclosures, parts, prototypes.' },
+          { name: 'Arduino', icon: 'arduino', level: 65, desc: 'Microcontrollers and sensors.' },
+          { name: 'Raspberry Pi', icon: 'raspberrypi', level: 65, desc: 'Small servers and controllers.' },
+          { name: 'Blender', icon: 'blender', level: 50, desc: '3D models for the web.' },
+        ],
+      },
+    ],
+  },
+
+  map: {
+    title: 'Map',
+    lead: 'A real world map: home base, the travel plan and one far-away goal. Scroll to zoom, drag to pan.',
+    fastTravel: 'Fast travel',
+    offmapHint: 'Unexplored',
+    legend: { home: 'Home base', travel: 'Journey', quest: 'Quest', offmap: 'Far away' },
+    regions: [
+      { name: 'Finland', lat: 64.5, lon: 26.5, size: 'md' },
+      { name: 'Baltic Sea', lat: 58.3, lon: 20.0, size: 'sm' },
+      { name: 'Adriatic Sea', lat: 42.6, lon: 15.6, size: 'sm' },
+      { name: 'Mediterranean', lat: 36.0, lon: 14.0, size: 'md' },
+      { name: 'Atlantic Ocean', lat: 40.0, lon: -40.0, size: 'lg' },
+      { name: 'North America', lat: 45.0, lon: -100.0, size: 'lg' },
+      { name: 'Europe', lat: 50.0, lon: 12.0, size: 'lg' },
+      { name: 'Africa', lat: 12.0, lon: 18.0, size: 'lg' },
+      { name: 'Gulf of Mexico', lat: 25.5, lon: -90.0, size: 'sm' },
+    ],
+    routes: [
+      { id: 'move', label: 'Jyväskylä → Split 2027', kind: 'travel', points: [[25.75, 62.24], [16.44, 43.51]] },
+      {
+        id: 'boat',
+        label: 'Robot boat route · idea',
+        kind: 'plan',
+        points: [[25.0, 60.1], [10.5, 57.8], [-5.0, 48.5], [-30.0, 38.0], [-60.0, 26.0], [-80.0, 24.5], [-95.37, 29.76]],
+      },
+    ],
+    ui: { zoomIn: 'Zoom in', zoomOut: 'Zoom out', reset: 'Whole map', fog: 'Unexplored area', explored: 'Explored', coords: 'Position' },
+    markers: [
+      {
+        id: 'jkl',
+        name: 'Jyväskylä',
+        caption: 'Home base · Finland',
+        lat: 62.24,
+        lon: 25.75,
+        kind: 'home',
+        desc: 'Home, the workshop, JAMK and Havaida Oy. Everything gets built from here.',
+      },
+      {
+        id: 'split',
+        name: 'Split',
+        caption: 'Heading there in 2027 · Croatia',
+        lat: 43.51,
+        lon: 16.44,
+        kind: 'travel',
+        desc: 'The next home base, on the Adriatic.',
+      },
+      {
+        id: 'houston',
+        name: 'Houston',
+        caption: 'Robot boat · idea',
+        lat: 29.76,
+        lon: -95.37,
+        kind: 'offmap',
+        desc: 'An autonomous solar boat from a Finnish harbour to Houston – a legendary side quest.',
+      },
+    ],
+  },
+
+  quests: {
+    title: 'Quests',
+    lead: 'The main quest and the side quests. Progress updates as things ship.',
+    mainTitle: 'Main quest',
+    sideTitle: 'Side quests',
+    objectives: 'Objectives',
+    reward: 'Reward',
+    progress: 'Progress',
+    status: { active: 'Active', done: 'Done', planned: 'Planned', idea: 'Idea' },
+    main: {
+      id: 'havaida',
+      type: 'main',
+      title: 'Build Havaida Oy',
+      giver: 'Own decision · summer 2026',
+      status: 'active',
+      progress: 45,
+      desc: 'Websites, automation and AI solutions for businesses – my own company, my own tools.',
+      objectives: [
+        { text: 'Found the company (1 July 2026)', done: true },
+        { text: 'Launch havaida.com and the demo sites', done: true },
+        { text: 'Define the service lines', done: true },
+        { text: 'Put the agent office to internal use', done: true },
+        { text: 'First client projects', done: false },
+        { text: 'Training portal for clients', done: false },
+      ],
+      reward: 'Freedom to choose projects',
+      links: [{ label: 'havaida.com', href: links.havaida }],
+    },
+    side: [
+      {
+        id: 'laikku',
+        type: 'side',
+        title: 'Laikku.com',
+        status: 'done',
+        progress: 100,
+        desc: 'A portfolio shaped like a game menu – this very page.',
+        objectives: [
+          { text: 'Classic portfolio (v2)', done: true },
+          { text: 'Game-menu UI with sound', done: true },
+        ],
+        links: [{ label: 'Source code', href: links.repo }],
+      },
+      {
+        id: 'agents',
+        type: 'side',
+        title: 'Agent office',
+        status: 'active',
+        progress: 70,
+        desc: 'A workspace where AI agents in departments run Havaida’s routines, from invoicing to content.',
+        objectives: [
+          { text: 'Departments and agents', done: true },
+          { text: 'Accounting and database integrations', done: false },
+        ],
+      },
+      {
+        id: 'adscout',
+        type: 'side',
+        title: 'Competitor ad intelligence',
+        status: 'active',
+        progress: 40,
+        desc: 'A local tool that tracks competitors’ advertising and summarises what it finds.',
+        objectives: [
+          { text: 'Ad library search', done: true },
+          { text: 'Summaries and alerts', done: false },
+        ],
+      },
+      {
+        id: 'voice',
+        type: 'side',
+        title: 'Voice AI phone line',
+        status: 'active',
+        progress: 30,
+        desc: 'A voice-driven AI line where the caller talks to a character in real time. First demo for the holiday season.',
+        objectives: [
+          { text: 'Voice model and character', done: false },
+          { text: 'Phone number and demo', done: false },
+        ],
+      },
+      {
+        id: 'jamk',
+        type: 'side',
+        title: 'Engineering degree (JAMK)',
+        status: 'active',
+        progress: 60,
+        desc: 'ICT engineering. Graduating 2027–28.',
+        objectives: [
+          { text: 'Software design and testing', done: true },
+          { text: 'Work-life project', done: false },
+          { text: 'Thesis', done: false },
+        ],
+      },
+      {
+        id: 'split',
+        type: 'side',
+        title: 'Move to Split',
+        status: 'planned',
+        progress: 15,
+        desc: 'A new home base in Croatia in 2027.',
+        objectives: [
+          { text: 'Country and company structure chosen', done: true },
+          { text: 'Apartment and workshop', done: false },
+        ],
+      },
+      {
+        id: 'boat',
+        type: 'side',
+        title: 'Robot boat to Houston',
+        status: 'idea',
+        progress: 5,
+        desc: 'An autonomous solar boat from a Finnish harbour across the Atlantic to Houston.',
+        objectives: [
+          { text: 'Concept and route', done: true },
+          { text: 'Prototype on a lake', done: false },
+        ],
+        reward: 'A legendary story',
+      },
+    ],
+  },
+
+  order: {
+    title: 'Havaida',
+    lead: 'The guild the work goes through.',
+    name: 'Havaida Oy',
+    tagline: 'Intelligent technology. Real impact.',
+    founded: 'Founded 2026 · Jyväskylä',
+    desc: 'Havaida builds intelligent tools for people and companies – from the web to the field. Websites, automation and training by one maker, none of the template flavour.',
+    services: [
+      { title: 'Websites', text: 'Productised site packages for businesses and creative professionals – fast to launch.' },
+      { title: 'Automation & AI solutions', text: 'Integrations, agents and workflows that actually run.' },
+      { title: 'AI & data training', text: 'Hands-on training for teams: tools, workflows and ground rules.' },
+    ],
+    link: { label: 'havaida.com', href: links.havaida },
+    cta: { label: 'Get in touch', href: '#codex' },
+  },
+
+  codex: {
+    title: 'Codex',
+    lead: 'Who, where and how to reach me.',
+    paragraphs: [
+      'I’m Claus Laikku, a developer and entrepreneur from Jyväskylä, Finland. I founded Havaida Oy in summer 2026, work in smart lighting as a technical specialist and study ICT engineering at JAMK.',
+      'Off the clock: HEMA, diving, golf and the forest. In 2027 the compass points to Split, Croatia.',
+    ],
+    quote: 'I waited a year for someone to release the tool. Then I built it in a weekend.',
+    info: [
+      { label: 'Name', value: 'Claus Laikku' },
+      { label: 'Email', value: links.email, href: `mailto:${links.email}` },
+      { label: 'Location', value: 'Jyväskylä, Finland' },
+      { label: 'Availability', value: 'Open to new projects' },
+    ],
+    stats: [
+      { value: '2+', label: 'years in smart technology' },
+      { value: '9', label: 'demo sites' },
+      { value: '4', label: 'service lines' },
+      { value: '6', label: 'browser games' },
+    ],
+    links: [
+      { label: 'Instagram', value: '@claus.laikku', href: links.instagram },
+      { label: 'GitHub', value: 'ClauterL', href: links.github },
+      { label: 'Havaida', value: 'havaida.com', href: links.havaida },
+      { label: 'Email', value: links.email, href: `mailto:${links.email}` },
+    ],
+    contactTitle: 'Send a message',
+    form: {
+      name: 'Name',
+      email: 'Email',
+      message: 'Message',
+      submit: 'Send',
+      subject: 'Hello from laikku.com',
+      hint: 'Opens your email app with the message pre-filled – no cookies, no middlemen.',
+    },
+    portrait: { ...images.portrait, alt: 'Claus Laikku at his workshop bench, a drone and a 3D printer behind him.' },
+    builtWith: 'React · Tailwind v4 · shadcn/ui · Web Audio · images by Higgsfield',
+  },
+
+  hints: {
+    details: 'Details',
+    stats: 'Stats',
+    select: 'Select',
+    back: 'Back',
+    prevTab: 'Previous',
+    nextTab: 'Next',
+    mute: 'Sound',
+    move: 'Move',
+  },
+
+  ui: {
+    langToggle: 'Language',
+    close: 'Close',
+    menu: 'Menu',
+    settings: 'Settings',
+    ambient: 'Ambient hum',
+    ambientHint: 'A quiet hum behind the menu.',
+    sfx: 'Sound effects',
+    source: 'Source code',
+    github: 'GitHub',
+    copyright: `© ${year} Claus Laikku`,
+    place: 'Jyväskylä → Split 2027',
+  },
+}
