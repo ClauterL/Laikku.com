@@ -23,10 +23,12 @@ export interface Item {
   name: string
   kind: 'gear' | 'item' | 'lang' | 'good'
   icon: string // /images/icon-*.webp
+  /** Oikea brändilogo (simple-icons, TechIcon-avain) – korvaa ikonikuvan slotissa */
+  logo?: string
   rarity: Rarity
   tag: string
   desc: string
-  level?: number // 0–100, varusteilla
+  level?: number // 0–100, varusteilla (ei näytetä numerona)
   tech?: string[]
   status?: string
   links?: Link[]

@@ -106,7 +106,6 @@ function DetailStrip({ item }: { item: Item | null }) {
         </p>
         <p className="truncate text-sm text-ink-2">{item.desc}</p>
       </div>
-      {item.level !== undefined && <span className="font-display text-xl text-brass-2 tabular-nums">{item.level}</span>}
       {item.status && <span className="text-[0.68rem] uppercase tracking-wider text-teal-2">{item.status}</span>}
     </div>
   )
@@ -182,9 +181,9 @@ export function InventoryScreen() {
           refs.current[i] = el
         }}
         icon={item.icon}
+        logo={item.logo}
         name={item.name}
         rarity={item.rarity}
-        badge={item.level !== undefined ? String(item.level) : undefined}
         active={hover?.id === item.id}
         onMouseEnter={() => {
           setHover(item)
@@ -261,6 +260,7 @@ export function InventoryScreen() {
                   }}
                   size="sm"
                   icon={it.icon}
+                  logo={it.logo}
                   name={it.name}
                   rarity={it.rarity}
                   active={hover?.id === it.id}

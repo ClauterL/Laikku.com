@@ -39,10 +39,10 @@ export const fi: Content = {
   },
 
   hud: {
-    level: { value: '28', label: 'Taso', caption: 'Rakentaja' },
+    level: { value: '25', label: 'Taso', caption: 'Rakentaja' },
     slots: [
-      { id: 'energy', name: 'Energia', icon: icons.coffee, meter: 4, caption: 'Kahvi · 4/5' },
-      { id: 'hema', name: 'HEMA', icon: icons.sword, meter: 3, caption: 'Pitkämiekka' },
+      { id: 'study', name: 'Opinnot', icon: icons.study, meter: 4, caption: 'JAMK · ICT-insinööri' },
+      { id: 'adventure', name: 'Seikkailu', icon: icons.adventure, meter: 3, caption: 'Seuraava etappi: Split' },
     ],
     bag: {
       title: 'Reppu',
@@ -160,12 +160,12 @@ export const fi: Content = {
       },
     ],
     languages: [
-      { id: 'react', kind: 'lang', name: 'React', tag: 'Käyttöliittymät', icon: icons.react, rarity: 'legendary', level: 90, desc: 'Komponentit, hookit ja suorituskyky – pääkirjasto kaikissa sovelluksissa.' },
-      { id: 'typescript', kind: 'lang', name: 'TypeScript', tag: 'Tyypitetty koodi', icon: icons.typescript, rarity: 'epic', level: 85, desc: 'Tyypitetty sovelluskoodi ja sisältömallit, joihin voi luottaa.' },
-      { id: 'node', kind: 'lang', name: 'Node.js', tag: 'Palvelin & skriptit', icon: icons.node, rarity: 'epic', level: 80, desc: 'API:t, build-työkalut ja automaatioskriptit.' },
-      { id: 'supabase', kind: 'lang', name: 'Supabase', tag: 'Tietokanta & auth', icon: icons.supabase, rarity: 'rare', level: 75, desc: 'Postgres, kirjautuminen ja realtime SaaS-projekteissa.' },
-      { id: 'tailwind', kind: 'lang', name: 'Tailwind', tag: 'Ulkoasu', icon: icons.tailwind, rarity: 'epic', level: 90, desc: 'Tailwind v4 + shadcn/ui – nopea, yhtenäinen ulkoasu.' },
-      { id: 'python', kind: 'lang', name: 'Python', tag: 'Data & prototyypit', icon: icons.python, rarity: 'rare', level: 65, desc: 'Datankäsittely, skriptit ja nopeat kokeilut.' },
+      { id: 'react', kind: 'lang', name: 'React', tag: 'Käyttöliittymät', icon: icons.react, logo: 'react', rarity: 'legendary', level: 90, desc: 'Komponentit, hookit ja suorituskyky – pääkirjasto kaikissa sovelluksissa.' },
+      { id: 'typescript', kind: 'lang', name: 'TypeScript', tag: 'Tyypitetty koodi', icon: icons.typescript, logo: 'typescript', rarity: 'epic', level: 85, desc: 'Tyypitetty sovelluskoodi ja sisältömallit, joihin voi luottaa.' },
+      { id: 'node', kind: 'lang', name: 'Node.js', tag: 'Palvelin & skriptit', icon: icons.node, logo: 'nodejs', rarity: 'epic', level: 80, desc: 'API:t, build-työkalut ja automaatioskriptit.' },
+      { id: 'supabase', kind: 'lang', name: 'Supabase', tag: 'Tietokanta & auth', icon: icons.supabase, logo: 'supabase', rarity: 'rare', level: 75, desc: 'Postgres, kirjautuminen ja realtime SaaS-projekteissa.' },
+      { id: 'tailwind', kind: 'lang', name: 'Tailwind', tag: 'Ulkoasu', icon: icons.tailwind, logo: 'tailwind', rarity: 'epic', level: 90, desc: 'Tailwind v4 + shadcn/ui – nopea, yhtenäinen ulkoasu.' },
+      { id: 'python', kind: 'lang', name: 'Python', tag: 'Data & prototyypit', icon: icons.python, logo: 'python', rarity: 'rare', level: 65, desc: 'Datankäsittely, skriptit ja nopeat kokeilut.' },
     ],
   },
 
