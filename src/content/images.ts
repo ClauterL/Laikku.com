@@ -8,10 +8,10 @@ export const images = {
   /** hahmo keskellä (taustanpoistettu) */
   character: {
     src: '/images/character-800.webp',
-    srcSet: '/images/character-800.webp 800w, /images/character-1400.webp 1156w',
+    srcSet: '/images/character-800.webp 800w, /images/character-1300.webp 1300w',
     sizes: '(min-width: 1024px) 560px, 90vw',
-    width: 1156,
-    height: 2273,
+    width: 1300,
+    height: 2313,
   } satisfies Base,
   portrait: {
     src: '/images/portrait-720.webp',
