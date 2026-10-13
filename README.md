@@ -26,6 +26,7 @@ näppäimistöllä navigoitava, ääniefektit.
 | Kuvat         | Higgsfield: hahmo Claus-referenssihahmolla + taustanpoisto, 18 ympyräikonia + 35 Tavarat-esinettä fotorealistisella AC Odyssey -esinetyylillä (tumma liuskekivitausta, harvinaisuushehku), tunnuksen paljastusvideo, 2 taustaa (`public/images`) |
 | Data          | `scripts/fetch-github.mjs` hakee julkiset GitHub-tiedot build-aikana → `src/data/github.json` · `scripts/build-world.mjs` → `src/data/world.json` (maailmankartta) |
 | Kartta        | d3-geo (Natural Earth -projektio) · d3-zoom · topojson-client; ei karttapalvelimia tai ulkoisia tiilejä |
+| 3D-loft       | three · @react-three/fiber · drei · @react-three/rapier (fysiikka) · ecctrl (kolmannen persoonan hahmo-ohjain, joystick) – ladataan laiskasti vasta `#loft`-näkymässä |
 | Julkaisu      | GitHub Actions → GitHub Pages (custom domain `laikku.com`, `public/CNAME`)             |
 
 ## Komennot
@@ -62,6 +63,10 @@ src/
     QuestsScreen             pää- ja sivutehtävät, tavoitteet, eteneminen
     OrderScreen              Havaida Oy ("kilta")
     CodexScreen              minusta, tiedot, tilastot, yhteydenotto (mailto)
+  components/loft/
+    zones.ts                 loftin pohjapiirros: 9 vyöhykettä, mikä osio kustakin aukeaa, aloituspaikka
+    LoftScene                huone, paikkamerkkiesineet, hahmo (ecctrl + Rapier), seurantakamera, lähin vyöhyke
+    LoftView                 #loft-näkymä: canvas, kehote (E / napautus), pikavalikko (Q), joystick, osiopaneeli
   components/ui/             shadcn/ui-komponentit
   hooks/useLang, useSound
 v2/                          edellinen (perinteinen) portfolio, itsenäinen projekti

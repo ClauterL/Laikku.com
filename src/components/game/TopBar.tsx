@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Mail, Menu, Volume2, VolumeX } from 'lucide-react'
+import { Box, Mail, Menu, Volume2, VolumeX } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
@@ -56,7 +56,7 @@ export function SoundToggle() {
   )
 }
 
-export function TopBar({ tab, onSelectTab }: { tab: TabId; onSelectTab: (id: TabId) => void }) {
+export function TopBar({ tab, onSelectTab, onOpenLoft }: { tab: TabId; onSelectTab: (id: TabId) => void; onOpenLoft?: () => void }) {
   const { t } = useLang()
   const { play, ambient, setAmbient } = useSound()
   const listRef = useRef<HTMLDivElement>(null)
@@ -163,6 +163,21 @@ export function TopBar({ tab, onSelectTab }: { tab: TabId; onSelectTab: (id: Tab
             <LangSwitch />
           </div>
           <SoundToggle />
+          {onOpenLoft && (
+            <button
+              type="button"
+              onClick={() => {
+                play('select')
+                onOpenLoft()
+              }}
+              onMouseEnter={() => play('tick')}
+              title={t.loft.openHint}
+              className="flex h-9 items-center gap-2 rounded-sm border border-brass/60 bg-bg-2/70 px-2.5 font-display text-[0.68rem] uppercase tracking-[0.18em] text-brass-2 transition-colors hover:border-brass hover:bg-brass/10 cursor-pointer"
+            >
+              <Box className="size-4" />
+              <span className="hidden sm:inline">{t.loft.open}</span>
+            </button>
+          )}
           <Button
             size="sm"
             className="hidden rounded-sm font-display text-[0.68rem] uppercase tracking-[0.18em] md:inline-flex"

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { StartScreen } from '@/components/game/StartScreen'
@@ -15,7 +15,12 @@ import { LangContext, useLangState } from '@/hooks/useLang'
 import { SoundContext, useSoundState } from '@/hooks/useSound'
 import { backgrounds, type TabId } from '@/content'
 
+// 3D-loft ladataan vasta kun se avataan (three + rapier omaan pakettiinsa)
+const LoftView = lazy(() => import('@/components/loft/LoftView'))
+
 const TAB_IDS: TabId[] = ['skills', 'inventory', 'items', 'map', 'quests', 'order', 'codex']
+
+const isLoftHash = () => window.location.hash === '#loft'
 
 function readHash(): TabId {
   const h = window.location.hash.replace('#', '') as TabId
@@ -28,6 +33,14 @@ export default function App() {
   const [started, setStarted] = useState(false)
   const [tab, setTabState] = useState<TabId>(readHash)
   const [fx, setFx] = useState(0)
+  const [loft, setLoft] = useState(isLoftHash)
+
+  const openLoft = useCallback(() => {
+    setLoft(true)
+    try {
+      window.history.replaceState(null, '', '#loft')
+    } catch {}
+  }, [])
 
   const setTab = useCallback(
     (id: TabId) => {
@@ -50,22 +63,33 @@ export default function App() {
     [tab, setTab, sound],
   )
 
-  // Globaalit näppäimet: Q/E välilehdet, M mykistys
+  const closeLoft = useCallback(() => {
+    setLoft(false)
+    try {
+      window.history.replaceState(null, '', `#${tab}`)
+    } catch {}
+  }, [tab])
+
+  // Globaalit näppäimet: Q/E välilehdet, M mykistys (loftissa omat näppäimet)
   useEffect(() => {
     if (!started) return
     const onKey = (e: KeyboardEvent) => {
       const el = document.activeElement as HTMLElement | null
       if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) return
+      if (e.key === 'm' || e.key === 'M') return sound.toggleMute()
+      if (loft) return
       if (e.key === 'q' || e.key === 'Q' || e.key === '[') step(-1)
       else if (e.key === 'e' || e.key === 'E' || e.key === ']') step(1)
-      else if (e.key === 'm' || e.key === 'M') sound.toggleMute()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [started, step, sound])
+  }, [started, step, sound, loft])
 
   useEffect(() => {
-    const onHash = () => setTabState(readHash())
+    const onHash = () => {
+      setLoft(isLoftHash())
+      if (!isLoftHash()) setTabState(readHash())
+    }
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
@@ -85,7 +109,7 @@ export default function App() {
           }}
           className="flex min-h-full flex-col"
         >
-          <TopBar tab={tab} onSelectTab={(id) => setTab(id)} />
+          <TopBar tab={tab} onSelectTab={(id) => setTab(id)} onOpenLoft={openLoft} />
           <main id="main" key={fx} className={started ? 'screen-in flex-1' : 'iris-open flex-1'}>
             <TabsContent value="skills">
               <SkillsScreen />
@@ -111,6 +135,11 @@ export default function App() {
           </main>
           <BottomBar />
         </Tabs>
+        {started && loft && (
+          <Suspense fallback={null}>
+            <LoftView onExit={closeLoft} />
+          </Suspense>
+        )}
       </SoundContext.Provider>
     </LangContext.Provider>
   )
