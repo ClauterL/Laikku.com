@@ -1,5 +1,7 @@
 export type Lang = 'fi' | 'en'
 export type TabId = 'skills' | 'inventory' | 'items' | 'map' | 'quests' | 'order' | 'codex'
+/** 3D-loftin vyöhykkeet (kävijän reitti 1–9) */
+export type LoftZoneId = 'elevator' | 'workshop' | 'library' | 'desk' | 'warroom' | 'projects' | 'hobbies' | 'trophies' | 'window'
 export type Rarity = 'common' | 'rare' | 'epic' | 'legendary'
 export type QuestStatus = 'active' | 'done' | 'planned' | 'idea'
 
@@ -176,6 +178,22 @@ export interface Content {
     form: { name: string; email: string; message: string; submit: string; subject: string; hint: string }
     portrait: Img
     builtWith: string
+  }
+
+  /** 3D-loft: kolmannen persoonan portfolio, esineet avaavat osiot */
+  loft: {
+    open: string
+    openHint: string
+    title: string
+    exit: string
+    loading: string
+    noWebgl: string
+    prompt: string
+    quick: string
+    quickHint: string
+    close: string
+    controls: { move: string; run: string; look: string; interact: string; quick: string }
+    zones: { id: LoftZoneId; name: string; note: string }[]
   }
 
   hints: { details: string; stats: string; select: string; back: string; prevTab: string; nextTab: string; mute: string; move: string }

@@ -638,6 +638,31 @@ export const en: Content = {
     builtWith: 'React · Tailwind v4 · shadcn/ui · Web Audio · images by Higgsfield',
   },
 
+  loft: {
+    open: 'Loft 3D',
+    openHint: 'Walk around the loft and open sections from objects',
+    title: 'Loft',
+    exit: 'Menu',
+    loading: 'Building the loft',
+    noWebgl: 'Your browser does not support the 3D view. Every section is available from the menu.',
+    prompt: 'Open',
+    quick: 'Quick menu',
+    quickHint: 'Jump straight to a section without walking.',
+    close: 'Close',
+    controls: { move: 'Move', run: 'Run', look: 'Camera', interact: 'Open', quick: 'Quick menu' },
+    zones: [
+      { id: 'elevator', name: 'Elevator lobby', note: 'Havaida and contact' },
+      { id: 'workshop', name: 'Workshop', note: 'Gear, tools and software' },
+      { id: 'library', name: 'Library', note: 'Story and CV' },
+      { id: 'desk', name: 'Workstation', note: 'Skills and languages' },
+      { id: 'warroom', name: 'War room', note: 'Roadmap and quests' },
+      { id: 'projects', name: 'Project table', note: 'Projects and games' },
+      { id: 'hobbies', name: 'Hobby corner', note: 'About me and hobbies' },
+      { id: 'trophies', name: 'Trophy wall', note: 'Level and skills' },
+      { id: 'window', name: 'Window and map table', note: 'Travels and routes' },
+    ],
+  },
+
   hints: {
     details: 'Details',
     stats: 'Stats',

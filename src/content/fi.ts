@@ -649,6 +649,31 @@ export const fi: Content = {
     builtWith: 'React · Tailwind v4 · shadcn/ui · Web Audio · kuvat Higgsfield',
   },
 
+  loft: {
+    open: 'Loft 3D',
+    openHint: 'Kävele loftissa ja avaa osiot esineistä',
+    title: 'Loft',
+    exit: 'Valikkoon',
+    loading: 'Rakennetaan loftia',
+    noWebgl: 'Selaimesi ei tue 3D-näkymää. Kaikki osiot löytyvät valikosta.',
+    prompt: 'Avaa',
+    quick: 'Pikavalikko',
+    quickHint: 'Hyppää suoraan osioon kävelemättä.',
+    close: 'Sulje',
+    controls: { move: 'Liiku', run: 'Juokse', look: 'Kamera', interact: 'Avaa', quick: 'Pikavalikko' },
+    zones: [
+      { id: 'elevator', name: 'Hissiaula', note: 'Havaida ja yhteydenotto' },
+      { id: 'workshop', name: 'Paja', note: 'Laitteet, työkalut ja ohjelmistot' },
+      { id: 'library', name: 'Kirjasto', note: 'Tarina ja CV' },
+      { id: 'desk', name: 'Työpiste', note: 'Taidot ja koodikielet' },
+      { id: 'warroom', name: 'War room', note: 'Roadmap ja tehtävät' },
+      { id: 'projects', name: 'Projektipöytä', note: 'Projektit ja pelit' },
+      { id: 'hobbies', name: 'Harrastusnurkka', note: 'Minusta ja harrastukset' },
+      { id: 'trophies', name: 'Palkintoseinä', note: 'Taso ja osaaminen' },
+      { id: 'window', name: 'Ikkuna ja karttapöytä', note: 'Matkat ja reitit' },
+    ],
+  },
+
   hints: {
     details: 'Tiedot',
     stats: 'Tilastot',
