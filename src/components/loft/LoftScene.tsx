@@ -1,31 +1,25 @@
-import { useCallback, useEffect, useMemo, useRef, type ReactNode, type RefObject } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import * as THREE from 'three'
 import { useFrame, useThree } from '@react-three/fiber'
 import { CuboidCollider, Physics, RigidBody } from '@react-three/rapier'
-import { KeyboardControls, useKeyboardControls } from '@react-three/drei'
+import { Environment, KeyboardControls, Lightformer, useAnimations, useGLTF, useKeyboardControls } from '@react-three/drei'
 import { Ecctrl, type EcctrlHandle } from 'ecctrl'
 import { EcctrlCameraControls, type EcctrlCameraControlsHandle } from 'ecctrl/camera'
 import { useJoystickStore } from 'ecctrl/input'
+import { EcctrlAnimationStateController, useEcctrlAnimationStore, type EcctrlAnimationState } from 'ecctrl/animation'
 
 import type { LoftZoneId } from '@/content'
-import { INTERACT_RADIUS, ROOM, SPAWN, ZONES } from './zones'
+import colliders from './colliders.json'
+import { INTERACT_RADIUS, MAP_HIGHLIGHT, MODEL_BASE, PROPS, SPAWN, ZONES, type Anchor, type PropDef } from './zones'
 
-/* Värit: sivun teema (viini, messinki, hiili) + Havaidan sininen–violetti neon */
+/* Värit: sivun teema (viini, messinki, hiili) */
 const C = {
-  floor: '#2f2c2a',
-  wall: '#1b1d22',
-  wallWarm: '#2a2420',
-  brick: '#6a3328',
-  wood: '#5a3a24',
-  woodDark: '#2e2019',
-  steel: '#3a3f47',
   brass: '#c9a86a',
+  brassLight: '#e8cf96',
   wine: '#7a2433',
-  ink: '#efe6d3',
-  blue: '#4c6fff',
-  violet: '#8b5cf6',
   teal: '#3fa7a0',
-  gold: '#f1c45a',
+  mapLand: '#6b5a3e',
+  mapBoard: '#17120e',
 } as const
 
 const KEYMAP = [
@@ -37,37 +31,289 @@ const KEYMAP = [
   { name: 'run', keys: ['ShiftLeft', 'ShiftRight'] },
 ]
 
-/* ---------- pienet apurit ---------- */
+const url = (file: string) => MODEL_BASE + file
 
-type V3 = [number, number, number]
+/* ---------- läpinäkymä: hahmon ja kameran väliin jäävät seinät aukeavat ---------- */
 
-function Box({ p, s, c, e, ei = 1.5, r = 0.8, m = 0 }: { p: V3; s: V3; c: string; e?: string; ei?: number; r?: number; m?: number }) {
+const CUTOUT = {
+  uPlayer: { value: new THREE.Vector3() },
+  uCam: { value: new THREE.Vector3() },
+  uCutR: { value: 0.45 },
+}
+
+/** Lisää materiaaliin pyöreän aukon kameran ja hahmon väliselle janalle (lattia jää ehjäksi) */
+function withCutout(material: THREE.Material) {
+  if (material.userData.cutout) return
+  material.userData.cutout = true
+  material.onBeforeCompile = (shader) => {
+    Object.assign(shader.uniforms, CUTOUT)
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vCutWorld;')
+      .replace(
+        '#include <project_vertex>',
+        `#include <project_vertex>
+vec4 cutWp = vec4(transformed, 1.0);
+#ifdef USE_INSTANCING
+cutWp = instanceMatrix * cutWp;
+#endif
+vCutWorld = (modelMatrix * cutWp).xyz;`,
+      )
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vCutWorld;\nuniform vec3 uPlayer;\nuniform vec3 uCam;\nuniform float uCutR;')
+      .replace(
+        '#include <clipping_planes_fragment>',
+        `#include <clipping_planes_fragment>
+if (vCutWorld.y > 0.06) {
+  vec3 seg = uPlayer - uCam;
+  float segL = length(seg);
+  vec3 dir = seg / max(segL, 0.001);
+  vec3 rel = vCutWorld - uCam;
+  float t = dot(rel, dir);
+  if (t > 0.0 && t < segL - 0.5) {
+    float d = length(rel - dir * t);
+    float r = uCutR * clamp(t / segL + 0.2, 0.0, 1.0);
+    if (d < r) discard;
+  }
+}`,
+      )
+  }
+  material.customProgramCacheKey = () => 'loft-cutout'
+}
+
+function cutoutAll(root: THREE.Object3D) {
+  root.traverse((o) => {
+    const mesh = o as THREE.Mesh
+    if (!mesh.isMesh) return
+    const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+    mats.forEach(withCutout)
+  })
+}
+
+/* ---------- asunto ---------- */
+
+function isEnvMaterial(m: THREE.Material) {
+  return /hdri/i.test(m.name)
+}
+
+interface LightmapManifest {
+  gain: number
+  atlases: { file: string; M: number }[]
+}
+
+/**
+ * Unrealin Lightmass-valokartat (jos viety): materiaalit, joiden nimi päättyy __lmK,
+ * saavat atlaksen K valokartaksi uv1-kanavalle. Ilman tiedostoa käytetään pelkkiä reaaliaikavaloja.
+ */
+function useLightmaps(scene: THREE.Object3D, onReady: (lit: boolean) => void) {
+  useEffect(() => {
+    let alive = true
+    const loader = new THREE.TextureLoader()
+    fetch(url('lightmaps.json'))
+      .then((r) => (r.ok ? (r.json() as Promise<LightmapManifest>) : null))
+      .then(async (man) => {
+        if (!man || !alive) return
+        const tex = await Promise.all(
+          man.atlases.map(async (a) => {
+            const t = await loader.loadAsync(url(a.file))
+            t.flipY = false
+            t.channel = 1
+            t.colorSpace = THREE.SRGBColorSpace
+            return { t, M: a.M }
+          }),
+        )
+        if (!alive) return
+        scene.traverse((o) => {
+          const mesh = o as THREE.Mesh
+          if (!mesh.isMesh) return
+          const mats = (Array.isArray(mesh.material) ? mesh.material : [mesh.material]) as THREE.MeshStandardMaterial[]
+          for (const m of mats) {
+            const k = /__lm(\d+)$/.exec(m.name)
+            const lm = k ? tex[Number(k[1])] : undefined
+            if (!lm) continue
+            m.lightMap = lm.t
+            m.lightMapIntensity = lm.M * man.gain
+            m.needsUpdate = true
+          }
+        })
+        onReady(true)
+      })
+      .catch(() => onReady(false))
+    return () => {
+      alive = false
+    }
+  }, [scene, onReady])
+}
+
+function Apartment({ shadows, onLit }: { shadows: boolean; onLit: (lit: boolean) => void }) {
+  const { scene } = useGLTF(url('apartment.glb'), false, true)
+  useLightmaps(scene, onLit)
+  useLayoutEffect(() => {
+    scene.traverse((o) => {
+      const mesh = o as THREE.Mesh
+      if (!mesh.isMesh) return
+      const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+      if (mats.some(isEnvMaterial)) {
+        // Kaupunkipanoraama: nähdään pallon sisältä, ei valaistusta
+        for (const m of mats) {
+          m.side = THREE.BackSide
+          m.toneMapped = false
+        }
+        mesh.renderOrder = -1
+        return
+      }
+      mesh.castShadow = shadows
+      mesh.receiveShadow = true
+    })
+    cutoutAll(scene)
+  }, [scene, shadows])
+  return <primitive object={scene} />
+}
+
+/** Kaikki törmäykset: lattia + asunnon seinät ja isot huonekalut (generoitu mallista) */
+function ApartmentColliders() {
   return (
-    <mesh position={p}>
-      <boxGeometry args={s} />
-      <meshStandardMaterial
-        color={c}
-        roughness={r}
-        metalness={m}
-        emissive={e ?? '#000000'}
-        emissiveIntensity={e ? ei : 0}
-        toneMapped={!e}
-      />
-    </mesh>
+    <RigidBody type="fixed" colliders={false}>
+      <CuboidCollider args={[8, 0.5, 8]} position={[0, -0.5, 0]} />
+      {colliders.solid.map(([x, y, z, hx, hy, hz], i) => (
+        <CuboidCollider key={i} args={[hx, hy, hz]} position={[x, y, z]} />
+      ))}
+    </RigidBody>
   )
 }
 
-function Cyl({ p, rt, rb, h, c, m = 0, r = 0.6, e }: { p: V3; rt: number; rb: number; h: number; c: string; m?: number; r?: number; e?: string }) {
+/** Näkymättömät laatikot kameran törmäyksiin: seinät + katto (kamera pysyy huoneen sisällä) */
+function useCameraBlockers() {
+  return useMemo(() => {
+    const geo = new THREE.BoxGeometry(1, 1, 1)
+    const mat = new THREE.MeshBasicMaterial({ visible: false })
+    // + katto ja hissin ovijulkisivu (oviaukko seinässä)
+    const boxes: number[][] = [...colliders.camera, [0, 2.95, 0, 6, 0.25, 6], [0.6, 1.4, 5.05, 1.3, 1.4, 0.2]]
+    return boxes.map(([x, y, z, hx, hy, hz]) => {
+      const m = new THREE.Mesh(geo, mat)
+      m.position.set(x, y, z)
+      m.scale.set(hx * 2, hy * 2, hz * 2)
+      m.updateMatrixWorld(true)
+      return m
+    })
+  }, [])
+}
+
+/* ---------- esineet ---------- */
+
+function anchorPoint(box: THREE.Box3, anchor: Anchor): THREE.Vector3 {
+  const c = box.getCenter(new THREE.Vector3())
+  switch (anchor) {
+    case 'back':
+      return new THREE.Vector3(c.x, box.min.y, box.min.z)
+    case 'front':
+      return new THREE.Vector3(c.x, box.min.y, box.max.z)
+    case 'top':
+      return new THREE.Vector3(c.x, box.max.y, c.z)
+    case 'wall':
+      return new THREE.Vector3(c.x, c.y, box.min.z)
+    default:
+      return new THREE.Vector3(c.x, box.min.y, c.z)
+  }
+}
+
+/** Esineen erikoiskäsittely latauksen jälkeen (materiaalit) */
+function prepareProp(id: string, root: THREE.Object3D) {
+  if (id === 'worldmap') {
+    const land = new THREE.MeshStandardMaterial({ color: C.mapLand, metalness: 0.55, roughness: 0.45 })
+    root.traverse((o) => {
+      const mesh = o as THREE.Mesh
+      if (!mesh.isMesh) return
+      // maakoodi on solmun tai sen vanhemman nimessä (FI, HR …)
+      const code = [mesh.name, mesh.parent?.name ?? ''].find((n) => MAP_HIGHLIGHT[n])
+      mesh.material = code
+        ? new THREE.MeshStandardMaterial({ color: MAP_HIGHLIGHT[code], emissive: MAP_HIGHLIGHT[code], emissiveIntensity: 0.9, metalness: 0.3, roughness: 0.4 })
+        : land
+    })
+  }
+  if (id === 'arcade') {
+    root.traverse((o) => {
+      const mesh = o as THREE.Mesh
+      if (!mesh.isMesh) return
+      const mat = mesh.material as THREE.MeshStandardMaterial
+      if (mat.map) {
+        mat.emissive = new THREE.Color('#ffffff')
+        mat.emissiveMap = mat.map
+        mat.emissiveIntensity = 0.32
+      }
+    })
+  }
+}
+
+function Placed({ def, shadows, onSelect }: { def: PropDef; shadows: boolean; onSelect: (id: LoftZoneId) => void }) {
+  const { scene } = useGLTF(url(def.file), false, true)
+
+  const placed = useMemo(() => {
+    const obj = scene.clone(true)
+    prepareProp(def.id, obj)
+    cutoutAll(obj)
+    const tilt = new THREE.Group()
+    tilt.rotation.x = def.rotX ?? 0
+    tilt.add(obj)
+    tilt.updateMatrixWorld(true)
+    const box = new THREE.Box3().setFromObject(tilt)
+    const size = box.getSize(new THREE.Vector3())
+    const k = def.fit.h ? def.fit.h / size.y : (def.fit.w ?? size.x) / size.x
+    const a = anchorPoint(box, def.anchor ?? 'bottom')
+    const center = box.getCenter(new THREE.Vector3())
+    const cast = def.castShadow ?? true
+    obj.traverse((o) => {
+      const mesh = o as THREE.Mesh
+      if (mesh.isMesh) {
+        mesh.castShadow = shadows && cast
+        mesh.receiveShadow = true
+      }
+    })
+    const kz = k * (def.depthScale ?? 1)
+    const scale = new THREE.Vector3(k, k, kz)
+    const half = size.clone().multiply(scale).multiplyScalar(0.5)
+    const offset = center.clone().sub(a).multiply(scale)
+    let collider: { args: [number, number, number]; pos: [number, number, number] } | null = null
+    if (def.collider === 'box') collider = { args: [half.x, half.y, half.z], pos: [offset.x, offset.y, offset.z] }
+    if (def.collider === 'thin') collider = { args: [half.x, half.y, 0.07], pos: [offset.x, offset.y, (box.min.z - a.z) * kz + 0.07] }
+    return { tilt, scale, a, collider }
+  }, [scene, def, shadows])
+
+  const rotY = def.rotY ?? 0
+  const body = (
+    <group position={def.at} rotation-y={rotY}>
+      <group scale={placed.scale} position={[-placed.a.x * placed.scale.x, -placed.a.y * placed.scale.y, -placed.a.z * placed.scale.z]}>
+        <primitive object={placed.tilt} />
+      </group>
+    </group>
+  )
+
   return (
-    <mesh position={p}>
-      <cylinderGeometry args={[rt, rb, h, 20]} />
-      <meshStandardMaterial color={c} metalness={m} roughness={r} emissive={e ?? '#000000'} emissiveIntensity={e ? 1.2 : 0} />
-    </mesh>
+    <>
+      {def.zone ? (
+        <ZoneHit id={def.zone} onSelect={onSelect}>
+          {body}
+        </ZoneHit>
+      ) : (
+        body
+      )}
+      {placed.collider && (
+        <RigidBody type="fixed" colliders={false} position={def.at} rotation={[0, rotY, 0]}>
+          <CuboidCollider args={placed.collider.args} position={placed.collider.pos} />
+        </RigidBody>
+      )}
+      {def.id === 'worldmap' && (
+        // tumma taustalevy kartan taakse
+        <mesh position={[def.at[0] + 0.02, def.at[1], def.at[2]]} rotation-y={rotY}>
+          <boxGeometry args={[(def.fit.w ?? 1.7) + 0.16, (def.fit.w ?? 1.7) * 0.68 + 0.16, 0.02]} />
+          <meshStandardMaterial color={C.mapBoard} roughness={0.8} />
+        </mesh>
+      )}
+    </>
   )
 }
 
 /** Klikattava vyöhyke: hiiri osoittimeksi ja avaus napautuksella */
-function Zone({ id, onSelect, children }: { id: LoftZoneId; onSelect: (id: LoftZoneId) => void; children: ReactNode }) {
+function ZoneHit({ id, onSelect, children }: { id: LoftZoneId; onSelect: (id: LoftZoneId) => void; children: ReactNode }) {
   return (
     <group
       name={`zone-${id}`}
@@ -83,260 +329,58 @@ function Zone({ id, onSelect, children }: { id: LoftZoneId; onSelect: (id: LoftZ
   )
 }
 
-/* Kaupunkinäkymä ikkunan taakse: deterministinen proseduurikuva (ei kuvatiedostoa) */
-function makeSkyline(): THREE.CanvasTexture {
-  const w = 2048
-  const h = 512
-  const cv = document.createElement('canvas')
-  cv.width = w
-  cv.height = h
-  const g = cv.getContext('2d')!
-  const sky = g.createLinearGradient(0, 0, 0, h)
-  sky.addColorStop(0, '#070b1c')
-  sky.addColorStop(0.55, '#1a1638')
-  sky.addColorStop(0.85, '#4a2537')
-  sky.addColorStop(1, '#6b3a2c')
-  g.fillStyle = sky
-  g.fillRect(0, 0, w, h)
-  const rng = { s: 1337 }
-  const rnd = () => {
-    rng.s = (rng.s * 1664525 + 1013904223) % 4294967296
-    return rng.s / 4294967296
-  }
-  for (let layer = 0; layer < 3; layer++) {
-    const shade = ['#141526', '#0e0f1c', '#08090f'][layer]
-    let x = 0
-    while (x < w) {
-      const bw = 40 + rnd() * 110
-      const bh = 80 + rnd() * (220 + layer * 60)
-      g.fillStyle = shade
-      g.fillRect(x, h - bh, bw, bh)
-      for (let wy = h - bh + 10; wy < h - 8; wy += 14) {
-        for (let wx = x + 6; wx < x + bw - 6; wx += 11) {
-          if (rnd() < 0.28 - layer * 0.06) {
-            g.fillStyle = rnd() < 0.8 ? 'rgba(255,196,120,0.85)' : 'rgba(140,170,255,0.8)'
-            g.fillRect(wx, wy, 5, 7)
-          }
-        }
-      }
-      x += bw + rnd() * 18
-    }
-  }
-  const tex = new THREE.CanvasTexture(cv)
-  tex.colorSpace = THREE.SRGBColorSpace
-  tex.anisotropy = 4
-  return tex
-}
-
-/* ---------- huone ---------- */
-
-function Room() {
-  const { halfX: X, halfZ: Z, height: H } = ROOM
-  const skyline = useMemo(() => makeSkyline(), [])
-  // Ikkuna-aukko pohjoisseinällä x 2.5…11.5, y 0.6…3.8
-  const win = { x0: 2.5, x1: 11.5, y0: 0.6, y1: 3.8 }
-  const wallMat = <meshStandardMaterial color={C.wall} roughness={0.95} />
-  return (
-    <>
-      {/* Lattia: betoni + puukaistale */}
-      <mesh rotation-x={-Math.PI / 2} receiveShadow>
-        <planeGeometry args={[X * 2, Z * 2]} />
-        <meshStandardMaterial color={C.floor} roughness={0.9} />
-      </mesh>
-
-      {/* Seinät ovat sisäänpäin katsovia tasoja: ulkopuolelta kamera näkee niiden läpi */}
-      <mesh position={[-X, H / 2, 0]} rotation-y={Math.PI / 2}>
-        <planeGeometry args={[Z * 2, H]} />
-        {wallMat}
-      </mesh>
-      <mesh position={[X, H / 2, 0]} rotation-y={-Math.PI / 2}>
-        <planeGeometry args={[Z * 2, H]} />
-        {wallMat}
-      </mesh>
-      {/* Pohjoisseinä ikkuna-aukon ympäriltä */}
-      <mesh position={[(-X + win.x0) / 2, H / 2, -Z]}>
-        <planeGeometry args={[win.x0 + X, H]} />
-        <meshStandardMaterial color={C.wallWarm} roughness={0.95} />
-      </mesh>
-      <mesh position={[(win.x1 + X) / 2, H / 2, -Z]}>
-        <planeGeometry args={[X - win.x1, H]} />
-        {wallMat}
-      </mesh>
-      <mesh position={[(win.x0 + win.x1) / 2, win.y0 / 2, -Z]}>
-        <planeGeometry args={[win.x1 - win.x0, win.y0]} />
-        {wallMat}
-      </mesh>
-      <mesh position={[(win.x0 + win.x1) / 2, (win.y1 + H) / 2, -Z]}>
-        <planeGeometry args={[win.x1 - win.x0, H - win.y1]} />
-        {wallMat}
-      </mesh>
-      {/* Kaupunki ikkunan takana + karmit */}
-      <mesh position={[(win.x0 + win.x1) / 2, (win.y0 + win.y1) / 2 + 0.4, -Z - 1.2]}>
-        <planeGeometry args={[(win.x1 - win.x0) * 1.5, (win.y1 - win.y0) * 1.6]} />
-        <meshBasicMaterial map={skyline} toneMapped={false} />
-      </mesh>
-      {[win.x0, 5.5, 8.5, win.x1].map((x) => (
-        <Box key={x} p={[x, (win.y0 + win.y1) / 2, -Z + 0.05]} s={[0.12, win.y1 - win.y0, 0.12]} c={C.steel} m={0.6} r={0.4} />
-      ))}
-      <Box p={[(win.x0 + win.x1) / 2, 2.2, -Z + 0.05]} s={[win.x1 - win.x0, 0.08, 0.1]} c={C.steel} m={0.6} r={0.4} />
-
-      {/* Eteläreuna: matala lasikaide, jonka yli kamera näkee */}
-      <Box p={[0, 0.5, Z - 0.05]} s={[X * 2, 1, 0.1]} c="#2a3340" r={0.2} m={0.3} />
-
-      {/* Törmäykset: lattia ja neljä seinää */}
-      <RigidBody type="fixed" colliders={false}>
-        <CuboidCollider args={[X, 0.5, Z]} position={[0, -0.5, 0]} />
-        <CuboidCollider args={[0.3, H, Z]} position={[-X - 0.3, H, 0]} />
-        <CuboidCollider args={[0.3, H, Z]} position={[X + 0.3, H, 0]} />
-        <CuboidCollider args={[X, H, 0.3]} position={[0, H, -Z - 0.3]} />
-        <CuboidCollider args={[X, H, 0.3]} position={[0, H, Z + 0.3]} />
-      </RigidBody>
-    </>
-  )
-}
-
-/* ---------- vyöhykkeiden paikkamerkit ---------- */
-
-function Props({ onSelect }: { onSelect: (id: LoftZoneId) => void }) {
-  const X = ROOM.halfX
-  return (
-    <RigidBody type="fixed" colliders="cuboid">
-      {/* 1 Hissiaula: hissin ovet länsiseinällä + Havaida-H neonina */}
-      <Zone id="elevator" onSelect={onSelect}>
-        <Box p={[-X + 0.1, 1.25, 5.2]} s={[0.2, 2.5, 2.2]} c={C.steel} m={0.8} r={0.3} />
-        <Box p={[-X + 0.22, 1.2, 5.2]} s={[0.04, 2.3, 0.02]} c="#0b0c10" />
-        <Box p={[-X + 0.16, 3.2, 4.85]} s={[0.06, 0.9, 0.12]} c={C.blue} e={C.blue} ei={3} />
-        <Box p={[-X + 0.16, 3.2, 5.55]} s={[0.06, 0.9, 0.12]} c={C.violet} e={C.violet} ei={3} />
-        <Box p={[-X + 0.16, 3.2, 5.2]} s={[0.06, 0.12, 0.7]} c={C.blue} e="#6b66ff" ei={3} />
-        <Box p={[-X + 0.2, 1.3, 6.6]} s={[0.08, 0.16, 0.12]} c="#111" e={C.teal} ei={1.2} />
-      </Zone>
-
-      {/* 2 Paja: työpenkki, 3D-tulostin, tiilinen taustaseinä */}
-      <Zone id="workshop" onSelect={onSelect}>
-        <Box p={[0, 0.45, 6.6]} s={[2.6, 0.9, 0.9]} c={C.woodDark} />
-        <Box p={[-0.7, 1.15, 6.6]} s={[0.55, 0.5, 0.5]} c={C.steel} m={0.5} r={0.5} />
-        <Box p={[-0.7, 1.12, 6.6]} s={[0.4, 0.04, 0.4]} c="#c2502e" e="#e0693f" ei={0.8} />
-        <Box p={[0.6, 0.98, 6.55]} s={[0.6, 0.06, 0.4]} c={C.teal} />
-        <Box p={[0, 1.6, 7.5]} s={[3.2, 2.2, 0.15]} c={C.brick} r={1} />
-      </Zone>
-
-      {/* 3 Kirjasto: kirjahylly itäseinällä + lukutuoli */}
-      <Zone id="library" onSelect={onSelect}>
-        <Box p={[X - 0.3, 1.2, 5.2]} s={[0.5, 2.4, 2.6]} c={C.woodDark} />
-        {[0.45, 0.95, 1.45, 1.95].map((y, i) => (
-          <Box key={y} p={[X - 0.45, y + 0.15, 5.2]} s={[0.22, 0.3, 2.3]} c={[C.wine, '#3a5a7a', C.brass, '#4a6b3a'][i]} />
-        ))}
-        <Box p={[9.6, 0.45, 5.6]} s={[0.9, 0.9, 0.9]} c={C.wine} r={0.9} />
-      </Zone>
-
-      {/* 4 Työpiste: pöytä, kolme näyttöä, valopaneeli */}
-      <Zone id="desk" onSelect={onSelect}>
-        <Box p={[10.2, 0.75, 0]} s={[1.0, 0.06, 2.4]} c={C.woodDark} />
-        <Box p={[10.2, 0.37, -1.05]} s={[0.9, 0.74, 0.08]} c={C.steel} />
-        <Box p={[10.2, 0.37, 1.05]} s={[0.9, 0.74, 0.08]} c={C.steel} />
-        <Box p={[10.55, 1.2, -0.75]} s={[0.04, 0.45, 0.7]} c="#0b0c10" e={C.teal} ei={0.9} />
-        <Box p={[10.6, 1.25, 0]} s={[0.04, 0.5, 0.8]} c="#0b0c10" e={C.blue} ei={1.1} />
-        <Box p={[10.55, 1.2, 0.75]} s={[0.04, 0.45, 0.7]} c="#0b0c10" e={C.violet} ei={0.9} />
-        <Box p={[9.3, 0.5, 0]} s={[0.55, 1.0, 0.55]} c="#141418" />
-        <Box p={[X - 0.08, 1.6, 1.8]} s={[0.04, 0.5, 0.3]} c="#222" e={C.gold} ei={0.6} />
-      </Zone>
-
-      {/* 5 War room: lasitaulu roadmapille + pöytä */}
-      <Zone id="warroom" onSelect={onSelect}>
-        <Box p={[0, 1.3, -0.2]} s={[3.2, 1.8, 0.06]} c="#dfe6ef" r={0.3} />
-        <Box p={[-1.55, 0.6, -0.2]} s={[0.06, 1.2, 0.5]} c={C.steel} />
-        <Box p={[1.55, 0.6, -0.2]} s={[0.06, 1.2, 0.5]} c={C.steel} />
-        {[-1.1, -0.5, 0.1, 0.7, 1.2].map((x, i) => (
-          <Box key={x} p={[x, 1.55 - (i % 2) * 0.45, -0.16]} s={[0.32, 0.32, 0.02]} c={[C.gold, '#ff9eb5', '#9be7a3', '#9ec5ff', C.gold][i]} />
-        ))}
-        <Cyl p={[0, 0.38, 1.5]} rt={0.7} rb={0.7} h={0.06} c={C.wood} />
-        <Cyl p={[0, 0.18, 1.5]} rt={0.06} rb={0.25} h={0.36} c={C.steel} m={0.6} />
-      </Zone>
-
-      {/* 6 Projektipöytä: pienoismallit + arcade-kaappi */}
-      <Zone id="projects" onSelect={onSelect}>
-        <Box p={[-8.4, 0.4, 0]} s={[2.4, 0.8, 1.4]} c={C.woodDark} />
-        <Box p={[-9.0, 1.0, -0.2]} s={[0.5, 0.4, 0.5]} c={C.teal} />
-        <Box p={[-8.2, 1.15, 0.2]} s={[0.35, 0.7, 0.35]} c="#cfd6e0" />
-        <Box p={[-7.6, 0.95, -0.3]} s={[0.6, 0.3, 0.4]} c={C.brass} m={0.4} />
-        <Box p={[-11.3, 0.9, 1.8]} s={[0.8, 1.8, 0.8]} c="#1a1426" />
-        <Box p={[-10.88, 1.3, 1.8]} s={[0.04, 0.5, 0.6]} c="#000" e={C.violet} ei={1.4} />
-      </Zone>
-
-      {/* 7 Harrastusnurkka: haarniska, miekka, sukellusmaski */}
-      <Zone id="hobbies" onSelect={onSelect}>
-        <Cyl p={[-10.2, 0.05, -5.6]} rt={0.35} rb={0.35} h={0.1} c={C.woodDark} />
-        <Cyl p={[-10.2, 1.05, -5.6]} rt={0.24} rb={0.3} h={1.0} c="#8a8f99" m={0.9} r={0.3} />
-        <mesh position={[-10.2, 1.75, -5.6]}>
-          <sphereGeometry args={[0.18, 20, 16]} />
-          <meshStandardMaterial color="#8a8f99" metalness={0.9} roughness={0.3} />
-        </mesh>
-        <Box p={[-X + 0.1, 1.8, -4.4]} s={[0.04, 1.2, 0.08]} c="#c7ccd4" m={0.9} r={0.2} />
-        <Box p={[-X + 0.1, 1.4, -4.4]} s={[0.05, 0.08, 0.35]} c={C.brass} m={0.6} />
-        <Box p={[-X + 0.1, 1.5, -6.8]} s={[0.05, 0.3, 0.5]} c={C.teal} />
-      </Zone>
-
-      {/* 8 Palkintoseinä: hylly ja pokaalit */}
-      <Zone id="trophies" onSelect={onSelect}>
-        <Box p={[0, 1.3, -7.8]} s={[3.4, 0.06, 0.35]} c={C.woodDark} />
-        <Box p={[0, 2.1, -7.8]} s={[3.4, 0.06, 0.35]} c={C.woodDark} />
-        {[-1.2, -0.4, 0.4, 1.2].map((x) => (
-          <Cyl key={x} p={[x, 1.52, -7.78]} rt={0.12} rb={0.06} h={0.38} c={C.gold} m={0.9} r={0.25} />
-        ))}
-        {[-0.9, 0, 0.9].map((x) => (
-          <Box key={x} p={[x, 2.45, -7.93]} s={[0.6, 0.45, 0.04]} c={C.wine} />
-        ))}
-      </Zone>
-
-      {/* 9 Ikkuna ja karttapöytä: pöytä, hologrammipallo, kaukoputki */}
-      <Zone id="window" onSelect={onSelect}>
-        <Box p={[7.6, 0.42, -5.2]} s={[2.6, 0.84, 1.6]} c={C.woodDark} />
-        <Box p={[7.6, 0.86, -5.2]} s={[2.4, 0.02, 1.4]} c="#c9b48a" e="#3a2c14" ei={0.4} />
-        <mesh position={[7.6, 1.45, -5.2]}>
-          <sphereGeometry args={[0.35, 24, 16]} />
-          <meshStandardMaterial color={C.blue} emissive={C.blue} emissiveIntensity={1.4} wireframe toneMapped={false} />
-        </mesh>
-        <Cyl p={[10.4, 0.6, -6.6]} rt={0.03} rb={0.12} h={1.2} c={C.steel} m={0.7} />
-        <mesh position={[10.4, 1.35, -6.75]} rotation-x={-0.6}>
-          <cylinderGeometry args={[0.07, 0.09, 0.9, 16]} />
-          <meshStandardMaterial color={C.ink} metalness={0.4} roughness={0.4} />
-        </mesh>
-      </Zone>
-    </RigidBody>
-  )
-}
-
-/* Vyöhykkeiden matot ja hehkuvat renkaat (ei törmäyksiä) */
-function Pads({ getActive, rings }: { getActive: () => LoftZoneId | null; rings: RefObject<Map<LoftZoneId, THREE.MeshStandardMaterial>> }) {
+/* Vyöhykkeiden lattiarenkaat ja leijuvat merkit */
+function Beacons({ getActive, onSelect }: { getActive: () => LoftZoneId | null; onSelect: (id: LoftZoneId) => void }) {
+  const rings = useRef(new Map<LoftZoneId, THREE.MeshStandardMaterial>())
+  const gems = useRef(new Map<LoftZoneId, THREE.Mesh>())
   useFrame(({ clock }) => {
     const t = clock.elapsedTime
-    rings.current?.forEach((mat, id) => {
-      const on = getActive() === id
-      mat.emissiveIntensity = on ? 2.2 + Math.sin(t * 5) * 0.6 : 0.35
-      mat.opacity = on ? 0.95 : 0.45
+    const active = getActive()
+    rings.current.forEach((mat, id) => {
+      const on = active === id
+      mat.emissiveIntensity = on ? 1.3 + Math.sin(t * 4) * 0.35 : 0.35
+      mat.opacity = on ? 0.85 : 0.32
+    })
+    gems.current.forEach((m, id) => {
+      const z = ZONES.find((x) => x.id === id)
+      if (!z) return
+      m.position.y = z.marker[1] + Math.sin(t * 1.6 + z.hotspot[0]) * 0.06
+      m.rotation.y = t * 0.8
+      const s = active === id ? 1.25 : 1
+      m.scale.setScalar(s)
     })
   })
   return (
     <>
       {ZONES.map((z) => (
         <group key={z.id}>
-          <mesh position={[z.center[0], 0.005, z.center[1]]} rotation-x={-Math.PI / 2}>
-            <planeGeometry args={[6.4, 4.2]} />
-            <meshStandardMaterial color={z.tint} roughness={1} />
-          </mesh>
-          <mesh position={[z.hotspot[0], 0.012, z.hotspot[1]]} rotation-x={-Math.PI / 2}>
-            <ringGeometry args={[0.55, 0.68, 40]} />
+          <mesh position={[z.hotspot[0], 0.015, z.hotspot[1]]} rotation-x={-Math.PI / 2}>
+            <ringGeometry args={[0.42, 0.5, 48]} />
             <meshStandardMaterial
               ref={(m) => {
-                if (m) rings.current?.set(z.id, m)
+                if (m) rings.current.set(z.id, m)
               }}
               color={C.brass}
               emissive={C.brass}
-              emissiveIntensity={0.35}
+              emissiveIntensity={0.5}
               transparent
-              opacity={0.45}
+              opacity={0.4}
               toneMapped={false}
+              depthWrite={false}
             />
+          </mesh>
+          <mesh
+            ref={(m) => {
+              if (m) gems.current.set(z.id, m)
+            }}
+            position={z.marker}
+            onClick={(e) => {
+              e.stopPropagation()
+              onSelect(z.id)
+            }}
+          >
+            <octahedronGeometry args={[0.09, 0]} />
+            <meshStandardMaterial color={C.brassLight} emissive={C.brass} emissiveIntensity={1.6} metalness={0.6} roughness={0.25} toneMapped={false} />
           </mesh>
         </group>
       ))}
@@ -344,31 +388,121 @@ function Pads({ getActive, rings }: { getActive: () => LoftZoneId | null; rings:
   )
 }
 
-/* Paikkamerkkihahmo: viininpunainen paita + musta liivi (vaihtuu Henryyn myöhemmin) */
-function Placeholder() {
+/* ---------- valot ---------- */
+
+/** Lämpimät huonevalot (ei varjoja) – katoton asunto valaistaan näillä + ympäristöllä */
+const ROOM_LIGHTS: { p: [number, number, number]; c: string; i: number; d: number }[] = [
+  { p: [-2.3, 2.5, -2.0], c: '#ffc58a', i: 9, d: 6 }, // olohuone
+  { p: [-3.1, 1.45, 2.3], c: '#ffbe7a', i: 6, d: 4.5 }, // paja (linjavalaisimen alla)
+  { p: [0.4, 2.5, 3.4], c: '#ffd2a0', i: 6, d: 5 }, // eteinen
+  { p: [0.5, 2.5, 0.5], c: '#ffd2a0', i: 5, d: 5 }, // keskialue
+  { p: [2.4, 2.5, -2.1], c: '#ffc58a', i: 7, d: 6 }, // makuuhuone
+  { p: [0.2, 1.6, -4.2], c: '#7d8cff', i: 4, d: 3.5 }, // työpisteen RGB-hehku
+  { p: [2.9, 2.3, 3.0], c: '#f3f0ff', i: 4, d: 4 }, // kylpyhuone
+  { p: [1.15, 1.8, 0.85], c: '#c45cff', i: 2.5, d: 2.5 }, // arcade
+]
+
+function Lights({ lit }: { lit: boolean }) {
+  // Valokarttojen kanssa huonevalot hiljaisemmiksi (epäsuora valo on jo kartoissa)
+  const k = lit ? 0.35 : 1
   return (
-    <group>
-      <mesh position={[0, -0.05, 0]} castShadow>
-        <capsuleGeometry args={[0.28, 0.85, 6, 16]} />
-        <meshStandardMaterial color={C.wine} roughness={0.7} />
+    <>
+      <hemisphereLight args={['#c3ccff', '#2a1d14', 0.55 * k]} />
+      {/* Kuunvalo/kaupungin hehku ikkunoista (katto estäisi varjot, joten ilman varjoja) */}
+      <directionalLight position={[-2, 4, -9]} intensity={0.55} color="#aebcff" />
+      {ROOM_LIGHTS.map((l, i) => (
+        <pointLight key={i} position={l.p} color={l.c} intensity={l.i * k} distance={l.d} decay={2} />
+      ))}
+      {/* Ympäristöheijastukset ilman ulkoisia tiedostoja: ruudun sisällä renderöidyt valopaneelit */}
+      <Environment resolution={128} frames={1} environmentIntensity={lit ? 0.45 : 0.7}>
+        <Lightformer form="rect" intensity={1.6} color="#ffe0bd" position={[0, 6, 0]} rotation-x={Math.PI / 2} scale={[12, 12, 1]} />
+        <Lightformer form="rect" intensity={1.4} color="#8ea2ff" position={[0, 2, -9]} scale={[14, 4, 1]} />
+        <Lightformer form="rect" intensity={0.6} color="#ffb070" position={[-9, 2, 0]} rotation-y={Math.PI / 2} scale={[12, 3, 1]} />
+        <Lightformer form="ring" intensity={2} color="#c9a86a" position={[6, 3, 4]} scale={2} />
+      </Environment>
+    </>
+  )
+}
+
+/* ---------- hahmo ja ohjaus ---------- */
+
+/* Hahmo: riggattu malli (idle/walk/run), sävytetty sivun viininpunaiseksi ja messingiksi */
+const ANIM: Record<EcctrlAnimationState, string> = {
+  IDLE: 'idle',
+  WALK: 'walk',
+  RUN: 'run',
+  JUMP_START: 'run',
+  JUMP_IDLE: 'idle',
+  JUMP_FALL: 'idle',
+  JUMP_LAND: 'idle',
+}
+/** Kapselin keskipisteestä jalkoihin: capsuleHalfHeight + capsuleRadius + floatHeight */
+const FEET = -(0.45 + 0.26 + 0.25)
+const CHAR_HEIGHT = 1.78
+/** Kameran tähtäys kapselin keskipisteestä: niska/olkapää */
+const HEAD = 0.58
+
+/** Pehmeä varjo hahmon alle (katon takia ei suoraa valoa ylhäältä) */
+function makeBlob(): THREE.CanvasTexture {
+  const c = document.createElement('canvas')
+  c.width = c.height = 128
+  const g = c.getContext('2d')!
+  const grd = g.createRadialGradient(64, 64, 4, 64, 64, 62)
+  grd.addColorStop(0, 'rgba(0,0,0,0.55)')
+  grd.addColorStop(1, 'rgba(0,0,0,0)')
+  g.fillStyle = grd
+  g.fillRect(0, 0, 128, 128)
+  return new THREE.CanvasTexture(c)
+}
+
+function Character({ shadows }: { shadows: boolean }) {
+  const blob = useMemo(() => makeBlob(), [])
+  const group = useRef<THREE.Group>(null)
+  const { scene, animations } = useGLTF(url('character.glb'), false, true)
+  const { actions } = useAnimations(animations, group)
+  const state = useEcctrlAnimationStore((s) => s.animationState)
+
+  const k = useMemo(() => {
+    const box = new THREE.Box3().setFromObject(scene)
+    return CHAR_HEIGHT / Math.max(0.01, box.max.y - box.min.y)
+  }, [scene])
+
+  useLayoutEffect(() => {
+    scene.traverse((o) => {
+      const mesh = o as THREE.SkinnedMesh
+      if (!mesh.isMesh) return
+      mesh.castShadow = shadows
+      mesh.receiveShadow = true
+      mesh.frustumCulled = false
+      const old = mesh.material as THREE.MeshStandardMaterial
+      const joint = /joint/i.test(old.name)
+      mesh.material = new THREE.MeshStandardMaterial({
+        color: joint ? C.brass : C.wine,
+        metalness: joint ? 0.85 : 0.25,
+        roughness: joint ? 0.3 : 0.45,
+      })
+    })
+  }, [scene, shadows])
+
+  useEffect(() => {
+    const action = actions[ANIM[state]] ?? actions.idle
+    if (!action) return
+    action.reset().fadeIn(0.18).play()
+    return () => {
+      action.fadeOut(0.18)
+    }
+  }, [state, actions])
+
+  return (
+    <>
+      <group ref={group} position={[0, FEET, 0]} scale={k}>
+        <primitive object={scene} />
+      </group>
+      <mesh position={[0, FEET + 0.012, 0]} rotation-x={-Math.PI / 2} renderOrder={1}>
+        <planeGeometry args={[0.95, 0.95]} />
+        <meshBasicMaterial map={blob} transparent depthWrite={false} />
       </mesh>
-      <mesh position={[0, 0.05, 0]}>
-        <cylinderGeometry args={[0.3, 0.3, 0.5, 20]} />
-        <meshStandardMaterial color="#111216" roughness={0.6} />
-      </mesh>
-      <mesh position={[0, 0.72, 0]}>
-        <sphereGeometry args={[0.2, 24, 18]} />
-        <meshStandardMaterial color="#d9a98a" roughness={0.6} />
-      </mesh>
-      <mesh position={[0, 0.82, -0.03]}>
-        <sphereGeometry args={[0.205, 24, 18, 0, Math.PI * 2, 0, Math.PI / 2]} />
-        <meshStandardMaterial color="#2a1c14" roughness={0.9} />
-      </mesh>
-      <mesh position={[0, -0.38, 0.17]}>
-        <boxGeometry args={[0.12, 0.06, 0.04]} />
-        <meshStandardMaterial color={C.brass} metalness={0.8} roughness={0.3} />
-      </mesh>
-    </group>
+    </>
   )
 }
 
@@ -414,20 +548,30 @@ function Rig({
 }) {
   const cam = useRef<EcctrlCameraControlsHandle>(null)
   const three = useThree()
+  const blockers = useCameraBlockers()
+  const portrait = three.size.width < three.size.height
 
   useEffect(() => {
+    const c = cam.current
+    if (!c) return
+    // Kamera ei mene seinien eikä katon läpi: törmäys näkymättömiin laatikoihin
+    c.colliderMeshes = blockers
+    // Olan yli: hahmo hieman vasemmalla, kuten GTA:ssa ja Assassin's Creedissä
+    c.setFocalOffset(portrait ? 0 : 0.42, 0.05, 0, false)
     const [x, y, z] = SPAWN
-    const k = three.size.width < three.size.height ? 1.6 : 1
-    cam.current?.setLookAt(x + 3.2 * k, y + 2.6 * k, z + 4.6 * k, x, y, z, false)
+    // Aloitus hahmon takaa (hissin puolelta), katse asuntoon päin: W vie eteenpäin
+    c.setLookAt(x, y + HEAD + 0.55, z + (portrait ? 3.2 : 2.6), x, y + HEAD, z - 1, false)
     // vain alussa: myöhempi ikkunan koon muutos ei siirrä kameraa
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [blockers])
 
   useFrame(() => {
     const e = ecctrl.current
     if (!e || !cam.current) return
     const p = e.currPos
-    cam.current.moveTo(p.x, p.y + 0.5, p.z, true)
+    cam.current.moveTo(p.x, p.y + HEAD, p.z, true)
+    CUTOUT.uPlayer.value.set(p.x, p.y + 0.2, p.z)
+    CUTOUT.uCam.value.copy(three.camera.position)
 
     let best: LoftZoneId | null = null
     let bestD = INTERACT_RADIUS
@@ -448,27 +592,29 @@ function Rig({
     <EcctrlCameraControls
       ref={cam}
       makeDefault
-      smoothTime={0.12}
-      minDistance={2.5}
-      maxDistance={9}
-      minPolarAngle={0.35}
-      maxPolarAngle={1.32}
+      smoothTime={0.09}
+      minDistance={1.1}
+      maxDistance={portrait ? 4.6 : 4.2}
+      minPolarAngle={0.7}
+      maxPolarAngle={1.78}
     />
   )
 }
 
 export function LoftScene({
   enabled,
+  shadows,
   onNear,
   onSelect,
 }: {
   enabled: boolean
+  shadows: boolean
   onNear: (id: LoftZoneId | null) => void
   onSelect: (id: LoftZoneId) => void
 }) {
   const ecctrl = useRef<EcctrlHandle>(null)
   const active = useRef<LoftZoneId | null>(null)
-  const rings = useRef(new Map<LoftZoneId, THREE.MeshStandardMaterial>())
+  const [lit, setLit] = useState(false)
   const getActive = useCallback(() => active.current, [])
   const setActive = useCallback((id: LoftZoneId | null) => {
     active.current = id
@@ -476,38 +622,42 @@ export function LoftScene({
 
   return (
     <>
-      <color attach="background" args={['#0b0c11']} />
-      <fog attach="fog" args={['#0b0c11', 22, 46]} />
-      <hemisphereLight args={['#c9d2ff', '#3a2618', 1.5]} />
-      <ambientLight intensity={0.35} />
-      <directionalLight position={[6, 9, -12]} intensity={1.1} color="#9fb2ff" />
-      {/* Lämpimät riippuvalot vyöhykkeiden yllä */}
-      {ZONES.map((z) => (
-        <pointLight key={z.id} position={[z.center[0], 3.4, z.center[1]]} intensity={45} distance={11} decay={2} color="#ffb877" />
-      ))}
+      <color attach="background" args={['#07080c']} />
+      <Lights lit={lit} />
+      <Apartment shadows={shadows} onLit={setLit} />
 
       <Physics>
-        <Room />
-        <Props onSelect={onSelect} />
+        <ApartmentColliders />
+        {PROPS.map((p) => (
+          <Placed key={p.id} def={p} shadows={shadows} onSelect={onSelect} />
+        ))}
         <KeyboardControls map={KEYMAP}>
           <Ecctrl
             ref={ecctrl}
             enable={enabled}
             position={SPAWN}
+            rotation={[0, Math.PI, 0]}
             capsuleHalfHeight={0.45}
-            capsuleRadius={0.3}
+            capsuleRadius={0.26}
             floatHeight={0.25}
-            maxWalkVel={3.2}
-            maxRunVel={6}
-            jumpVel={4}
+            maxWalkVel={2.4}
+            maxRunVel={4.6}
+            jumpVel={3.6}
+            enabledRotations={[false, true, false]}
           >
-            <Placeholder />
+            <Character shadows={shadows} />
           </Ecctrl>
           <InputBridge ecctrl={ecctrl} enabled={enabled} />
+          <EcctrlAnimationStateController ecctrl={ecctrl} />
         </KeyboardControls>
       </Physics>
-      <Pads getActive={getActive} rings={rings} />
+      <Beacons getActive={getActive} onSelect={onSelect} />
       <Rig ecctrl={ecctrl} onNear={onNear} getActive={getActive} setActive={setActive} />
     </>
   )
 }
+
+/* Ladataan mallit taustalla heti kun loftin koodi on haettu */
+useGLTF.preload(url('apartment.glb'), false, true)
+useGLTF.preload(url('character.glb'), false, true)
+for (const p of new Set(PROPS.map((x) => x.file))) useGLTF.preload(url(p), false, true)

@@ -656,10 +656,10 @@ export const en: Content = {
       { id: 'library', name: 'Library', note: 'Story and CV' },
       { id: 'desk', name: 'Workstation', note: 'Skills and languages' },
       { id: 'warroom', name: 'War room', note: 'Roadmap and quests' },
-      { id: 'projects', name: 'Project table', note: 'Projects and games' },
+      { id: 'projects', name: 'Arcade cabinet', note: 'Projects and games' },
       { id: 'hobbies', name: 'Hobby corner', note: 'About me and hobbies' },
-      { id: 'trophies', name: 'Trophy wall', note: 'Level and skills' },
-      { id: 'window', name: 'Window and map table', note: 'Travels and routes' },
+      { id: 'trophies', name: 'Trophy shelf', note: 'Level and skills' },
+      { id: 'window', name: 'Balcony and telescope', note: 'Travels and routes' },
     ],
   },
 

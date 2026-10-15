@@ -1,5 +1,6 @@
 import { Suspense, useCallback, useEffect, useMemo, useState, type ComponentType } from 'react'
 import { Canvas } from '@react-three/fiber'
+import { useProgress } from '@react-three/drei'
 import { Joystick } from 'ecctrl/input'
 import { ArrowLeft, LayoutGrid, Mouse, X } from 'lucide-react'
 
@@ -40,6 +41,24 @@ function isTouch(): boolean {
   } catch {
     return false
   }
+}
+
+/** Latausilmaisin mallien haun ajan (asunto on ~11 Mt) */
+function Loading() {
+  const { t } = useLang()
+  const { active, progress } = useProgress()
+  if (!active && progress >= 100) return null
+  return (
+    <div className="pointer-events-none absolute inset-0 z-40 grid place-items-center bg-bg/80">
+      <div className="w-64 text-center">
+        <p className="label-caps">{t.loft.loading}…</p>
+        <div className="mt-3 h-1 overflow-hidden rounded-full bg-bg-2">
+          <div className="h-full bg-brass transition-[width] duration-300" style={{ width: `${Math.round(progress)}%` }} />
+        </div>
+        <p className="mt-2 font-display text-xs text-ink-2">{Math.round(progress)} %</p>
+      </div>
+    </div>
+  )
 }
 
 /** Avattu osio loftin päällä */
@@ -139,11 +158,19 @@ export default function LoftView({ onExit }: { onExit: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-bg" role="application" aria-label={t.loft.title}>
       {webgl ? (
-        <Suspense fallback={<p className="grid h-full place-items-center label-caps">{t.loft.loading}…</p>}>
-          <Canvas dpr={[1, 1.75]} gl={{ antialias: true, powerPreference: 'high-performance' }} camera={{ fov: 55, near: 0.1, far: 80 }}>
-            <LoftScene enabled={!open && !quick} onNear={onNear} onSelect={openZone} />
+        <>
+          <Canvas
+            shadows={!touch}
+            dpr={touch ? [1, 1.5] : [1, 1.75]}
+            gl={{ antialias: true, powerPreference: 'high-performance' }}
+            camera={{ fov: 55, near: 0.05, far: 120 }}
+          >
+            <Suspense fallback={null}>
+              <LoftScene enabled={!open && !quick} shadows={!touch} onNear={onNear} onSelect={openZone} />
+            </Suspense>
           </Canvas>
-        </Suspense>
+          <Loading />
+        </>
       ) : (
         <p className="grid h-full place-items-center px-6 text-center text-ink-2">{t.loft.noWebgl}</p>
       )}
