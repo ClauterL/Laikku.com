@@ -667,10 +667,10 @@ export const fi: Content = {
       { id: 'library', name: 'Kirjasto', note: 'Tarina ja CV' },
       { id: 'desk', name: 'Työpiste', note: 'Taidot ja koodikielet' },
       { id: 'warroom', name: 'War room', note: 'Roadmap ja tehtävät' },
-      { id: 'projects', name: 'Projektipöytä', note: 'Projektit ja pelit' },
+      { id: 'projects', name: 'Arcade-kone', note: 'Projektit ja pelit' },
       { id: 'hobbies', name: 'Harrastusnurkka', note: 'Minusta ja harrastukset' },
-      { id: 'trophies', name: 'Palkintoseinä', note: 'Taso ja osaaminen' },
-      { id: 'window', name: 'Ikkuna ja karttapöytä', note: 'Matkat ja reitit' },
+      { id: 'trophies', name: 'Palkintohylly', note: 'Taso ja osaaminen' },
+      { id: 'window', name: 'Parveke ja kaukoputki', note: 'Matkat ja reitit' },
     ],
   },
 
