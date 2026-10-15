@@ -192,7 +192,12 @@ export interface Content {
     quick: string
     quickHint: string
     close: string
-    controls: { move: string; run: string; look: string; interact: string; quick: string }
+    /** Näkymän vaihto: ensimmäinen / kolmas persoona */
+    fps: string
+    tps: string
+    /** Ohje hiirikatseelle (pointer lock) */
+    mouseLook: string
+    controls: { move: string; run: string; look: string; interact: string; quick: string; view: string }
     zones: { id: LoftZoneId; name: string; note: string }[]
   }
 

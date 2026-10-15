@@ -1,0 +1,14 @@
+import { NodeIO } from '@gltf-transform/core';
+import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
+import { dedup, prune, resample, meshopt, quantize } from '@gltf-transform/functions';
+import { MeshoptEncoder } from 'meshoptimizer';
+import fs from 'fs';
+const [IN, OUT, KEEP] = process.argv.slice(2);
+await MeshoptEncoder.ready;
+const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.encoder': MeshoptEncoder });
+const doc = await io.read(IN);
+const keep = new Set((KEEP || '').split(',').filter(Boolean));
+if (keep.size) for (const a of doc.getRoot().listAnimations()) if (!keep.has(a.getName())) a.dispose();
+await doc.transform(resample(), dedup(), prune({ keepSolidTextures: true }), quantize({ quantizePosition: 14, quantizeNormal: 10, quantizeWeight: 8 }), meshopt({ encoder: MeshoptEncoder, level: 'medium' }));
+await io.write(OUT, doc);
+console.log(OUT, (fs.statSync(OUT).size / 1024).toFixed(0), 'KB', doc.getRoot().listAnimations().map((a) => a.getName()));

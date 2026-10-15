@@ -10,7 +10,9 @@ import { EcctrlAnimationStateController, useEcctrlAnimationStore, type EcctrlAni
 
 import type { LoftZoneId } from '@/content'
 import colliders from './colliders.json'
-import { INTERACT_RADIUS, MAP_HIGHLIGHT, MODEL_BASE, PROPS, SPAWN, ZONES, type Anchor, type PropDef } from './zones'
+import { INTERACT_RADIUS, LOBBY, MAP_HIGHLIGHT, MODEL_BASE, PROPS, SPAWN, SPAWN_YAW, ZONES, type Anchor, type PropDef } from './zones'
+
+export type CamView = 'tps' | 'fps'
 
 /* Värit: sivun teema (viini, messinki, hiili) */
 const C = {
@@ -173,7 +175,10 @@ function Apartment({ shadows, onLit }: { shadows: boolean; onLit: (lit: boolean)
 function ApartmentColliders() {
   return (
     <RigidBody type="fixed" colliders={false}>
-      <CuboidCollider args={[8, 0.5, 8]} position={[0, -0.5, 0]} />
+      <CuboidCollider args={[10, 0.5, 14]} position={[0, -0.5, 6.3]} />
+      {/* aulan päätyseinät */}
+      <CuboidCollider args={[0.15, 1.5, (LOBBY.maxZ - LOBBY.minZ) / 2]} position={[LOBBY.maxX + 0.15, 1.5, (LOBBY.minZ + LOBBY.maxZ) / 2]} />
+      <CuboidCollider args={[0.15, 1.5, (LOBBY.maxZ - LOBBY.minZ) / 2]} position={[LOBBY.minX - 0.15, 1.5, (LOBBY.minZ + LOBBY.maxZ) / 2]} />
       {colliders.solid.map(([x, y, z, hx, hy, hz], i) => (
         <CuboidCollider key={i} args={[hx, hy, hz]} position={[x, y, z]} />
       ))}
@@ -186,8 +191,15 @@ function useCameraBlockers() {
   return useMemo(() => {
     const geo = new THREE.BoxGeometry(1, 1, 1)
     const mat = new THREE.MeshBasicMaterial({ visible: false })
-    // + katto ja hissin ovijulkisivu (oviaukko seinässä)
-    const boxes: number[][] = [...colliders.camera, [0, 2.95, 0, 6, 0.25, 6], [0.6, 1.4, 5.05, 1.3, 1.4, 0.2]]
+    const lz = (LOBBY.minZ + LOBBY.maxZ) / 2
+    const lh = (LOBBY.maxZ - LOBBY.minZ) / 2
+    // + katto koko kerroksen yllä, aulan päätyseinät (hissi länsipäädyssä)
+    const boxes: number[][] = [
+      ...colliders.camera,
+      [0, 2.97, 6.3, 6, 0.22, 13],
+      [LOBBY.minX + 0.05, 1.5, lz, 0.3, 1.5, lh + 0.3],
+      [LOBBY.maxX + 0.15, 1.5, lz, 0.15, 1.5, lh],
+    ]
     return boxes.map(([x, y, z, hx, hy, hz]) => {
       const m = new THREE.Mesh(geo, mat)
       m.position.set(x, y, z)
@@ -196,6 +208,68 @@ function useCameraBlockers() {
       return m
     })
   }, [])
+}
+
+/* ---------- hissiaula A:n ja B:n välissä (rakennetaan asunnon omista materiaaleista) ---------- */
+
+function findMaterial(root: THREE.Object3D, re: RegExp): THREE.Material | undefined {
+  let found: THREE.Material | undefined
+  root.traverse((o) => {
+    const mesh = o as THREE.Mesh
+    if (found || !mesh.isMesh) return
+    const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+    found = mats.find((m) => re.test(m.name))
+  })
+  return found
+}
+
+function Lobby() {
+  const { scene } = useGLTF(url('apartment.glb'), false, true)
+  const W = LOBBY.maxX - LOBBY.minX
+  const D = LOBBY.maxZ - LOBBY.minZ
+  const cx = (LOBBY.minX + LOBBY.maxX) / 2
+  const cz = (LOBBY.minZ + LOBBY.maxZ) / 2
+  const mats = useMemo(() => {
+    const pick = (re: RegExp, fallback: string) => {
+      const m = findMaterial(scene, re)
+      const c = m ? m.clone() : new THREE.MeshStandardMaterial({ color: fallback, roughness: 0.85 })
+      withCutout(c)
+      return c
+    }
+    return {
+      floor: pick(/OakAnthracite/, '#3b2d24'),
+      wall: pick(/WallPaintGrayMatte/, '#8e8a86'),
+      ceiling: pick(/WallPaintWhiteMatte/, '#e9e6e1'),
+    }
+  }, [scene])
+  const floorGeo = useMemo(() => {
+    // parketin tiheys sama kuin asunnossa (~2,35 kuviota / m)
+    const g = new THREE.PlaneGeometry(W, D)
+    const uv = g.attributes.uv as THREE.BufferAttribute
+    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * W * 2.35, uv.getY(i) * D * 2.35)
+    return g
+  }, [W, D])
+  return (
+    <group name="lobby">
+      <mesh geometry={floorGeo} material={mats.floor} rotation-x={-Math.PI / 2} position={[cx, 0.002, cz]} receiveShadow />
+      <mesh material={mats.ceiling} rotation-x={Math.PI / 2} position={[cx, LOBBY.height, cz]}>
+        <planeGeometry args={[W, D]} />
+      </mesh>
+      <mesh material={mats.wall} position={[LOBBY.maxX + 0.12, 1.5, cz]}>
+        <boxGeometry args={[0.24, 3, D]} />
+      </mesh>
+      <mesh material={mats.wall} position={[LOBBY.minX - 0.12, 1.5, cz]}>
+        <boxGeometry args={[0.24, 3, D]} />
+      </mesh>
+      {/* upotetut kattovalot */}
+      {[-2.6, -0.4, 1.8, 3.6].map((x) => (
+        <mesh key={x} position={[x, LOBBY.height - 0.005, cz]} rotation-x={Math.PI / 2}>
+          <circleGeometry args={[0.07, 20]} />
+          <meshBasicMaterial color="#fff3df" toneMapped={false} />
+        </mesh>
+      ))}
+    </group>
+  )
 }
 
 /* ---------- esineet ---------- */
@@ -303,7 +377,7 @@ function Placed({ def, shadows, onSelect }: { def: PropDef; shadows: boolean; on
       )}
       {def.id === 'worldmap' && (
         // tumma taustalevy kartan taakse
-        <mesh position={[def.at[0] + 0.02, def.at[1], def.at[2]]} rotation-y={rotY}>
+        <mesh position={[def.at[0] - Math.sin(rotY) * 0.02, def.at[1], def.at[2] - Math.cos(rotY) * 0.02]} rotation-y={rotY}>
           <boxGeometry args={[(def.fit.w ?? 1.7) + 0.16, (def.fit.w ?? 1.7) * 0.68 + 0.16, 0.02]} />
           <meshStandardMaterial color={C.mapBoard} roughness={0.8} />
         </mesh>
@@ -392,14 +466,15 @@ function Beacons({ getActive, onSelect }: { getActive: () => LoftZoneId | null; 
 
 /** Lämpimät huonevalot (ei varjoja) – katoton asunto valaistaan näillä + ympäristöllä */
 const ROOM_LIGHTS: { p: [number, number, number]; c: string; i: number; d: number }[] = [
-  { p: [-2.3, 2.5, -2.0], c: '#ffc58a', i: 9, d: 6 }, // olohuone
-  { p: [-3.1, 1.45, 2.3], c: '#ffbe7a', i: 6, d: 4.5 }, // paja (linjavalaisimen alla)
-  { p: [0.4, 2.5, 3.4], c: '#ffd2a0', i: 6, d: 5 }, // eteinen
-  { p: [0.5, 2.5, 0.5], c: '#ffd2a0', i: 5, d: 5 }, // keskialue
-  { p: [2.4, 2.5, -2.1], c: '#ffc58a', i: 7, d: 6 }, // makuuhuone
-  { p: [0.2, 1.6, -4.2], c: '#7d8cff', i: 4, d: 3.5 }, // työpisteen RGB-hehku
-  { p: [2.9, 2.3, 3.0], c: '#f3f0ff', i: 4, d: 4 }, // kylpyhuone
-  { p: [1.15, 1.8, 0.85], c: '#c45cff', i: 2.5, d: 2.5 }, // arcade
+  { p: [-2.3, 2.45, -2.0], c: '#ffc58a', i: 9, d: 6 }, // A olohuone
+  { p: [-1.6, 2.45, 2.4], c: '#ffd2a0', i: 8, d: 6 }, // A ruokailu + eteinen
+  { p: [2.4, 2.45, -2.1], c: '#ffc58a', i: 7, d: 6 }, // A makuuhuone
+  { p: [0.2, 1.6, -4.2], c: '#7d8cff', i: 4, d: 3.5 }, // A työpisteen RGB-hehku
+  { p: [-2.0, 2.45, 6.33], c: '#ffe2bd', i: 9, d: 7.5 }, // aula (hissin puoli)
+  { p: [-3.3, 1.5, 10.4], c: '#ffbe7a', i: 7, d: 5 }, // B paja + arcade
+  { p: [2.6, 2.45, 10.2], c: '#ffd2a0', i: 8, d: 6.5 }, // B neuvottelupöytä
+  { p: [1.8, 2.45, 14.8], c: '#ffc58a', i: 8, d: 6.5 }, // B lounge
+  { p: [-3.4, 1.8, 11.6], c: '#c45cff', i: 2.5, d: 2.5 }, // B arcade-hehku
 ]
 
 function Lights({ lit }: { lit: boolean }) {
@@ -439,6 +514,16 @@ const ANIM: Record<EcctrlAnimationState, string> = {
 /** Kapselin keskipisteestä jalkoihin: capsuleHalfHeight + capsuleRadius + floatHeight */
 const FEET = -(0.45 + 0.26 + 0.25)
 const CHAR_HEIGHT = 1.78
+/** Kehitystila: ?spawn=x,z,yaw siirtää aloituspaikan (testikuvia varten, ei tuotannossa) */
+const DEV_SPAWN = (() => {
+  if (!import.meta.env.DEV || typeof location === 'undefined') return null
+  const v = new URLSearchParams(location.search).get('spawn')
+  const n = v?.split(',').map(Number)
+  return n && n.length >= 2 && n.every(Number.isFinite) ? { pos: [n[0], 1.2, n[1]] as [number, number, number], yaw: n[2] ?? SPAWN_YAW } : null
+})()
+const START = DEV_SPAWN?.pos ?? SPAWN
+const START_YAW = DEV_SPAWN?.yaw ?? SPAWN_YAW
+
 /** Kameran tähtäys kapselin keskipisteestä: niska/olkapää */
 const HEAD = 0.58
 
@@ -455,7 +540,7 @@ function makeBlob(): THREE.CanvasTexture {
   return new THREE.CanvasTexture(c)
 }
 
-function Character({ shadows }: { shadows: boolean }) {
+function Character({ shadows, hidden }: { shadows: boolean; hidden: boolean }) {
   const blob = useMemo(() => makeBlob(), [])
   const group = useRef<THREE.Group>(null)
   const { scene, animations } = useGLTF(url('character.glb'), false, true)
@@ -484,17 +569,20 @@ function Character({ shadows }: { shadows: boolean }) {
     })
   }, [scene, shadows])
 
+  /* Ristihäivytys vain, kun klippi oikeasti vaihtuu: saman klipin uudelleenkäynnistys (esim. laskeutuminen → idle)
+     nollaisi painon ja näyttäisi hetken T-asennon */
+  const current = useRef<THREE.AnimationAction | null>(null)
   useEffect(() => {
-    const action = actions[ANIM[state]] ?? actions.idle
-    if (!action) return
-    action.reset().fadeIn(0.18).play()
-    return () => {
-      action.fadeOut(0.18)
-    }
+    const next = actions[ANIM[state]] ?? actions.idle
+    if (!next || next === current.current) return
+    const prev = current.current
+    next.reset().setEffectiveWeight(1).play()
+    if (prev) prev.crossFadeTo(next, 0.2, false)
+    current.current = next
   }, [state, actions])
 
   return (
-    <>
+    <group visible={!hidden}>
       <group ref={group} position={[0, FEET, 0]} scale={k}>
         <primitive object={scene} />
       </group>
@@ -502,7 +590,7 @@ function Character({ shadows }: { shadows: boolean }) {
         <planeGeometry args={[0.95, 0.95]} />
         <meshBasicMaterial map={blob} transparent depthWrite={false} />
       </mesh>
-    </>
+    </group>
   )
 }
 
@@ -534,14 +622,28 @@ function InputBridge({ ecctrl, enabled }: { ecctrl: RefObject<EcctrlHandle | nul
   return null
 }
 
+/** Kamerat: kolmas persoona olan yli (GTA/AC) ja ensimmäinen persoona silmien korkeudelta */
+const VIEW = {
+  tps: { min: 1.1, max: 4.2, dist: 2.6, polar: [0.7, 1.78] as const, offset: 0.42 },
+  fps: { min: 0.05, max: 0.05, dist: 0.05, polar: [0.25, Math.PI - 0.3] as const, offset: 0 },
+}
+/** Silmät kapselin keskipisteestä (n. 1,62 m lattiasta) */
+const EYE = 0.66
+/** Hiirikatseen herkkyys (rad / px) */
+const LOOK_SPEED = 0.0024
+
 /* Kamera seuraa hahmoa; lähin vyöhyke raportoidaan ylös vain muuttuessaan */
 function Rig({
   ecctrl,
+  view,
+  enabled,
   onNear,
   getActive,
   setActive,
 }: {
   ecctrl: RefObject<EcctrlHandle | null>
+  view: CamView
+  enabled: boolean
   onNear: (id: LoftZoneId | null) => void
   getActive: () => LoftZoneId | null
   setActive: (id: LoftZoneId | null) => void
@@ -551,25 +653,53 @@ function Rig({
   const blockers = useCameraBlockers()
   const portrait = three.size.width < three.size.height
 
+  // Alku: hahmon takaa hissin puolelta, katse aulaa pitkin itään (W vie eteenpäin)
   useEffect(() => {
     const c = cam.current
     if (!c) return
-    // Kamera ei mene seinien eikä katon läpi: törmäys näkymättömiin laatikoihin
     c.colliderMeshes = blockers
-    // Olan yli: hahmo hieman vasemmalla, kuten GTA:ssa ja Assassin's Creedissä
-    c.setFocalOffset(portrait ? 0 : 0.42, 0.05, 0, false)
-    const [x, y, z] = SPAWN
-    // Aloitus hahmon takaa (hissin puolelta), katse asuntoon päin: W vie eteenpäin
-    c.setLookAt(x, y + HEAD + 0.55, z + (portrait ? 3.2 : 2.6), x, y + HEAD, z - 1, false)
-    // vain alussa: myöhempi ikkunan koon muutos ei siirrä kameraa
+    const [x, y, z] = START
+    const fx = Math.sin(START_YAW)
+    const fz = Math.cos(START_YAW)
+    c.setLookAt(x - fx * 1.9, y + HEAD + 0.45, z - fz * 1.9, x + fx, y + HEAD, z + fz, false)
+    // vain alussa
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [blockers])
+
+  // Näkymän vaihto: etäisyys, kulmarajat ja olkasiirtymä
+  useEffect(() => {
+    const c = cam.current
+    if (!c) return
+    const v = VIEW[view]
+    c.minDistance = v.min
+    c.maxDistance = portrait && view === 'tps' ? 4.6 : v.max
+    c.minPolarAngle = v.polar[0]
+    c.maxPolarAngle = v.polar[1]
+    c.setFocalOffset(portrait ? 0 : v.offset, view === 'tps' ? 0.05 : 0, 0, true)
+    c.dollyTo(v.dist, true)
+  }, [view, portrait])
+
+  // Hiirikatse: kun osoitin on lukittu näkymään, hiiren liike kääntää katsetta (kuten peleissä)
+  useEffect(() => {
+    const el = three.gl.domElement
+    const onMove = (e: MouseEvent) => {
+      if (document.pointerLockElement !== el || !cam.current) return
+      cam.current.rotate(-e.movementX * LOOK_SPEED, -e.movementY * LOOK_SPEED, false)
+    }
+    document.addEventListener('mousemove', onMove)
+    return () => document.removeEventListener('mousemove', onMove)
+  }, [three.gl])
+
+  // Paneelin avautuessa hiiri vapautetaan
+  useEffect(() => {
+    if (!enabled && document.pointerLockElement) document.exitPointerLock()
+  }, [enabled])
 
   useFrame(() => {
     const e = ecctrl.current
     if (!e || !cam.current) return
     const p = e.currPos
-    cam.current.moveTo(p.x, p.y + HEAD, p.z, true)
+    cam.current.moveTo(p.x, p.y + (view === 'fps' ? EYE : HEAD), p.z, true)
     CUTOUT.uPlayer.value.set(p.x, p.y + 0.2, p.z)
     CUTOUT.uCam.value.copy(three.camera.position)
 
@@ -592,11 +722,11 @@ function Rig({
     <EcctrlCameraControls
       ref={cam}
       makeDefault
-      smoothTime={0.09}
-      minDistance={1.1}
-      maxDistance={portrait ? 4.6 : 4.2}
-      minPolarAngle={0.7}
-      maxPolarAngle={1.78}
+      smoothTime={0.08}
+      minDistance={VIEW.tps.min}
+      maxDistance={portrait ? 4.6 : VIEW.tps.max}
+      minPolarAngle={VIEW.tps.polar[0]}
+      maxPolarAngle={VIEW.tps.polar[1]}
     />
   )
 }
@@ -604,11 +734,13 @@ function Rig({
 export function LoftScene({
   enabled,
   shadows,
+  view,
   onNear,
   onSelect,
 }: {
   enabled: boolean
   shadows: boolean
+  view: CamView
   onNear: (id: LoftZoneId | null) => void
   onSelect: (id: LoftZoneId) => void
 }) {
@@ -625,6 +757,7 @@ export function LoftScene({
       <color attach="background" args={['#07080c']} />
       <Lights lit={lit} />
       <Apartment shadows={shadows} onLit={setLit} />
+      <Lobby />
 
       <Physics>
         <ApartmentColliders />
@@ -635,8 +768,8 @@ export function LoftScene({
           <Ecctrl
             ref={ecctrl}
             enable={enabled}
-            position={SPAWN}
-            rotation={[0, Math.PI, 0]}
+            position={START}
+            rotation={[0, START_YAW, 0]}
             capsuleHalfHeight={0.45}
             capsuleRadius={0.26}
             floatHeight={0.25}
@@ -645,14 +778,14 @@ export function LoftScene({
             jumpVel={3.6}
             enabledRotations={[false, true, false]}
           >
-            <Character shadows={shadows} />
+            <Character shadows={shadows} hidden={view === 'fps'} />
           </Ecctrl>
           <InputBridge ecctrl={ecctrl} enabled={enabled} />
           <EcctrlAnimationStateController ecctrl={ecctrl} />
         </KeyboardControls>
       </Physics>
       <Beacons getActive={getActive} onSelect={onSelect} />
-      <Rig ecctrl={ecctrl} onNear={onNear} getActive={getActive} setActive={setActive} />
+      <Rig ecctrl={ecctrl} view={view} enabled={enabled} onNear={onNear} getActive={getActive} setActive={setActive} />
     </>
   )
 }

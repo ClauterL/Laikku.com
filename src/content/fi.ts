@@ -660,7 +660,10 @@ export const fi: Content = {
     quick: 'Pikavalikko',
     quickHint: 'Hyppää suoraan osioon kävelemättä.',
     close: 'Sulje',
-    controls: { move: 'Liiku', run: 'Juokse', look: 'Kamera', interact: 'Avaa', quick: 'Pikavalikko' },
+    fps: 'Ensimmäinen persoona',
+    tps: 'Kolmas persoona',
+    mouseLook: 'Klikkaa näkymää: hiiri ohjaa katsetta · Esc vapauttaa',
+    controls: { move: 'Liiku', run: 'Juokse', look: 'Katse', interact: 'Avaa', quick: 'Pikavalikko', view: 'Näkymä' },
     zones: [
       { id: 'elevator', name: 'Hissiaula', note: 'Havaida ja yhteydenotto' },
       { id: 'workshop', name: 'Paja', note: 'Laitteet, työkalut ja ohjelmistot' },
