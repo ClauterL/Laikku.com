@@ -40,7 +40,7 @@ export const ZONES: ZoneDef[] = [
 export const INTERACT_RADIUS = 1.35
 
 /** Aloituspaikka hissin edessä aulassa (katse itään, kodin ja loftin ovet sivuilla) */
-export const SPAWN: [number, number, number] = [-2.3, 1.2, 6.33]
+export const SPAWN: [number, number, number] = [-1.9, 1.2, 6.33]
 export const SPAWN_YAW = Math.PI / 2
 
 /** Mallit: public/models/loft (Fab-lisenssi – eivät ole julkisessa repossa) */
