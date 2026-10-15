@@ -572,14 +572,14 @@ function Character({ shadows, hidden }: { shadows: boolean; hidden: boolean }) {
   /* Ristihäivytys vain, kun klippi oikeasti vaihtuu: saman klipin uudelleenkäynnistys (esim. laskeutuminen → idle)
      nollaisi painon ja näyttäisi hetken T-asennon */
   const current = useRef<THREE.AnimationAction | null>(null)
-  useEffect(() => {
+  useFrame(() => {
     const next = actions[ANIM[state]] ?? actions.idle
-    if (!next || next === current.current) return
+    if (!next || (next === current.current && next.isRunning())) return
     const prev = current.current
     next.reset().setEffectiveWeight(1).play()
-    if (prev) prev.crossFadeTo(next, 0.2, false)
+    if (prev && prev !== next && prev.isRunning()) prev.crossFadeTo(next, 0.2, false)
     current.current = next
-  }, [state, actions])
+  })
 
   return (
     <group visible={!hidden}>
