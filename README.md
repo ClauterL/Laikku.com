@@ -64,9 +64,10 @@ src/
     OrderScreen              Havaida Oy ("kilta")
     CodexScreen              minusta, tiedot, tilastot, yhteydenotto (mailto)
   components/loft/
-    zones.ts                 loftin pohjapiirros: 9 vyöhykettä, mikä osio kustakin aukeaa, aloituspaikka
-    LoftScene                huone, paikkamerkkiesineet, hahmo (ecctrl + Rapier), seurantakamera, lähin vyöhyke
-    LoftView                 #loft-näkymä: canvas, kehote (E / napautus), pikavalikko (Q), joystick, osiopaneeli
+    zones.ts                 kerroksen pohjapiirros (koti A, hissiaula, startup-loft B), 9 vyöhykettä, esineiden sijoittelu
+    colliders.json           generoitu asunnon solmuista (scripts/loft/colliders.py) – törmäykset ja kameran esteet
+    LoftScene                asunto + aula, Fab-esineet, hahmo (ecctrl + Rapier), olan yli / 1. persoonan kamera, hiirikatse
+    LoftView                 #loft-näkymä: canvas, latausilmaisin, kehote (E), pikavalikko (Q), näkymä (V), joystick, osiopaneeli
   components/ui/             shadcn/ui-komponentit
   hooks/useLang, useSound
 v2/                          edellinen (perinteinen) portfolio, itsenäinen projekti
@@ -95,3 +96,16 @@ v2/                          edellinen (perinteinen) portfolio, itsenäinen proj
 1. Repo `ClauterL/Laikku.com`, branch `main`. Settings → Pages → Source: **GitHub Actions**.
 2. Custom domain `laikku.com` (DNS GitHub Pagesin ohjeiden mukaan), Enforce HTTPS.
 3. Workflow (`.github/workflows/deploy.yml`) buildaa jokaisesta pushista ja kerran päivässä.
+
+## Loftin 3D-mallit
+
+Mallit (`public/models/loft/*.glb`) eivät ole repossa: Fab-lisenssi ei salli niiden jakamista
+erillisinä tiedostoina. Ne tuotetaan paikallisesti `scripts/loft/`-putkella
+(oma asennus: `cd scripts/loft && npm i`):
+
+1. Unreal 5.8 vie Gaming Apartment -tason glTF:ksi (`assets-src/ue/export_loft.py`).
+2. `UNIT_B=1 node opt-apt.mjs apt-raw.glb apartment.glb nodes.json` – kevennys (meshopt, WebP), kerroksen toinen yksikkö.
+3. `python3 colliders.py nodes.json ../../src/components/loft/colliders.json` – törmäyslaatikot.
+4. `node opt-prop.mjs <fab-malli> <ulos.glb> <tekstuuri> <kolmiot>` – Fab-esineet.
+5. Valinnaiset valokartat: Unrealin Lightmass-kartat (`lightmaps.mjs`) → `lightmaps.json` + atlakset.
+

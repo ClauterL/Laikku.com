@@ -649,7 +649,10 @@ export const en: Content = {
     quick: 'Quick menu',
     quickHint: 'Jump straight to a section without walking.',
     close: 'Close',
-    controls: { move: 'Move', run: 'Run', look: 'Camera', interact: 'Open', quick: 'Quick menu' },
+    fps: 'First person',
+    tps: 'Third person',
+    mouseLook: 'Click the view: mouse steers your gaze · Esc releases',
+    controls: { move: 'Move', run: 'Run', look: 'Look', interact: 'Open', quick: 'Quick menu', view: 'View' },
     zones: [
       { id: 'elevator', name: 'Elevator lobby', note: 'Havaida and contact' },
       { id: 'workshop', name: 'Workshop', note: 'Gear, tools and software' },

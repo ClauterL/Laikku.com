@@ -1,8 +1,8 @@
-import { Suspense, useCallback, useEffect, useMemo, useState, type ComponentType } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type ComponentType } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { useProgress } from '@react-three/drei'
 import { Joystick } from 'ecctrl/input'
-import { ArrowLeft, LayoutGrid, Mouse, X } from 'lucide-react'
+import { ArrowLeft, Eye, LayoutGrid, Mouse, User, X } from 'lucide-react'
 
 import { useLang } from '@/hooks/useLang'
 import { useSound } from '@/hooks/useSound'
@@ -14,7 +14,7 @@ import { MapScreen } from '@/components/game/MapScreen'
 import { QuestsScreen } from '@/components/game/QuestsScreen'
 import { OrderScreen } from '@/components/game/OrderScreen'
 import { CodexScreen } from '@/components/game/CodexScreen'
-import { LoftScene } from './LoftScene'
+import { LoftScene, type CamView } from './LoftScene'
 import { ZONES } from './zones'
 
 const SCREENS: Record<Exclude<TabId, 'order'>, ComponentType> = {
@@ -100,6 +100,33 @@ export default function LoftView({ onExit }: { onExit: () => void }) {
   const [near, setNear] = useState<LoftZoneId | null>(null)
   const [open, setOpen] = useState<{ zone: LoftZoneId; tab: TabId } | null>(null)
   const [quick, setQuick] = useState(false)
+  const [view, setView] = useState<CamView>('tps')
+  const [locked, setLocked] = useState(false)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  // Hiirikatse: osoittimen lukitus näkymään (työpöytä)
+  useEffect(() => {
+    const onChange = () => setLocked(document.pointerLockElement === canvasRef.current)
+    document.addEventListener('pointerlockchange', onChange)
+    return () => {
+      document.removeEventListener('pointerlockchange', onChange)
+      if (document.pointerLockElement) document.exitPointerLock()
+    }
+  }, [])
+  const requestLook = useCallback(() => {
+    const c = canvasRef.current
+    if (!c || touch || document.pointerLockElement === c) return
+    try {
+      const r = c.requestPointerLock() as unknown as Promise<void> | undefined
+      r?.catch?.(() => undefined)
+    } catch {
+      /* selain ei tue: katse vedetään hiirellä */
+    }
+  }, [touch])
+  const toggleView = useCallback(() => {
+    play('tick')
+    setView((v) => (v === 'tps' ? 'fps' : 'tps'))
+  }, [play])
 
   const zoneText = useMemo(() => new Map(t.loft.zones.map((z) => [z.id, z])), [t])
   const tabLabel = useMemo(() => new Map(t.nav.tabs.map((x) => [x.id, x.label])), [t])
@@ -145,11 +172,13 @@ export default function LoftView({ onExit }: { onExit: () => void }) {
       } else if (e.key === 'q' || e.key === 'Q') {
         play(quick ? 'close' : 'open')
         setQuick((v) => !v)
+      } else if (e.key === 'v' || e.key === 'V') {
+        toggleView()
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [near, open, quick, close, openZone, play])
+  }, [near, open, quick, close, openZone, play, toggleView])
 
   const nearZone = near ? zoneText.get(near) : null
   const nearTab = near ? ZONES.find((z) => z.id === near)?.tab : undefined
@@ -160,13 +189,17 @@ export default function LoftView({ onExit }: { onExit: () => void }) {
       {webgl ? (
         <>
           <Canvas
+            ref={canvasRef}
+            onPointerMissed={() => {
+              if (!open && !quick) requestLook()
+            }}
             shadows={!touch}
             dpr={touch ? [1, 1.5] : [1, 1.75]}
             gl={{ antialias: true, powerPreference: 'high-performance' }}
             camera={{ fov: 55, near: 0.05, far: 120 }}
           >
             <Suspense fallback={null}>
-              <LoftScene enabled={!open && !quick} shadows={!touch} onNear={onNear} onSelect={openZone} />
+              <LoftScene enabled={!open && !quick} shadows={!touch} view={view} onNear={onNear} onSelect={openZone} />
             </Suspense>
           </Canvas>
           <Loading />
@@ -189,6 +222,20 @@ export default function LoftView({ onExit }: { onExit: () => void }) {
           {t.loft.exit}
         </button>
         <p className="hidden font-display text-sm uppercase tracking-[0.3em] text-brass-2 sm:block">{t.loft.title}</p>
+        <div className="pointer-events-auto flex items-start gap-2">
+        <button
+          type="button"
+          onClick={toggleView}
+          aria-pressed={view === 'fps'}
+          title={`${view === 'fps' ? t.loft.tps : t.loft.fps} (V)`}
+          className="flex items-center gap-2 rounded-sm border border-line bg-bg-2/80 px-3 py-2 font-display text-[0.68rem] uppercase tracking-[0.2em] text-ink-2 backdrop-blur hover:border-brass hover:text-brass-2 cursor-pointer"
+        >
+          {view === 'fps' ? <User className="size-4" /> : <Eye className="size-4" />}
+          <span className="hidden md:inline">{view === 'fps' ? t.loft.tps : t.loft.fps}</span>
+          <span className="hidden lg:inline">
+            <span className="key">V</span>
+          </span>
+        </button>
         <button
           type="button"
           onClick={() => {
@@ -204,7 +251,18 @@ export default function LoftView({ onExit }: { onExit: () => void }) {
             <span className="key">Q</span>
           </span>
         </button>
+        </div>
       </div>
+
+      {/* Tähtäin ensimmäisessä persoonassa */}
+      {view === 'fps' && !open && !quick && (
+        <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink/80 ring-1 ring-bg/60" />
+      )}
+
+      {/* Hiirikatseen ohje, kunnes osoitin on lukittu */}
+      {!touch && webgl && !locked && !open && !quick && (
+        <p className="pointer-events-none absolute inset-x-0 top-16 z-20 text-center text-xs text-ink-2/80">{t.loft.mouseLook}</p>
+      )}
 
       {/* Pikavalikko: kaikki vyöhykkeet reitin järjestyksessä */}
       {quick && (
@@ -270,6 +328,10 @@ export default function LoftView({ onExit }: { onExit: () => void }) {
               <Mouse className="inline size-3.5" />
             </span>
             <span className="label-caps">{t.loft.controls.look}</span>
+          </li>
+          <li className="flex items-center gap-1.5">
+            <span className="key">V</span>
+            <span className="label-caps">{t.loft.controls.view}</span>
           </li>
           <li className="flex items-center gap-1.5">
             <span className="key">E</span>
