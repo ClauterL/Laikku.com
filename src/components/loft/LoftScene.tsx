@@ -679,8 +679,12 @@ function Rig({
     c.minPolarAngle = v.polar[0]
     c.maxPolarAngle = v.polar[1]
     c.setFocalOffset(portrait ? 0 : v.offset, view === 'tps' ? 0.05 : 0, 0, true)
-    c.dollyTo(v.dist, true)
-  }, [view, portrait])
+    c.dollyTo(portrait && view === 'tps' ? 3.3 : v.dist, true)
+    // pystynäytöllä laajempi kuvakulma, ettei hahmo täytä koko ruutua
+    const pc = three.camera as THREE.PerspectiveCamera
+    pc.fov = portrait ? 68 : 55
+    pc.updateProjectionMatrix()
+  }, [view, portrait, three.camera])
 
   // Hiirikatse: kun osoitin on lukittu näkymään, hiiren liike kääntää katsetta (kuten peleissä)
   useEffect(() => {
