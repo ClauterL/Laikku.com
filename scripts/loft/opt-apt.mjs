@@ -1,7 +1,7 @@
 // Gaming Apartment (UE glTF) -> kevyt web-GLB
 import { NodeIO, getBounds } from '@gltf-transform/core';
-import { ALL_EXTENSIONS, EXTTextureWebP, EXTMeshoptCompression, KHRMeshQuantization } from '@gltf-transform/extensions';
-import { dedup, prune, weldPrimitive, compactPrimitive, flatten, join, quantize, meshopt, instance } from '@gltf-transform/functions';
+import { ALL_EXTENSIONS, EXTTextureWebP } from '@gltf-transform/extensions';
+import { dedup, prune, weldPrimitive, compactPrimitive, flatten, join, quantize, meshopt } from '@gltf-transform/functions';
 import { MeshoptSimplifier, MeshoptEncoder } from 'meshoptimizer';
 import sharp from 'sharp';
 import fs from 'fs';
