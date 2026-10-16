@@ -66,50 +66,57 @@ console.log('dropped', dropped.length);
 const mem=(t)=>console.log(t, Math.round(process.memoryUsage().rss/1e6),'MB rss', Math.round(process.memoryUsage().arrayBuffers/1e6),'MB ab');
 mem('after read');
 
-// 1a) Toinen yksikkö (UNIT_B): asunnon kopio 180° käännettynä hissiaulan toiselle puolelle,
-//     väliseinät ja keittiö/kylpyhuone/makuuhuone pois -> avoin startup-loft
+// 1a-0) Eteisen kaapit b/c on korvattu kirjahyllyllä: niiden sisällä/päällä olleet koriste-esineet pois (muuten leijuvat)
+{
+  const scene = root.listScenes()[0];
+  const STRUCT = /^SM_(Wall|Floor|Ceiling|Recessed|Downlight|Spotlight|Backdrop)/;
+  const gone = [];
+  for (const n of [...scene.listChildren()]) {
+    const name = n.getName();
+    if (STRUCT.test(name)) continue;
+    let b; try { b = getBounds(n); } catch { continue; }
+    if (!b || !isFinite(b.min[0])) continue;
+    const cx = (b.min[0] + b.max[0]) / 2, cz = (b.min[2] + b.max[2]) / 2;
+    const inHallCab = cx > -1.02 && cx < -0.38 && cz > 2.5 && cz < 4.31 && b.min[1] > 0.03;
+    if (inHallCab) { gone.push(name); n.dispose(); }
+  }
+  console.log('hall cabinet leftovers dropped', gone.length, gone.join(' '));
+}
+
+// 1a) Toinen yksikkö (UNIT_B): kokonainen kopio asunnosta 180° käännettynä hissiaulan toiselle puolelle.
+//     Huoneet ja paistettu valo pysyvät yhtenäisinä; vain vyöhyke-esineiden tieltä poistetaan muutama huonekalu
+//     (pelipöytä -> työpaja, nojatuoli -> valkotaulu) ja niiden päällä olleet pikkuesineet.
 if (process.env.UNIT_B) {
   const LOBBY_C = 6.33; // aulan keskilinja z (A:n pohjoisseinä 5.16, B:n eteläseinä 7.5)
   const scene = root.listScenes()[0];
-  const KEEP_ALWAYS = [/^SM_Floor_main$/, /^SM_Floor_bathroom$/, /^SM_Floor_balcony$/, /^SM_Balcony_metal/, /^SM_Glass_windows/, /^SM_Curtain\d*$/, /^SM_Drap_Curtain/,
-    /^SM_Ceiling_(base|livingroom|bedroom)$/, /^SM_Recessed_Downlight/, /^SM_Downlight_metal/, /^SM_Spotlight_Track/, /^SM_Fabric_Wall_Bed/,
-    /^SM_Wall_0(01|02|03|04|05|09|10|11|12|13|16|17|18|19|20|21|23)$/, /^SM_Frame_door_balcony$/, /^SM_Backdrop_livingroom$/, /^SM_Wardrobe_livingroom$/,
-    /^SM_Metal_frame_glass_c3?$/, /^SM_DiningRec_Table$/, /^SM_P_Chair\d*$/, /^SM_Ceiling_lamp$/];
-  const DROP_ALWAYS = [/^SM_Wall_/, /Kitchen/i, /kichen/i, /Bath|Shower|WC|Washbasin|Toilet|Towel|Poloten|Shampoo|Toothbrush|Soap|Flush|Hand_Wash|Sea_salt/i,
-    /^SM_Bed|Mattress|Coverlet|Clay_On_Bed|Benches|Tab_bed/, /Wardrobe|Closet|Clother|Slidingdoor|Metal_holder|Ray_.*floor|ServiceDoor/, /^Door$/, /^SM_Door_/, /^SM_Frame_bathroom/,
-    /^SM_Ceiling_(bathroom|closet)$/, /Smart_TV|Wall_Light_Ext|Wall_Mounted_Mirror|Picture_decor_standing|Umbrella|Japan_Bench|Shoes|Cabinet_hall/, /^SM_Art_picture$/];
-  const inside = (b, x0, x1, z0, z1) => { const cx = (b.min[0] + b.max[0]) / 2, cz = (b.min[2] + b.max[2]) / 2; return cx > x0 && cx < x1 && cz > z0 && cz < z1; };
+  const B_DROP = [/^SM_Gaming_desk$/, /^SM_Curved_34_Monitor$/, /^SM_Gaming_Chair$/, /^SM_Workstation$/, /^SM_Rec_Chair$/];
+  // pöydän ja tuolin päällä olevat esineet (A:n koordinaateissa)
+  const ON = [
+    { x0: -0.42, x1: 0.22, z0: -4.77, z1: -3.31, y: 0.5 }, // pelipöytä
+    { x0: 0.05, x1: 0.73, z0: -4.39, z1: -3.71, y: 0.3 }, // pelituoli
+    { x0: -3.71, x1: -2.73, z0: -0.38, z1: 0.56, y: 0.2 }, // nojatuoli
+  ];
   const deep = (n) => { const c = doc.createNode(n.getName()).setTranslation(n.getTranslation()).setRotation(n.getRotation()).setScale(n.getScale()).setMesh(n.getMesh()).setExtras({ ...n.getExtras() }); for (const ch of n.listChildren()) c.addChild(deep(ch)); return c; };
   const qy = [0, 1, 0, 0]; // 180° y-akselin ympäri
   const qmul = (a, b) => [a[3] * b[0] + a[0] * b[3] + a[1] * b[2] - a[2] * b[1], a[3] * b[1] - a[0] * b[2] + a[1] * b[3] + a[2] * b[0], a[3] * b[2] + a[0] * b[1] - a[1] * b[0] + a[2] * b[3], a[3] * b[3] - a[0] * b[0] - a[1] * b[1] - a[2] * b[2]];
   let copied = 0;
+  const skipped = [];
   for (const n of [...scene.listChildren()]) {
     const name = n.getName();
     let b; try { b = getBounds(n); } catch { continue; }
     if (!b || !isFinite(b.min[0])) continue;
-    let keep = KEEP_ALWAYS.some((r) => r.test(name));
-    if (!keep && !DROP_ALWAYS.some((r) => r.test(name))) {
-      // alueittain: makuuhuone, vaatehuone, kylpyhuone, keittiö ja eteinen pois
-      const bad = inside(b, 1.45, 4.5, -4.0, 5.2) || inside(b, -4.4, -1.0, 1.3, 5.2) || inside(b, -1.05, 1.5, 2.45, 5.2);
-      keep = !bad;
-    }
-    if (!keep) continue;
+    const cx = (b.min[0] + b.max[0]) / 2, cz = (b.min[2] + b.max[2]) / 2;
+    const onTop = !/^SM_(Wall|Floor|Ceiling|Recessed|Downlight|Spotlight)/.test(name) && ON.some((r) => cx > r.x0 && cx < r.x1 && cz > r.z0 && cz < r.z1 && b.min[1] > r.y && b.max[1] - b.min[1] < 1.2);
+    if (B_DROP.some((r) => r.test(name)) || onTop) { skipped.push(name); continue; }
     const c = deep(n);
     c.setName(name + '__B');
-    if (name === 'SM_Floor_bathroom' && c.getMesh()) {
-      // kylpyhuoneen laattalattia -> parketti (B:ssä ei kylpyhuonetta)
-      const parquet = scene.listChildren().find((x) => x.getName() === 'SM_Floor_main')?.getMesh()?.listPrimitives()[0]?.getMaterial();
-      const m2 = doc.createMesh('SM_Floor_patch__B');
-      for (const p of c.getMesh().listPrimitives()) { const p2 = p.clone(); if (parquet) p2.setMaterial(parquet); m2.addPrimitive(p2); }
-      c.setMesh(m2);
-    }
     const t = n.getTranslation();
     c.setTranslation([-t[0], t[1], 2 * LOBBY_C - t[2]]);
     c.setRotation(qmul(qy, n.getRotation()));
     scene.addChild(c);
     copied++;
   }
-  console.log('unit B nodes', copied);
+  console.log('unit B nodes', copied, 'skipped', skipped.join(' '));
 }
 
 // 1b) Kerroksen laajennus (EXPAND = mittakerroin x/z): arkkitehtuuri venyy, huonekalut säilyttävät koon
