@@ -563,6 +563,8 @@ function Character({ shadows, hidden }: { shadows: boolean; hidden: boolean }) {
       mesh.receiveShadow = true
       mesh.frustumCulled = false
       const old = mesh.material as THREE.MeshStandardMaterial
+      // Oma hahmomalli (esim. MetaHuman) pitää omat materiaalinsa; vain Mixamon mallinukke sävytetään
+      if (!/alpha|beta/i.test(old.name)) return
       const joint = /joint/i.test(old.name)
       mesh.material = new THREE.MeshStandardMaterial({
         color: joint ? C.brass : C.wine,
