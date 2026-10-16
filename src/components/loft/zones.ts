@@ -1,13 +1,13 @@
 import type { LoftZoneId, TabId } from '@/content'
 
 /**
- * Loftikerros (metreinä, glTF-koordinaatit: y ylös). Koko kerros on kahden asunnon kokoinen:
- * - A = koti (Gaming Apartment sellaisenaan): x −4,4…4,4, z −5,2…5,2, ikkunat ja parveke etelässä
- * - hissiaula A:n ja B:n välissä: z 5,16…7,5, hissi aulan länsipäädyssä
- * - B = startup-loft (sama asunto 180° käännettynä, väliseinät pois): z 7,5…17,8, ikkunat pohjoisessa
+ * Loftikerros 5 (metreinä, glTF-koordinaatit: y ylös). Huoneet järjestetty aulan ympärille:
+ * - koti (Gaming Apartment): x −4,4…4,4, z −5,2…5,16 – eteinen ja kirjasto, olohuone ja keittiö, työhuone (entinen makuuhuone), parveke
+ * - hissiaula: z 5,16…7,5, hissi aulan länsipäädyssä
+ * - työ-siipi: z 7,5…17,8 – arcade-galleria, kahvio, WC ja tekniikka, war room ja lasiseinän takana paja (ikkunat pohjoisessa)
+ * Koko kerros on yksi Blenderissä paistettu malli (scripts/loft/floor5).
  */
-export const ROOM = { minX: -4.4, maxX: 4.4, minZ: -5.2, maxZ: 17.9, wallTop: 3 } as const
-export const LOBBY = { minX: -4.39, maxX: 4.39, minZ: 5.16, maxZ: 7.5, height: 2.75 } as const
+export const ROOM = { minX: -4.4, maxX: 4.4, minZ: -5.2, maxZ: 17.8, wallTop: 3 } as const
 
 export interface ZoneDef {
   id: LoftZoneId
@@ -22,18 +22,18 @@ export interface ZoneDef {
 export const ZONES: ZoneDef[] = [
   // aula
   { id: 'elevator', tab: 'order', hotspot: [-3.0, 6.33], marker: [-3.85, 2.5, 6.33] },
-  // B: toinen asunto
-  { id: 'workshop', tab: 'items', hotspot: [-0.75, 16.75], marker: [0.1, 2.45, 16.75] },
-  // A: koti
+  // työ-siipi: paja ikkunan ääressä
+  { id: 'workshop', tab: 'items', hotspot: [-1.2, 16.25], marker: [-1.2, 2.3, 17.05] },
+  // koti
   { id: 'library', tab: 'codex', hotspot: [-0.05, 3.3], marker: [-0.8, 2.35, 3.4] },
   { id: 'desk', tab: 'skills', hotspot: [1.15, -3.75], marker: [-0.05, 1.95, -4.05] },
-  // B
-  { id: 'warroom', tab: 'quests', hotspot: [2.8, 11.75], marker: [2.8, 2.2, 12.55] },
-  { id: 'projects', tab: 'inventory', hotspot: [-0.3, 9.75], marker: [-1.05, 2.4, 9.75] },
-  // A
+  // työ-siipi
+  { id: 'warroom', tab: 'quests', hotspot: [2.9, 12.95], marker: [3.9, 2.25, 12.95] },
+  { id: 'projects', tab: 'inventory', hotspot: [-0.65, 9.4], marker: [0.15, 2.4, 9.4] },
+  // koti
   { id: 'hobbies', tab: 'codex', hotspot: [-3.05, -2.3], marker: [-3.3, 2.4, -3.1] },
   { id: 'trophies', tab: 'skills', hotspot: [0.6, -2.25], marker: [-0.2, 1.35, -2.3] },
-  { id: 'window', tab: 'map', hotspot: [3.35, -4.45], marker: [3.75, 2.0, -4.65] },
+  { id: 'window', tab: 'map', hotspot: [3.2, -4.4], marker: [4.0, 2.0, -4.85] },
 ]
 
 /** Kuinka läheltä (m) esineen voi avata */
@@ -74,24 +74,25 @@ const HALF_PI = Math.PI / 2
 export const PROPS: PropDef[] = [
   // 1 Hissi: ovijulkisivu aulan länsipäädyssä, kori kerroksen ulkopuolella
   { id: 'elevator', file: 'elevator.glb', at: [-4.12, 0, 6.33], rotY: HALF_PI, fit: { h: 2.6 }, anchor: 'front', depthScale: 0.1, collider: 'box', zone: 'elevator' },
-  // A (koti) – 3 Kirjasto: hylly eteisen länsiseinällä
+  // koti – 3 Kirjasto: hylly eteisen länsiseinällä
   { id: 'bookshelf', file: 'bookshelf.glb', at: [-1.0, 0, 3.4], rotY: HALF_PI, fit: { w: 1.72 }, anchor: 'back', collider: 'box', zone: 'library' },
-  // A – 7 Harrastukset: haarniska olohuoneen nurkassa
+  // koti – 7 Harrastukset: haarniska olohuoneen nurkassa
   { id: 'knight', file: 'knight.glb', at: [-3.3, 0, -3.1], rotY: HALF_PI * 0.6, fit: { h: 1.9 }, anchor: 'bottom', collider: 'box', zone: 'hobbies' },
-  // A – 8 Palkinnot: pokaalit makuuhuoneen konsolilla
+  // koti – 8 Palkinnot: pokaalit työhuoneen konsolilla
   { id: 'trophy', file: 'trophy.glb', at: [-0.21, 0.51, -2.45], rotY: HALF_PI, fit: { h: 0.42 }, anchor: 'bottom', collider: false, zone: 'trophies' },
   { id: 'trophy2', file: 'trophy.glb', at: [-0.2, 0.51, -2.08], rotY: HALF_PI, fit: { h: 0.32 }, anchor: 'bottom', collider: false },
-  // A – 9 Ikkuna: kaukoputki parvekkeella
-  { id: 'telescope', file: 'telescope.glb', at: [3.8, 0, -4.62], rotY: Math.PI * 0.85, fit: { h: 1.45 }, anchor: 'bottom', collider: 'box', zone: 'window' },
-  // B (toinen asunto, kokonainen kopio) – 2 Paja: työpenkki pelipöydän paikalla ikkunan ääressä + linjavalaisin
-  { id: 'workbench', file: 'workbench.glb', at: [0.42, 0, 16.75], rotY: -HALF_PI, fit: { w: 1.4 }, anchor: 'back', collider: 'box', zone: 'workshop' },
-  { id: 'lamp', file: 'lamp.glb', at: [0.1, 2.7, 16.75], rotY: -HALF_PI, fit: { h: 1.15 }, anchor: 'top', collider: false, castShadow: false },
-  // B – 6 Projektit: arcade-kaappi eteisen seinällä
-  { id: 'arcade', file: 'arcade.glb', at: [-1.5, 0, 9.75], rotY: HALF_PI, fit: { h: 1.95 }, anchor: 'back', collider: 'box', zone: 'projects' },
-  // B – 5 War room: valkotaulu ruokapöydän (neuvottelupöytä) päädyssä nojatuolin paikalla
-  { id: 'whiteboard', file: 'whiteboard.glb', at: [2.8, 0, 12.75], rotY: Math.PI, fit: { w: 1.85 }, anchor: 'back', collider: 'thin', zone: 'warroom' },
-  // B – maailmankartta eteisen seinällä arcaden vastapäätä
-  { id: 'worldmap', file: 'worldmap.glb', at: [1.0, 1.65, 9.25], rotY: -HALF_PI, rotX: HALF_PI, fit: { w: 1.6 }, anchor: 'wall', collider: false, castShadow: false },
+  // koti – 9 Ikkuna: kaukoputki parvekkeen nurkassa (parvekkeen ovelta jää tilaa astua sisään)
+  { id: 'telescope', file: 'telescope.glb', at: [4.02, 0, -4.82], rotY: Math.PI * 0.85, fit: { h: 1.35 }, anchor: 'bottom', collider: 'box', zone: 'window' },
+  // työ-siipi – 6 Projektit: kolme arcade-kaappia gallerian itäseinällä (keskimmäinen avaa osion)
+  { id: 'arcade', file: 'arcade.glb', at: [0.53, 0, 9.4], rotY: -HALF_PI, fit: { h: 1.95 }, anchor: 'back', collider: 'box', zone: 'projects' },
+  { id: 'arcade2', file: 'arcade.glb', at: [0.53, 0, 8.35], rotY: -HALF_PI, fit: { h: 1.95 }, anchor: 'back', collider: 'box' },
+  { id: 'arcade3', file: 'arcade.glb', at: [0.53, 0, 10.45], rotY: -HALF_PI, fit: { h: 1.95 }, anchor: 'back', collider: 'box' },
+  // työ-siipi – 5 War room: valkotaulu itäseinällä neuvottelupöydän päädyssä, maailmankartta länsiseinän pähkinäpaneelilla
+  { id: 'whiteboard', file: 'whiteboard.glb', at: [4.14, 0, 12.95], rotY: -HALF_PI, fit: { w: 1.85 }, anchor: 'back', collider: 'thin', zone: 'warroom' },
+  { id: 'worldmap', file: 'worldmap.glb', at: [-4.1, 1.7, 12.95], rotY: HALF_PI, rotX: HALF_PI, fit: { w: 1.6 }, anchor: 'wall', collider: false, castShadow: false },
+  // työ-siipi – 2 Paja: työpenkki ikkunaa vasten + linjavalaisin
+  { id: 'workbench', file: 'workbench.glb', at: [-1.2, 0, 17.42], rotY: Math.PI, fit: { w: 1.4 }, anchor: 'back', collider: 'box', zone: 'workshop' },
+  { id: 'lamp', file: 'lamp.glb', at: [-1.2, 2.71, 17.0], rotY: Math.PI, fit: { h: 1.15 }, anchor: 'top', collider: false, castShadow: false },
 ]
 
 /** Maailmankartan korostetut maat (koti ja seuraava kohde) */

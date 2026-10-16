@@ -10,7 +10,7 @@ import { EcctrlAnimationStateController, useEcctrlAnimationStore, type EcctrlAni
 
 import type { LoftZoneId } from '@/content'
 import colliders from './colliders.json'
-import { INTERACT_RADIUS, LOBBY, MAP_HIGHLIGHT, MODEL_BASE, PROPS, SPAWN, SPAWN_YAW, ZONES, type Anchor, type PropDef } from './zones'
+import { INTERACT_RADIUS, MAP_HIGHLIGHT, MODEL_BASE, PROPS, SPAWN, SPAWN_YAW, ZONES, type Anchor, type PropDef } from './zones'
 
 export type CamView = 'tps' | 'fps'
 
@@ -174,14 +174,11 @@ function Apartment({ shadows, onLit }: { shadows: boolean; onLit: (lit: boolean)
   return <primitive object={scene} />
 }
 
-/** Kaikki törmäykset: lattia + asunnon seinät ja isot huonekalut (generoitu mallista) */
+/** Kaikki törmäykset: lattia + kerroksen seinät ja isot huonekalut (generoitu mallista ja pohjasta) */
 function ApartmentColliders() {
   return (
     <RigidBody type="fixed" colliders={false}>
       <CuboidCollider args={[10, 0.5, 14]} position={[0, -0.5, 6.3]} />
-      {/* aulan päätyseinät */}
-      <CuboidCollider args={[0.15, 1.5, (LOBBY.maxZ - LOBBY.minZ) / 2]} position={[LOBBY.maxX + 0.15, 1.5, (LOBBY.minZ + LOBBY.maxZ) / 2]} />
-      <CuboidCollider args={[0.15, 1.5, (LOBBY.maxZ - LOBBY.minZ) / 2]} position={[LOBBY.minX - 0.15, 1.5, (LOBBY.minZ + LOBBY.maxZ) / 2]} />
       {colliders.solid.map(([x, y, z, hx, hy, hz], i) => (
         <CuboidCollider key={i} args={[hx, hy, hz]} position={[x, y, z]} />
       ))}
@@ -194,15 +191,8 @@ function useCameraBlockers() {
   return useMemo(() => {
     const geo = new THREE.BoxGeometry(1, 1, 1)
     const mat = new THREE.MeshBasicMaterial({ visible: false })
-    const lz = (LOBBY.minZ + LOBBY.maxZ) / 2
-    const lh = (LOBBY.maxZ - LOBBY.minZ) / 2
-    // + katto koko kerroksen yllä, aulan päätyseinät (hissi länsipäädyssä)
-    const boxes: number[][] = [
-      ...colliders.camera,
-      [0, 2.97, 6.3, 6, 0.22, 13],
-      [LOBBY.minX + 0.05, 1.5, lz, 0.3, 1.5, lh + 0.3],
-      [LOBBY.maxX + 0.15, 1.5, lz, 0.15, 1.5, lh],
-    ]
+    // + katto koko kerroksen yllä
+    const boxes: number[][] = [...colliders.camera, [0, 2.97, 6.3, 6, 0.22, 13]]
     return boxes.map(([x, y, z, hx, hy, hz]) => {
       const m = new THREE.Mesh(geo, mat)
       m.position.set(x, y, z)
@@ -211,68 +201,6 @@ function useCameraBlockers() {
       return m
     })
   }, [])
-}
-
-/* ---------- hissiaula A:n ja B:n välissä (rakennetaan asunnon omista materiaaleista) ---------- */
-
-function findMaterial(root: THREE.Object3D, re: RegExp): THREE.Material | undefined {
-  let found: THREE.Material | undefined
-  root.traverse((o) => {
-    const mesh = o as THREE.Mesh
-    if (found || !mesh.isMesh) return
-    const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
-    found = mats.find((m) => re.test(m.name))
-  })
-  return found
-}
-
-function Lobby() {
-  const { scene } = useGLTF(url('apartment.glb'), false, true)
-  const W = LOBBY.maxX - LOBBY.minX
-  const D = LOBBY.maxZ - LOBBY.minZ
-  const cx = (LOBBY.minX + LOBBY.maxX) / 2
-  const cz = (LOBBY.minZ + LOBBY.maxZ) / 2
-  const mats = useMemo(() => {
-    const pick = (re: RegExp, fallback: string) => {
-      const m = findMaterial(scene, re)
-      const c = m ? m.clone() : new THREE.MeshStandardMaterial({ color: fallback, roughness: 0.85 })
-      withCutout(c)
-      return c
-    }
-    return {
-      floor: pick(/OakAnthracite/, '#3b2d24'),
-      wall: pick(/WallPaintGrayMatte/, '#8e8a86'),
-      ceiling: pick(/WallPaintWhiteMatte/, '#e9e6e1'),
-    }
-  }, [scene])
-  const floorGeo = useMemo(() => {
-    // parketin tiheys sama kuin asunnossa (~2,35 kuviota / m)
-    const g = new THREE.PlaneGeometry(W, D)
-    const uv = g.attributes.uv as THREE.BufferAttribute
-    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * W * 2.35, uv.getY(i) * D * 2.35)
-    return g
-  }, [W, D])
-  return (
-    <group name="lobby">
-      <mesh geometry={floorGeo} material={mats.floor} rotation-x={-Math.PI / 2} position={[cx, 0.002, cz]} receiveShadow />
-      <mesh material={mats.ceiling} rotation-x={Math.PI / 2} position={[cx, LOBBY.height, cz]}>
-        <planeGeometry args={[W, D]} />
-      </mesh>
-      <mesh material={mats.wall} position={[LOBBY.maxX + 0.12, 1.5, cz]}>
-        <boxGeometry args={[0.24, 3, D]} />
-      </mesh>
-      <mesh material={mats.wall} position={[LOBBY.minX - 0.12, 1.5, cz]}>
-        <boxGeometry args={[0.24, 3, D]} />
-      </mesh>
-      {/* upotetut kattovalot */}
-      {[-2.6, -0.4, 1.8, 3.6].map((x) => (
-        <mesh key={x} position={[x, LOBBY.height - 0.005, cz]} rotation-x={Math.PI / 2}>
-          <circleGeometry args={[0.07, 20]} />
-          <meshBasicMaterial color="#fff3df" toneMapped={false} />
-        </mesh>
-      ))}
-    </group>
-  )
 }
 
 /* ---------- esineet ---------- */
@@ -469,15 +397,16 @@ function Beacons({ getActive, onSelect }: { getActive: () => LoftZoneId | null; 
 
 /** Lämpimät huonevalot (ei varjoja) – katoton asunto valaistaan näillä + ympäristöllä */
 const ROOM_LIGHTS: { p: [number, number, number]; c: string; i: number; d: number }[] = [
-  { p: [-2.3, 2.45, -2.0], c: '#ffc58a', i: 9, d: 6 }, // A olohuone
-  { p: [-1.6, 2.45, 2.4], c: '#ffd2a0', i: 8, d: 6 }, // A ruokailu + eteinen
-  { p: [2.4, 2.45, -2.1], c: '#ffc58a', i: 7, d: 6 }, // A makuuhuone
-  { p: [0.2, 1.6, -4.2], c: '#7d8cff', i: 4, d: 3.5 }, // A työpisteen RGB-hehku
-  { p: [-2.0, 2.45, 6.33], c: '#ffe2bd', i: 9, d: 7.5 }, // aula (hissin puoli)
-  { p: [-3.3, 1.5, 10.4], c: '#ffbe7a', i: 7, d: 5 }, // B paja + arcade
-  { p: [2.6, 2.45, 10.2], c: '#ffd2a0', i: 8, d: 6.5 }, // B neuvottelupöytä
-  { p: [1.8, 2.45, 14.8], c: '#ffc58a', i: 8, d: 6.5 }, // B lounge
-  { p: [-3.4, 1.8, 11.6], c: '#c45cff', i: 2.5, d: 2.5 }, // B arcade-hehku
+  { p: [-2.3, 2.45, -2.0], c: '#ffc58a', i: 9, d: 6 }, // koti: olohuone
+  { p: [-1.6, 2.45, 2.4], c: '#ffd2a0', i: 8, d: 6 }, // koti: ruokailu + eteinen
+  { p: [2.4, 2.45, -2.1], c: '#ffc58a', i: 7, d: 6 }, // koti: työhuone
+  { p: [0.2, 1.6, -4.2], c: '#7d8cff', i: 4, d: 3.5 }, // koti: työpisteen RGB-hehku
+  { p: [-1.0, 2.45, 6.33], c: '#ffe2bd', i: 9, d: 7.5 }, // aula
+  { p: [-1.8, 2.45, 9.4], c: '#ffbe7a', i: 7, d: 5.5 }, // arcade-galleria
+  { p: [-0.2, 1.6, 9.4], c: '#c45cff', i: 2.5, d: 2.8 }, // arcade-hehku
+  { p: [2.4, 2.45, 9.2], c: '#ffd2a0', i: 6, d: 4.5 }, // kahvio + WC
+  { p: [0.0, 2.3, 12.95], c: '#ffd2a0', i: 8, d: 6.5 }, // war room
+  { p: [0.0, 2.45, 16.2], c: '#fff0dc', i: 8, d: 6.5 }, // paja
 ]
 
 function Lights({ lit }: { lit: boolean }) {
@@ -704,6 +633,12 @@ function Rig({
     if (!enabled && document.pointerLockElement) document.exitPointerLock()
   }, [enabled])
 
+  // Kehitystila: testikuvien ja kulkutestien kahva (window.__loft), ei tuotannossa
+  useEffect(() => {
+    if (!import.meta.env.DEV) return
+    ;(window as unknown as { __loft?: unknown }).__loft = { ecctrl, cam }
+  }, [ecctrl])
+
   useFrame(() => {
     const e = ecctrl.current
     if (!e || !cam.current) return
@@ -766,7 +701,6 @@ export function LoftScene({
       <color attach="background" args={['#07080c']} />
       <Lights lit={lit} />
       <Apartment shadows={shadows} onLit={setLit} />
-      <Lobby />
 
       <Physics>
         <ApartmentColliders />
