@@ -107,5 +107,10 @@ erillisinä tiedostoina. Ne tuotetaan paikallisesti `scripts/loft/`-putkella
 2. `UNIT_B=1 node opt-apt.mjs apt-raw.glb apartment.glb nodes.json` – kevennys (meshopt, WebP), kerroksen toinen yksikkö.
 3. `python3 colliders.py nodes.json ../../src/components/loft/colliders.json` – törmäyslaatikot.
 4. `node opt-prop.mjs <fab-malli> <ulos.glb> <tekstuuri> <kolmiot>` – Fab-esineet.
-5. Valinnaiset valokartat: Unrealin Lightmass-kartat (`lightmaps.mjs`) → `lightmaps.json` + atlakset.
+5. Valokartat: kohtauksen valot ovat Unrealissa liikkuvia (Lumen), joten paisto tehdään vain vientiä varten:
+   valot staattisiksi muistissa → Lightmass (Medium) → glTF-vienti `export_lightmaps`-asetuksella → valot takaisin
+   (tasoa ei tallenneta). Sitten
+   `TONE=1 node lightmaps.mjs lightmaps.gltf lmout` (HQ-koodauksen purku + kirkkaiden pintojen pehmeä katto) ja
+   `LM_DIR=lmout UNIT_B=1 node opt-apt.mjs …`. Atlakset WebP:ksi `public/models/loft/lm/`, kertoimet
+   `public/models/loft/lightmaps.json` (`gain` säätää kokonaiskirkkautta).
 

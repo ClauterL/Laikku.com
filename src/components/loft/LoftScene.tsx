@@ -109,7 +109,8 @@ interface LightmapManifest {
 function useLightmaps(scene: THREE.Object3D, onReady: (lit: boolean) => void) {
   useEffect(() => {
     let alive = true
-    const loader = new THREE.TextureLoader()
+    // oma latausmanageri: valokartat eivät nosta latausruutua uudelleen esiin
+    const loader = new THREE.TextureLoader(new THREE.LoadingManager())
     fetch(url('lightmaps.json'))
       .then((r) => (r.ok ? (r.json() as Promise<LightmapManifest>) : null))
       .then(async (man) => {
@@ -134,6 +135,8 @@ function useLightmaps(scene: THREE.Object3D, onReady: (lit: boolean) => void) {
             if (!lm) continue
             m.lightMap = lm.t
             m.lightMapIntensity = lm.M * man.gain
+            // epäsuora valo tulee jo kartasta: ympäristöstä vain heijastukset
+            m.envMapIntensity = 0.4
             m.needsUpdate = true
           }
         })
