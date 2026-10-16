@@ -144,6 +144,106 @@ for (const z of ZONES) {
   console.log((ok ? '  ' : '✗ ') + z.id.padEnd(10), 'lähin kuljettava kohta', best.toFixed(2), 'm');
 }
 
+// --- reitit selaintestiä varten: node walk-check.mjs kartta.png reitit.json ---
+const OUT_PATHS = process.argv[3];
+if (OUT_PATHS) {
+  // väljempi välys reitin suunnitteluun (hahmo ei hankaa seiniä), vara: tarkka kapselisäde
+  const R2 = CAPSULE_R + 0.1;
+  const wide = new Uint8Array(NX * NZ);
+  for (const b of boxes) {
+    if (b.y1 < STEP_H || b.y0 > HEAD) continue;
+    const i0 = Math.max(0, Math.floor((b.x0 - R2 - X0) / C)), i1 = Math.min(NX - 1, Math.ceil((b.x1 + R2 - X0) / C));
+    const j0 = Math.max(0, Math.floor((b.z0 - R2 - Z0) / C)), j1 = Math.min(NZ - 1, Math.ceil((b.z1 + R2 - Z0) / C));
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+      const x = X0 + (i + 0.5) * C, z = Z0 + (j + 0.5) * C;
+      const dx = Math.max(b.x0 - x, 0, x - b.x1), dz = Math.max(b.z0 - z, 0, z - b.z1);
+      if (dx * dx + dz * dz <= R2 * R2) wide[j * NX + i] = 1;
+    }
+  }
+  const cost = (p) => (wide[p] ? 6 : 1); // kapeikkoihin vain tarvittaessa
+  // Dijkstra 8-naapurustolla aloituspaikasta
+  const dist = new Float64Array(NX * NZ).fill(Infinity), par = new Int32Array(NX * NZ).fill(-1);
+  const s0 = sj * NX + si; dist[s0] = 0;
+  const heap = [[0, s0]];
+  const push = (e) => { heap.push(e); let k = heap.length - 1; while (k > 0) { const pk = (k - 1) >> 1; if (heap[pk][0] <= heap[k][0]) break; [heap[pk], heap[k]] = [heap[k], heap[pk]]; k = pk; } };
+  const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let k = 0; for (;;) { const l = 2 * k + 1, r = l + 1; let m = k; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === k) break; [heap[m], heap[k]] = [heap[k], heap[m]]; k = m; } } return top; };
+  while (heap.length) {
+    const [d, p] = pop(); if (d > dist[p]) continue;
+    const i = p % NX, j = (p - i) / NX;
+    for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+      const a = i + di, b = j + dj; if (a < 0 || b < 0 || a >= NX || b >= NZ) continue;
+      const n = b * NX + a; if (blocked[n]) continue;
+      if (di && dj && (blocked[j * NX + a] || blocked[b * NX + i])) continue;
+      const nd = d + (di && dj ? Math.SQRT2 : 1) * cost(n);
+      if (nd < dist[n]) { dist[n] = nd; par[n] = p; push([nd, n]); }
+    }
+  }
+  const los = (p, q) => { // näköyhteys väljällä ruudukolla
+    let i0 = p % NX, j0 = (p - i0) / NX; const i1 = q % NX, j1 = (q - i1) / NX;
+    const n = Math.max(Math.abs(i1 - i0), Math.abs(j1 - j0));
+    for (let k = 0; k <= n; k++) { const i = Math.round(i0 + ((i1 - i0) * k) / n), j = Math.round(j0 + ((j1 - j0) * k) / n); if (wide[j * NX + i]) return false; }
+    return true;
+  };
+  const target = (x, z) => { let best = -1, bd = Infinity; for (let p = 0; p < NX * NZ; p++) { if (!reach[p]) continue; const i = p % NX, j = (p - i) / NX; const d = Math.hypot(X0 + (i + 0.5) * C - x, Z0 + (j + 0.5) * C - z) + (wide[p] ? 0.25 : 0); if (d < bd) { bd = d; best = p; } } return best; };
+  const routes = [];
+  const goals = [...ZONES.map((z) => [z.id, z.hotspot[0], z.hotspot[1]]), ...ROOMS.map(([n, x0, x1, z0, z1]) => [n, (x0 + x1) / 2, (z0 + z1) / 2])];
+  for (const [name, gx, gz] of goals) {
+    const g = target(gx, gz); if (g < 0) continue;
+    const path = []; for (let p = g; p !== -1; p = par[p]) path.push(p); path.reverse();
+    const pts = [path[0]]; let k = 0;
+    while (k < path.length - 1) { let m = path.length - 1; while (m > k + 1 && !los(path[k], path[m])) m--; pts.push(path[m]); k = m; }
+    routes.push({ name, goal: [gx, gz], pts: pts.map((p) => { const i = p % NX, j = (p - i) / NX; return [+(X0 + (i + 0.5) * C).toFixed(2), +(Z0 + (j + 0.5) * C).toFixed(2)]; }) });
+  }
+  fs.writeFileSync(OUT_PATHS, JSON.stringify({ spawn: SPAWN, routes }, null, 1));
+  console.log('reitit', OUT_PATHS, routes.length);
+
+  // --- fysiikkatesti: pelin oma Rapier, samat laatikot, kapseli (säde 0,26, puolikorkeus 0,45) kävelee reitit ---
+  const RAPIER = (await import(path.join(ROOT, 'node_modules/@dimforge/rapier3d-compat/rapier.mjs'))).default;
+  await RAPIER.init();
+  const world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
+  const fixed = world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
+  world.createCollider(RAPIER.ColliderDesc.cuboid(10, 0.5, 14).setTranslation(0, -0.5, 6.3), fixed);
+  for (const b of boxes) {
+    world.createCollider(RAPIER.ColliderDesc.cuboid((b.x1 - b.x0) / 2, (b.y1 - b.y0) / 2, (b.z1 - b.z0) / 2)
+      .setTranslation((b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2, (b.z0 + b.z1) / 2), fixed);
+  }
+  const HALF = 0.45, Y = 0.25 + HALF + CAPSULE_R; // kelluntakorkeus 0,25 kuten ecctrl
+  const body = world.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(SPAWN[0], Y, SPAWN[2]));
+  const capsule = world.createCollider(RAPIER.ColliderDesc.capsule(HALF, CAPSULE_R), body);
+  const kcc = world.createCharacterController(0.02);
+  kcc.enableAutostep(0.2, 0.15, false);
+  kcc.setSlideEnabled(true);
+  world.step();
+  console.log('\nfysiikkatesti (Rapier, kävely 2 m/s reittiä pitkin, ei teleporttausta):');
+  let pfail = 0;
+  for (const r of routes) {
+    body.setTranslation({ x: SPAWN[0], y: Y, z: SPAWN[2] }, true); body.setNextKinematicTranslation({ x: SPAWN[0], y: Y, z: SPAWN[2] });
+    world.step();
+    let ok = true, why = '';
+    const dt = 1 / 60, speed = 2.0;
+    for (const wp of r.pts.slice(1)) {
+      let best = Infinity, sinceBest = 0;
+      for (let step = 0; step < 60 * 60; step++) {
+        const t = body.translation();
+        const dx = wp[0] - t.x, dz = wp[1] - t.z, d = Math.hypot(dx, dz);
+        if (d < 0.12) break;
+        if (d < best - 0.01) { best = d; sinceBest = 0; } else if (++sinceBest > 120) { ok = false; why = `jumissa (${t.x.toFixed(2)}, ${t.z.toFixed(2)}), ${d.toFixed(2)} m reittipisteeseen`; break; }
+        const s = Math.min(speed * dt, d);
+        kcc.computeColliderMovement(capsule, { x: (dx / d) * s, y: -0.02, z: (dz / d) * s });
+        const m = kcc.computedMovement();
+        body.setNextKinematicTranslation({ x: t.x + m.x, y: Math.max(Y - 0.05, t.y + m.y), z: t.z + m.z });
+        world.step();
+      }
+      if (!ok) break;
+    }
+    const t = body.translation();
+    const gd = Math.hypot(r.goal[0] - t.x, r.goal[1] - t.z);
+    if (!ok) pfail++;
+    console.log((ok ? '  ' : '✗ ') + r.name.padEnd(20), ok ? `perillä (${t.x.toFixed(2)}, ${t.z.toFixed(2)}), tavoitteesta ${gd.toFixed(2)} m` : why);
+  }
+  fail += pfail;
+}
+
 if (OUT_PNG) {
   const sharp = (await import('sharp')).default;
   const S = 2; // px per ruutu
