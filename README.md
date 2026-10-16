@@ -64,9 +64,9 @@ src/
     OrderScreen              Havaida Oy ("kilta")
     CodexScreen              minusta, tiedot, tilastot, yhteydenotto (mailto)
   components/loft/
-    zones.ts                 kerroksen pohjapiirros (koti A, hissiaula, startup-loft B), 9 vyöhykettä, esineiden sijoittelu
-    colliders.json           generoitu asunnon solmuista (scripts/loft/colliders.py) – törmäykset ja kameran esteet
-    LoftScene                asunto + aula, Fab-esineet, hahmo (ecctrl + Rapier), olan yli / 1. persoonan kamera, hiirikatse
+    zones.ts                 kerros 5: koti, hissiaula ja työ-siipi, 9 vyöhykettä, esineiden sijoittelu
+    colliders.json           generoitu kerroksen geometriasta (scripts/loft/floor5/s4_colliders.py) – törmäykset ja kameran esteet
+    LoftScene                kerros (yksi paistettu malli), Fab-esineet, hahmo (ecctrl + Rapier), olan yli / 1. persoonan kamera, hiirikatse
     LoftView                 #loft-näkymä: canvas, latausilmaisin, kehote (E), pikavalikko (Q), näkymä (V), joystick, osiopaneeli
   components/ui/             shadcn/ui-komponentit
   hooks/useLang, useSound
@@ -113,4 +113,21 @@ erillisinä tiedostoina. Ne tuotetaan paikallisesti `scripts/loft/`-putkella
    `TONE=1 node lightmaps.mjs lightmaps.gltf lmout` (HQ-koodauksen purku + kirkkaiden pintojen pehmeä katto) ja
    `LM_DIR=lmout UNIT_B=1 node opt-apt.mjs …`. Atlakset WebP:ksi `public/models/loft/lm/`, kertoimet
    `public/models/loft/lightmaps.json` (`gain` säätää kokonaiskirkkautta).
+
+### Kerros 5 (nykyinen pohja: koti + aula + työ-siipi)
+
+Huoneet on järjestetty aulan ympärille (`scripts/loft/floor5/`, Blender 5.2 Python-moduulina:
+`python -m venv venv && venv/bin/pip install bpy==5.2.2`). Työkansio `P5_WORK` (oletus `./work5`).
+
+1. `node prep5.mjs apt-raw.glb $P5_WORK/apt-named.glb` – nimetty, kevennetty asunto (ei UE:n valokarttoja).
+2. Blender (`cd floor5`, ajo `venv/bin/python -c "exec(open('s0_import.py').read())"` jne.):
+   `s0_import.py` → `s1_build.py` (koti: makuuhuoneesta työhuone; aula ja työ-siipi seinineen, ovineen,
+   lasiseinineen, kalusteineen ja valoineen) → `s2_bake.py res=2048 dens=24 spp=96` (valokartta-UV:t
+   objektikohtaisina laattoina atlaksiin, Cycles-paisto suora + epäsuora valo, OIDN-kohinanpoisto, glTF-vienti)
+   → `s3_encode.py` (EXR → PNG-atlakset ja `lightmaps.json`). `r_top.py` / `r_persp.py` tekevät tarkistuskuvat.
+3. `node opt5.mjs $P5_WORK/out/floor5.glb ../../public/models/loft/apartment.glb` ja atlakset WebP:ksi `public/models/loft/lm/`.
+4. `s4_colliders.py out=../../src/components/loft/colliders.json` (Blenderissä) – törmäykset todellisesta geometriasta:
+   kolmiot hahmon korkeudelta 5 cm ruudukkoon ja suorakulmioiksi (oviaukot ja L-muotoiset ikkunat pysyvät auki).
+5. `node walk-check.mjs kartta.png` – kulkutarkistus: jokaiseen huoneeseen ja vyöhykkeeseen pääsee aloituspaikasta
+   (hahmon kapselin säde 0,26 m), kartta näyttää kuljettavan alueen.
 
