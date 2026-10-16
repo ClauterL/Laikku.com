@@ -38,6 +38,7 @@ for (const lm of lightmaps) {
 console.log('atlases', atlases.length);
 
 const LOG_BLACK = 0.01858136;
+const TONE = Number(process.env.TONE || 0);
 const meta = { atlases: [], nodes: [] };
 for (let k = 0; k < atlases.length; k++) {
   const a = atlases[k];
@@ -59,9 +60,18 @@ for (let k = 0; k < atlases.length; k++) {
       logL = logL * S[3] + A[3];
       const L = Math.max(0, Math.pow(2, logL) - LOG_BLACK);
       const o = (y * W + x) * 3;
-      outF[o] = L * Math.max(0, r * r * S[0] + A[0]);
-      outF[o + 1] = L * Math.max(0, g * g * S[1] + A[1]);
-      outF[o + 2] = L * Math.max(0, b * b * S[2] + A[2]);
+      let cr = L * Math.max(0, r * r * S[0] + A[0]);
+      let cg = L * Math.max(0, g * g * S[1] + A[1]);
+      let cb = L * Math.max(0, b * b * S[2] + A[2]);
+      if (TONE) {
+        // dynamiikan pakkaus (Reinhard luminanssista): UE:n automaattivalotusta vastaava pehmeä katto kirkkaille pinnoille
+        const lum = 0.2126 * cr + 0.7152 * cg + 0.0722 * cb;
+        const f = lum > 0 ? 1 / (1 + lum / TONE) : 1;
+        cr *= f; cg *= f; cb *= f;
+      }
+      outF[o] = cr;
+      outF[o + 1] = cg;
+      outF[o + 2] = cb;
       vals.push(Math.max(outF[o], outF[o + 1], outF[o + 2]));
     }
   }

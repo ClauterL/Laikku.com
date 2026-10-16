@@ -1,7 +1,7 @@
 // Gaming Apartment (UE glTF) -> kevyt web-GLB
 import { NodeIO, getBounds } from '@gltf-transform/core';
-import { ALL_EXTENSIONS, EXTTextureWebP } from '@gltf-transform/extensions';
-import { dedup, prune, weldPrimitive, compactPrimitive, flatten, join, quantize, meshopt } from '@gltf-transform/functions';
+import { ALL_EXTENSIONS, EXTTextureWebP, EXTMeshoptCompression, KHRMeshQuantization } from '@gltf-transform/extensions';
+import { dedup, prune, weldPrimitive, compactPrimitive, flatten, join, quantize, meshopt, instance } from '@gltf-transform/functions';
 import { MeshoptSimplifier, MeshoptEncoder } from 'meshoptimizer';
 import sharp from 'sharp';
 import fs from 'fs';
@@ -202,7 +202,7 @@ for (const m of root.listMeshes()) for (const p of m.listPrimitives()) {
   const lit = /__lm\d+$/.test(p.getMaterial()?.getName() || '');
   for (const s of [...(lit ? [] : ['TEXCOORD_1']), 'TEXCOORD_2', 'TEXCOORD_3', 'TANGENT', 'COLOR_0']) { const a = p.getAttribute(s); if (a) p.setAttribute(s, null); }
 }
-mem('before prune'); await doc.transform(prune({ keepSolidTextures: true })); mem('after prune');
+mem('before prune'); await doc.transform(prune({ keepSolidTextures: true, keepAttributes: true })); mem('after prune');
 
 function simplifyPrim(prim, ratio, error) {
   const pos = prim.getAttribute('POSITION'); const idx = prim.getIndices();
@@ -242,7 +242,7 @@ for (const [mesh, d] of meshSize) {
   }
   let t2 = 0; for (const p of mesh.listPrimitives()) t2 += p.getIndices().getCount() / 3; after += t2;
   if (done % 25 === 0) mem('mesh '+done);
-  if (++done % 50 === 0) { await doc.transform(prune({ propertyTypes: ['Accessor'], keepSolidTextures: true })); }
+  if (++done % 50 === 0) { await doc.transform(prune({ propertyTypes: ['Accessor'], keepSolidTextures: true, keepAttributes: true })); }
 }
 console.log('tris', before, '->', after);
 
@@ -259,7 +259,7 @@ for (const mat of root.listMaterials()) {
     texMax.set(t, Math.max(texMax.get(t) || 0, s));
   }
 }
-await doc.transform(prune({ keepSolidTextures: true }));
+await doc.transform(prune({ keepSolidTextures: true, keepAttributes: true }));
 doc.createExtension(EXTTextureWebP).setRequired(true);
 let tb = 0, ta = 0;
 for (const t of root.listTextures()) {
@@ -271,7 +271,10 @@ for (const t of root.listTextures()) {
 console.log('textures', root.listTextures().length, (tb/1e6).toFixed(1), 'MB ->', (ta/1e6).toFixed(1), 'MB');
 
 // 5) Yhdistäminen ja pakkaus
-await doc.transform(dedup(), flatten(), join({ keepNamed: false }), prune({ keepSolidTextures: true }), quantize({ quantizeNormal: 8, quantizePosition: 14, quantizeTexcoord: 12 }), meshopt({ encoder: MeshoptEncoder, level: 'medium' }));
+await doc.transform(dedup({ keepUniqueNames: true }), flatten(), join({ keepNamed: false }), prune({ keepSolidTextures: true, keepAttributes: true }), quantize({ quantizeNormal: 8, quantizePosition: 14, quantizeTexcoord: 12 }), meshopt({ encoder: MeshoptEncoder, level: 'medium' }));
+
+const lmCount = (t) => { let a = 0, b = 0; for (const m of root.listMeshes()) for (const p of m.listPrimitives()) if (/__lm\d+$/.test(p.getMaterial()?.getName() || '')) { a++; if (p.getAttribute('TEXCOORD_1')) b++; } console.log('lightmapped prims', t, a, 'with UV1', b); };
+lmCount('final');
 await io.write(OUT, doc);
 fs.writeFileSync(META, JSON.stringify(meta));
 console.log('wrote', OUT, (fs.statSync(OUT).size / 1e6).toFixed(2), 'MB; draw prims', root.listMeshes().reduce((a, m) => a + m.listPrimitives().length, 0));
