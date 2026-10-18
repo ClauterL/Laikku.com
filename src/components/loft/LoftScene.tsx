@@ -416,8 +416,8 @@ function Beacons({ getActive, onSelect }: { getActive: () => LoftZoneId | null; 
 const ROOM_LIGHTS: { p: [number, number, number]; c: string; i: number; d: number }[] = [
   { p: [-2.3, 2.45, -2.0], c: '#ffc58a', i: 9, d: 6 }, // koti: olohuone
   { p: [-1.6, 2.45, 2.4], c: '#ffd2a0', i: 8, d: 6 }, // koti: ruokailu + eteinen
-  { p: [2.4, 2.45, -2.1], c: '#ffc58a', i: 7, d: 6 }, // koti: työhuone
-  { p: [0.2, 1.6, -4.2], c: '#7d8cff', i: 4, d: 3.5 }, // koti: työpisteen RGB-hehku
+  { p: [2.4, 2.45, -2.1], c: '#ffc58a', i: 7, d: 6 }, // koti: makuuhuone
+  { p: [-3.4, 1.5, 16.05], c: '#7d8cff', i: 4, d: 3.5 }, // paja: työpisteen RGB-hehku
   { p: [-1.0, 2.45, 6.33], c: '#ffe2bd', i: 9, d: 7.5 }, // aula
   { p: [-1.8, 2.45, 9.4], c: '#ffbe7a', i: 7, d: 5.5 }, // arcade-galleria
   { p: [-0.2, 1.6, 9.4], c: '#c45cff', i: 2.5, d: 2.8 }, // arcade-hehku

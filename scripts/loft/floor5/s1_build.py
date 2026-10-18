@@ -22,13 +22,21 @@ for on, mn in [('SM_Floor_main', 'MI_OakAnthracite'), ('SM_Floor_main', 'MI_Marb
                ('SM_Wall_011', 'MI_WoodWalnutB_1'), ('SM_Wall_001', 'MI_MDFBlack')]:
     print('uv/m', mn, measure_uv(on, mn))
 
-# ---------- KOTI: makuuhuoneesta työhuone ----------
-bed = ['SM_Clay_On_Bed', 'SM_Mattress_flat_sheet', 'SM_Coverlet', 'SM_Bed_pillows', 'SM_Bed_neckroll_pillows', 'SM_Bed_fabric_element',
-       'SM_Benches_1', 'SM_Tab_bed_a', 'SM_Decor_vase_bed', 'SM_Pillow_type_d', 'SM_Pillow_type_f', 'SM_Pillow_type_f2', 'SM_Pillow_type_d3',
-       'SM_Bag_sport']
-delete([O[n] for n in bed if n in O])
-# lukunurkka sängyn paikalle: nojatuoli, sohvapöytä ja lattiavalaisin maton päälle
-# (työhuoneen tekniikka ja muut Fab-esineet lisätään osiossa ESINEET 2)
+# ---------- KOTI: makuuhuone sänkyineen säilyy, pelityöpiste siirtyy pajaan ----------
+# pöytä, tuoli, näytöt, tietokone, oheislaitteet ja seinähylly kaiuttimineen länsiseinältä pajan länsiseinälle
+# (sama suunta: näytöt kohti +x). Hyllyn kukat jäävät pois, koska pajassa hyllyn yläpuolelle tulee näyttö.
+desk = region(-0.45, 0.8, -4.95, -3.25, 0.0, 2.0, exclude=lambda n: n.startswith((
+    'SM_Wall', 'SM_Floor', 'SM_Ceiling', 'SM_Downlight', 'SM_Recessed', 'SM_Socket', 'SM_Electric', 'SM_Curtain', 'SM_Drap',
+    'SM_Glass', 'SM_Light_Switch', 'SM_Window', 'SM_Balcony', 'SM_Metal_frame')))
+print('desk -> paja', sorted(o.name for o in desk))
+DESK_FLOWERS = ('SM_Float_Flowers', 'SM_Lolo_flower_b3', 'SM_Lolo_flower_b4', 'SM_F_Vase2')
+flowers = [o for o in desk if o.name in DESK_FLOWERS]
+desk = [o for o in desk if o.name not in DESK_FLOWERS]
+delete(flowers)
+move(desk, gmatrix((-0.42, -4.04), 0.0, (-4.15, 16.05)))
+# tietokone pöydän pohjoispäähän, jotta lasiseinän ovelta pääsee kääntymään pajaan (myös robottikoira)
+move([O['SM_Workstation']], gmatrix((0, 0), 0.0, (0, 1.62)))
+# (makuuhuoneen ja pajan muut Fab-esineet lisätään osiossa ESINEET 2)
 
 # ---------- AULA z 5.16 ... 7.5 ----------
 OAK, WHITE, GRAY, MDF, WAL = 'MI_OakAnthracite', 'MI_WallPaintWhiteMatte', 'MI_WallPaintGrayMatte', 'MI_MDFBlack', 'MI_WoodWalnutB_1'
@@ -141,12 +149,8 @@ for xx in (-0.7, 0.7):
     dup([O['SM_Ceiling_lamp']], gmatrix((-3.12, 2.06), 0, (xx, 12.95)), 'war')
 dup([O['SM_HD_Drinks_Cabinet']], gmatrix((-0.68, -4.40), math.pi, (-3.94, 12.95)), 'war')
 
-# Paja (x -4.15..4.15, z 14.66..17.5): metallikaapit länsiseinälle, työasema ja hyllyt
-for zz in (15.05, 15.65):
-    dup([O['SM_Wardrobe_metal']], gmatrix((-4.14, 0.12), 0, (-4.15, zz)), 'paja')
-dup([O['SM_Workstation']], gmatrix((-0.09, -4.77), math.pi, (0.75, 17.32)), 'paja')
-for i, yy in enumerate((1.35, 1.75)):
-    dup([O['SM_Shelf_single']], gmatrix((-0.34, -3.96), 0, (-4.07, 16.6)), 'paja')[0].location.z += (yy - 1.365)
+# Paja (x -4.15..4.15, z 14.66..17.5): pelityöpiste länsiseinällä (siirretty kodista), maker-penkki itäseinällä,
+# palvelimet lasiseinän vieressä, web-työpenkki ikkunan edessä (Fab-esineet osiossa ESINEET 2)
 
 # Olohuone: sohvapöytä ja rahi pois sohvan ja TV-seinän väliltä (kulkuväylä harrastusnurkkaan; kopiot jäivät
 # työhuoneeseen ja kahvioon). Pöydän päällä olleet esineet pois, etteivät ne leiju.
@@ -159,7 +163,7 @@ for src, (x0, x1, z0, z1, y0) in {'SM_H_Coffee_Table': (-3.39, -2.73, -1.91, -0.
 dup([O['SM_Japan_Bench']], gmatrix((1.5, 4.06), H, (2.55, 5.16)), 'lobby')
 dup([O['SM_3D_Artwork']], gmatrix((-0.67, -2.66), -H, (0.5, 7.44)), 'lobby')
 
-# ---------- ESINEET 2: Fab-lataukset (työhuoneen tekniikka, kasvit, drone, koriste-esineet) ----------
+# ---------- ESINEET 2: Fab-lataukset (pajan tekniikka, kasvit, drone, koriste-esineet) ----------
 import os
 FAB = os.environ.get('FAB_DIR', '/home/claude/work/fab2')
 from mathutils import Matrix as _M
@@ -220,15 +224,12 @@ def place(objs, at, rotY=0.0, size=None, h=None, w=None, anchor='bottom', pre=No
     return objs
 
 
-# työhuoneesta lukunurkan koriste-esineet pois tekniikan tieltä
-delete([O[n] for n in ['SM_Picture_decor_standing', 'SM_Picture_decor_standing2', 'SM_Sparrow_Decorative_', 'SM_Sparrow_Mirror'] if n in O])
-for o in [o for o in O if o.name.startswith('SM_Wall_Light_Ext')]:
-    if center(o)[2] < -2.5:
-        delete([o])
+# makuuhuone: lattialla nojaavat taulut ja urheilukassi pois vaatehuoneen oviaukon edestä (muuten sinne ei mahdu kävelemään)
+delete([O[n] for n in ['SM_Picture_decor_standing', 'SM_Picture_decor_standing2', 'SM_Bag_sport'] if n in O])
 
-# Työhuone: maker-penkki itäseinällä, 3D-tulostin penkillä (robottikäsi on web-esine), palvelinpino nurkassa, kaksi näyttöä
-place(fab('bench', 'Workbench_Low*/**/scene.gltf'), (3.76, 0.0, -2.05), 0.0, size=(0.68, 0.9, 1.4))
-place(fab('printer', '3D_Printer*/**/scene.gltf'), (3.78, 0.9, -2.42), -H, h=0.58)
+# Paja: maker-penkki itäseinällä (z 14.68..16.08), 3D-tulostin penkin eteläpäässä (robottikäsi on web-esine pohjoispäässä)
+place(fab('bench', 'Workbench_Low*/**/scene.gltf'), (3.76, 0.0, 15.38), 0.0, size=(0.68, 0.9, 1.4))
+place(fab('printer', '3D_Printer*/**/scene.gltf'), (3.78, 0.9, 15.05), -H, h=0.58)
 srv = fab('servers', 'Data_Center*/glb/*.glb')
 for o in srv:
     for i, m in enumerate(o.data.materials):
@@ -249,15 +250,18 @@ for o in srv:
             bs.inputs['Base Color'].default_value = (0.1, 0.9, 0.35, 1); bs.inputs['Emission Color'].default_value = (0.1, 1.0, 0.35, 1); bs.inputs['Emission Strength'].default_value = 3.0
         else:  # punaiset LEDit
             bs.inputs['Base Color'].default_value = (1.0, 0.2, 0.08, 1); bs.inputs['Emission Color'].default_value = (1.0, 0.25, 0.08, 1); bs.inputs['Emission Strength'].default_value = 3.0
-place(srv, (4.1, 0.0, -3.26), -H, size=(0.8, 1.2, 0.72), anchor='back')
-tv = O['SM_Smart_TV']  # walnut-seinällä x -0.39, z -2.09, y 1.0..1.7
-for zc in (-2.35, -1.1):
-    dup([tv], gmatrix((-0.39, -2.09), math.pi, (4.07, zc), dy=0.32), 'tv')
-place(fab('python', 'Python*/glb/*.glb'), (-0.42, 1.98, -3.42), H, w=0.46, anchor='wall')  # pystynäytön yläpuolelle
+# palvelinpino lasiseinän vieressä, etupaneeli pohjoiseen (Jobsite-räkit tulevat viereen)
+place(srv, (1.6, 0.0, 14.68), 0.0, size=(0.8, 1.2, 0.72), anchor='back')
+# näytöt (pinnat irrotetaan s5_screens.py:llä nimen perusteella): ohjauspaneeli maker-penkin yllä itäseinällä,
+# GitHub-näyttö työpisteen yllä länsiseinällä
+tv = O['SM_Smart_TV']  # walnut-seinällä x -0.39, z -2.09, y 1.0..1.7, näyttö kohti +x
+dup([tv], gmatrix((-0.39, -2.09), math.pi, (4.07, 15.38), dy=0.7), 'tv')[0].name = 'SM_Smart_TV__ops'
+dup([tv], gmatrix((-0.39, -2.09), 0.0, (-4.13, 16.05), dy=0.72), 'tv')[0].name = 'SM_Smart_TV__git'
+place(fab('python', 'Python*/glb/*.glb'), (-4.15, 1.98, 17.1), H, w=0.42, anchor='wall')  # työpisteen vieressä
 
 # Kasvit (rahapuu) tuomaan eloa
-for nm, at, r in [('plant_lobbyW', (-2.35, 0, 5.62), 0.4), ('plant_lobbyE', (1.55, 0, 5.62), 2.1), ('plant_study', (1.3, 0, -4.5), 1.0),
-                  ('plant_arc', (-3.72, 0, 7.98), 2.8), ('plant_war', (3.6, 0, 11.86), 0.2), ('plant_paja', (-3.62, 0, 17.0), 1.6)]:
+for nm, at, r in [('plant_lobbyW', (-2.35, 0, 5.62), 0.4), ('plant_lobbyE', (1.55, 0, 5.62), 2.1), ('plant_bed', (0.0, 0, -4.45), 1.0),
+                  ('plant_arc', (-3.72, 0, 7.98), 2.8), ('plant_war', (3.6, 0, 11.86), 0.2), ('plant_paja', (-2.6, 0, 17.08), 1.6)]:
     place(fab(nm, '_FREE__Pothos*/**/scene.gltf'), at, r, h=0.85)
 
 # Aula: tutkimusdrone seinäkoristeena itäpäädyssä (yläpuoli kohti katsojaa, nokka ylöspäin), hylly etelä-seinällä
@@ -298,11 +302,8 @@ for x, z in [(2.4, 10.35)]:
     downlight(x, z, 20, name='wc')
 for x, z in [(-3.2, 12.0), (-3.2, 13.9), (2.6, 12.0), (2.6, 13.9)]:
     downlight(x, z, 22, name='war')
-for x, z in [(-2.6, 15.4), (0.2, 15.4), (2.8, 15.4), (-2.6, 16.8), (0.2, 16.8)]:
+for x, z in [(-3.2, 16.05), (-0.9, 15.4), (1.2, 15.4), (3.0, 15.4), (-2.4, 16.85), (0.9, 16.85)]:
     downlight(x, z, 24, name='paja')
-# koti: työhuoneen uudet kattovalot sängyn paikalle
-for x, z in [(2.8, -1.4), (2.8, -3.1)]:
-    downlight(x, z, 22, name='study')
 # war roomin riippuvalaisimet ja pajan työvalo (web-valaisimen kohdalla)
 for xx in (-0.7, 0.7):
     light('POINT', 'L_pend_war', xx, 1.75, 12.95, 22, 2900, size=0.15)

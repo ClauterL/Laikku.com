@@ -1,5 +1,5 @@
 """Kerros 5: näyttöjen pinnat irti omaksi kevyeksi GLB:ksi (selain piirtää niihin canvas-tekstuurin).
-Työhuoneen TV-seinä (2 × Smart TV:n lasipinta) ja työkoneen näytöt (34" kaareva + pystynäyttö).
+Pajan näytöt (2 × Smart TV:n lasipinta) ja työkoneen näytöt (34" kaareva + pystynäyttö).
 Pinnat kopioidaan alkuperäisistä kolmioista (kaarevuus säilyy), siirretään 3 mm katsojaa kohti ja
 saavat uudet UV:t 0…1 näytön leveydeltä/korkeudelta.
 python -c "exec(open('s5_screens.py').read())"  ->  out/screens.glb"""
@@ -10,8 +10,8 @@ UP = mathutils.Vector((0, 0, 1))
 
 # (nimi glTF:ssä, lähdeobjekti, etusuunta Blenderissä, materiaali tai None, min z)
 SPEC = [
-    ('scr_ops', 'SM_Smart_TV__tv71', (-1, 0, 0), 'M_LacPolishedBlack', None),
-    ('scr_git', 'SM_Smart_TV__tv72', (-1, 0, 0), 'M_LacPolishedBlack', None),
+    ('scr_ops', 'SM_Smart_TV__ops', (-1, 0, 0), 'M_LacPolishedBlack', None),
+    ('scr_git', 'SM_Smart_TV__git', (1, 0, 0), 'M_LacPolishedBlack', None),
     ('scr_dev', 'SM_Curved_34_Monitor', (1, 0, 0), None, 0.99),
     ('scr_code', 'SM_Curved_Monitor', (math.cos(math.radians(20)), math.sin(math.radians(20)), 0), None, None),
 ]
