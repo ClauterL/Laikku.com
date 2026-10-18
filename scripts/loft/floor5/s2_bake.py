@@ -1,11 +1,8 @@
 """Kerros 5: valokartta-UV:t, Cycles-paisto, kohinanpoisto ja glTF-vienti.
 python -c "import sys; sys.argv=['x','res=2048','spp=64']; exec(open('s2_bake.py').read())" """
-import os
-WORK = os.environ.get('P5_WORK', os.path.abspath('work5'))  # työkansio: apt-named.glb, bl/*.blend, out/
-HERE = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
 import bpy, bmesh, sys, math, json, time
 import numpy as np
-sys.path.insert(0, HERE)
+sys.path.insert(0, '/home/claude/work/p5/bl')
 import importlib, p5lib
 importlib.reload(p5lib)
 from p5lib import *
@@ -14,11 +11,11 @@ ARGS = dict(a.split('=', 1) for a in sys.argv if '=' in a)
 RES = int(ARGS.get('res', 2048))
 SPP = int(ARGS.get('spp', 64))
 DRY = ARGS.get('dry') == '1'
-OUT = WORK + '/out'
+OUT = '/home/claude/work/p5/out'
 import os
 os.makedirs(OUT, exist_ok=True)
 
-bpy.ops.wm.open_mainfile(filepath=WORK + '/bl/s1.blend')
+bpy.ops.wm.open_mainfile(filepath='/home/claude/work/p5/bl/s1.blend')
 sc = bpy.context.scene
 O = bpy.data.objects
 MS = [o for o in O if o.type == 'MESH']
@@ -160,7 +157,7 @@ print('lm materials', len(cache))
 glass_transparent(True)
 tm = bpy.data.materials['P5_BakeTransparent']
 nd = tm.node_tree.nodes.new('ShaderNodeTexImage'); nd.image = IMGS[0]; tm.node_tree.nodes.active = nd
-bpy.ops.wm.save_as_mainfile(filepath=WORK + '/bl/s2_prebake.blend')
+bpy.ops.wm.save_as_mainfile(filepath='/home/claude/work/p5/bl/s2_prebake.blend')
 if DRY:
     print('dry run done', round(time.time() - t0), 's')
     raise SystemExit
@@ -218,7 +215,7 @@ bpy.data.scenes.remove(dn_scene)
 for o in O:
     if o.type == 'LIGHT':
         o.hide_set(False)
-bpy.ops.wm.save_as_mainfile(filepath=WORK + '/bl/s2_baked.blend')
+bpy.ops.wm.save_as_mainfile(filepath='/home/claude/work/p5/bl/s2_baked.blend')
 meta = []
 for o in MS:
     a, b = world_bbox(o)

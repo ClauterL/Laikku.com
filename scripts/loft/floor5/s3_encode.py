@@ -1,12 +1,9 @@
 """Paistetut valokartat (EXR, lineaarinen) -> 8-bittiset PNG-atlakset web-käyttöön + manifesti.
 Koodaus kuten scripts/loft/lightmaps.mjs: arvo = (väri / M)^(1/2.2), M = 99,5 %:n kirkkaus; ajossa lightMapIntensity = M * gain.
 python -c "import sys; sys.argv=['x','tone=0']; exec(open('s3_encode.py').read())" """
-import os
-WORK = os.environ.get('P5_WORK', os.path.abspath('work5'))  # työkansio: apt-named.glb, bl/*.blend, out/
-HERE = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
 import bpy, sys, json, numpy as np
 ARGS = dict(a.split('=', 1) for a in sys.argv if '=' in a)
-OUT = WORK + '/out'
+OUT = '/home/claude/work/p5/out'
 TONE = float(ARGS.get('tone', 0))
 info = json.load(open(f'{OUT}/bake.json'))
 man = {'gain': float(ARGS.get('gain', 1.0)), 'atlases': []}

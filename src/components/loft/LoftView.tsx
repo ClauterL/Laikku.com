@@ -2,11 +2,11 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type Compo
 import { Canvas } from '@react-three/fiber'
 import { useProgress } from '@react-three/drei'
 import { Joystick } from 'ecctrl/input'
-import { ArrowLeft, Eye, LayoutGrid, Mouse, User, X } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, Eye, LayoutGrid, Mouse, User, X } from 'lucide-react'
 
 import { useLang } from '@/hooks/useLang'
 import { useSound } from '@/hooks/useSound'
-import type { LoftZoneId, TabId } from '@/content'
+import type { Content, LoftZoneId, TabId } from '@/content'
 import { SkillsScreen } from '@/components/game/SkillsScreen'
 import { InventoryScreen } from '@/components/game/InventoryScreen'
 import { GoodsScreen } from '@/components/game/GoodsScreen'
@@ -61,10 +61,33 @@ function Loading() {
   )
 }
 
-/** Avattu osio loftin päällä */
-function Panel({ title, tab, onTab, onClose }: { title: string; tab: TabId; onTab: (t: TabId) => void; onClose: () => void }) {
+type ZoneLink = NonNullable<Content['loft']['zones'][number]['link']>
+
+/** Avattu osio loftin päällä; section = kohta, johon vieritetään (esim. suosittelijat) */
+function Panel({
+  title,
+  tab,
+  section,
+  onTab,
+  onClose,
+}: {
+  title: string
+  tab: TabId
+  section?: string
+  onTab: (t: TabId) => void
+  onClose: () => void
+}) {
   const { t } = useLang()
   const Screen = tab === 'order' ? null : SCREENS[tab]
+  const bodyRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!section) return
+    const id = requestAnimationFrame(() => {
+      const el = bodyRef.current?.querySelector<HTMLElement>(`#${section}`)
+      el?.scrollIntoView({ block: 'start' })
+    })
+    return () => cancelAnimationFrame(id)
+  }, [section, tab])
   return (
     <div className="absolute inset-0 z-30 flex justify-end bg-bg/40 backdrop-blur-[2px]" onClick={onClose}>
       <section
@@ -86,7 +109,63 @@ function Panel({ title, tab, onTab, onClose }: { title: string; tab: TabId; onTa
             <X className="size-4" />
           </button>
         </header>
-        <div className="min-h-0 flex-1 overflow-y-auto">{Screen ? <Screen /> : <OrderScreen onSelectTab={onTab} />}</div>
+        <div ref={bodyRef} className="min-h-0 flex-1 overflow-y-auto">
+          {Screen ? <Screen /> : <OrderScreen onSelectTab={onTab} />}
+        </div>
+      </section>
+    </div>
+  )
+}
+
+/** Linkkikohde (työkone, palvelinkaappi, arcade): kortti, josta ulkoinen sivu aukeaa uuteen välilehteen */
+function LinkCard({ name, link, onClose }: { name: string; link: ZoneLink; onClose: () => void }) {
+  const { t } = useLang()
+  const { play } = useSound()
+  const ref = useRef<HTMLAnchorElement>(null)
+  useEffect(() => {
+    ref.current?.focus()
+  }, [])
+  return (
+    <div className="absolute inset-0 z-30 grid place-items-center bg-bg/50 p-4 backdrop-blur-[2px]" onClick={onClose}>
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-label={name}
+        className="panel corners screen-in w-full max-w-md rounded-sm border border-line p-5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="label-caps">{name}</p>
+            <h2 className="mt-1 break-words font-display text-lg tracking-[0.06em] text-brass-2">{link.label}</h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t.loft.close}
+            title={`${t.loft.close} (Esc)`}
+            className="grid size-9 shrink-0 place-items-center rounded-sm border border-line bg-bg-2/70 text-ink-2 transition-colors hover:border-brass hover:text-brass-2 cursor-pointer"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+        <p className="mt-3 text-sm leading-relaxed text-ink-2">{link.desc}</p>
+        <a
+          ref={ref}
+          href={link.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          onMouseEnter={() => play('tick')}
+          onClick={() => {
+            play('select')
+            onClose()
+          }}
+          className="mt-5 inline-flex items-center gap-2 rounded-sm border border-brass/70 bg-brass/10 px-4 py-2.5 font-display text-[0.72rem] uppercase tracking-[0.2em] text-brass-2 outline-none transition-colors hover:bg-brass/20 focus-visible:ring-2 focus-visible:ring-brass"
+        >
+          {t.loft.link.open}
+          <ArrowUpRight className="size-4" />
+        </a>
+        <p className="mt-2 text-xs text-muted-foreground">{t.loft.link.newTab}</p>
       </section>
     </div>
   )
@@ -98,7 +177,7 @@ export default function LoftView({ onExit }: { onExit: () => void }) {
   const [webgl] = useState(hasWebGL)
   const [touch] = useState(isTouch)
   const [near, setNear] = useState<LoftZoneId | null>(null)
-  const [open, setOpen] = useState<{ zone: LoftZoneId; tab: TabId } | null>(null)
+  const [open, setOpen] = useState<{ zone: LoftZoneId; tab?: TabId; section?: string } | null>(null)
   const [quick, setQuick] = useState(false)
   const [view, setView] = useState<CamView>('tps')
   const [locked, setLocked] = useState(false)
@@ -134,12 +213,12 @@ export default function LoftView({ onExit }: { onExit: () => void }) {
   const openZone = useCallback(
     (id: LoftZoneId) => {
       const z = ZONES.find((x) => x.id === id)
-      if (!z) return
+      if (!z || (!z.tab && !zoneText.get(id)?.link)) return
       play('open')
       setQuick(false)
-      setOpen({ zone: id, tab: z.tab })
+      setOpen({ zone: id, tab: z.tab, section: z.section })
     },
-    [play],
+    [play, zoneText],
   )
 
   const onNear = useCallback(
@@ -182,7 +261,13 @@ export default function LoftView({ onExit }: { onExit: () => void }) {
 
   const nearZone = near ? zoneText.get(near) : null
   const nearTab = near ? ZONES.find((z) => z.id === near)?.tab : undefined
-  const openTitle = open ? `${zoneText.get(open.zone)?.name ?? ''} · ${tabLabel.get(open.tab) ?? ''}` : ''
+  /** Kehotteen ja pikavalikon kohde: osion nimi tai linkin osoite */
+  const target = (id: LoftZoneId, tab?: TabId) => {
+    const link = zoneText.get(id)?.link
+    return link ? `${link.label} ↗` : tab ? tabLabel.get(tab) : ''
+  }
+  const openText = open ? zoneText.get(open.zone) : undefined
+  const openTitle = open ? `${openText?.name ?? ''} · ${open.tab ? tabLabel.get(open.tab) ?? '' : ''}` : ''
 
   return (
     <div className="fixed inset-0 z-50 bg-bg" role="application" aria-label={t.loft.title}>
@@ -199,7 +284,7 @@ export default function LoftView({ onExit }: { onExit: () => void }) {
             camera={{ fov: 55, near: 0.05, far: 120 }}
           >
             <Suspense fallback={null}>
-              <LoftScene enabled={!open && !quick} shadows={!touch} view={view} onNear={onNear} onSelect={openZone} />
+              <LoftScene enabled={!open && !quick} shadows={!touch} view={view} screens={t.loft.screens} onNear={onNear} onSelect={openZone} />
             </Suspense>
           </Canvas>
           <Loading />
@@ -283,7 +368,7 @@ export default function LoftView({ onExit }: { onExit: () => void }) {
                     >
                       <span className="w-4 font-display text-brass">{i + 1}</span>
                       <span className="text-ink">{txt?.name}</span>
-                      <span className="ml-auto text-xs text-muted-foreground">{tabLabel.get(z.tab)}</span>
+                      <span className="ml-auto truncate pl-2 text-xs text-muted-foreground">{target(z.id, z.tab)}</span>
                     </button>
                   </li>
                 )
@@ -303,7 +388,7 @@ export default function LoftView({ onExit }: { onExit: () => void }) {
           >
             {!touch && <span className="key">E</span>}
             <span className="font-display text-[0.75rem] uppercase tracking-[0.2em] text-brass-2">
-              {t.loft.prompt}: {nearTab ? tabLabel.get(nearTab) : ''}
+              {t.loft.prompt}: {near ? target(near, nearTab) : ''}
             </span>
             <span className="hidden text-xs text-muted-foreground sm:inline">
               {nearZone.name} — {nearZone.note}
@@ -351,7 +436,16 @@ export default function LoftView({ onExit }: { onExit: () => void }) {
         />
       )}
 
-      {open && <Panel title={openTitle} tab={open.tab} onTab={(tab) => setOpen((o) => (o ? { ...o, tab } : o))} onClose={close} />}
+      {open && openText?.link && <LinkCard name={openText.name} link={openText.link} onClose={close} />}
+      {open && !openText?.link && open.tab && (
+        <Panel
+          title={openTitle}
+          tab={open.tab}
+          section={open.section}
+          onTab={(tab) => setOpen((o) => (o ? { ...o, tab, section: undefined } : o))}
+          onClose={close}
+        />
+      )}
     </div>
   )
 }

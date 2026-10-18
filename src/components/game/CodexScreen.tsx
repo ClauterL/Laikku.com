@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { ArrowUpRight, AtSign, BadgeCheck, Download, MapPin, Quote, Send, User } from 'lucide-react'
+import { ArrowUpRight, AtSign, BadgeCheck, Download, MapPin, MessageSquareQuote, Quote, Send, User } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { useLang } from '@/hooks/useLang'
@@ -151,6 +151,56 @@ export function CodexScreen() {
           <p className="text-[0.7rem] text-muted-foreground">{c.form.hint}</p>
         </form>
       </aside>
+
+      {/* suosittelijat (loftin neuvottelupöytä vierittää tähän) */}
+      <section id="codex-references" aria-labelledby="codex-references-title" className="scroll-mt-4 lg:col-span-3">
+        <h3 id="codex-references-title" className="brass-rule font-display text-xl tracking-[0.1em] text-ink">
+          {c.references.title}
+        </h3>
+        <p className="mt-2 text-sm text-muted-foreground">{c.references.lead}</p>
+        {c.references.items.length > 0 ? (
+          <ul className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {c.references.items.map((r) => (
+              <li key={r.name} className="panel corners flex flex-col gap-3 rounded-sm p-4">
+                <Quote className="size-4 text-ember" />
+                <blockquote className="text-[0.95rem] italic leading-relaxed text-ink-2">{r.quote}</blockquote>
+                <div className="mt-auto border-t border-line/70 pt-3 text-sm">
+                  {r.href ? (
+                    <a href={r.href} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1 font-semibold text-ink hover:text-brass-2">
+                      {r.name}
+                      <ArrowUpRight className="size-3.5 text-muted-foreground" />
+                    </a>
+                  ) : (
+                    <p className="font-semibold text-ink">{r.name}</p>
+                  )}
+                  <p className="label-caps mt-0.5">{[r.role, r.org].filter(Boolean).join(' · ')}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="mt-4 flex flex-col items-start gap-3 rounded-sm border border-dashed border-line px-4 py-5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="flex max-w-prose items-start gap-3 text-sm leading-relaxed text-ink-2">
+              <MessageSquareQuote className="mt-0.5 size-5 shrink-0 text-brass" />
+              {c.references.empty}
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              className="shrink-0 rounded-sm border-brass/60 font-display text-[0.7rem] uppercase tracking-[0.18em]"
+              onMouseEnter={() => play('tick')}
+              onClick={() => {
+                play('select')
+                const msg = document.getElementById('codex-message')
+                msg?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+                msg?.focus({ preventScroll: true })
+              }}
+            >
+              {c.references.cta}
+            </Button>
+          </div>
+        )}
+      </section>
     </div>
   )
 }

@@ -4,10 +4,9 @@ python -c "import sys; sys.argv=['x','blend=s2_baked.blend','out=colliders.json'
 import bpy, sys, re, json, math
 import numpy as np
 ARGS = dict(a.split('=', 1) for a in sys.argv if '=' in a)
-import os
-BL = os.environ.get('P5_WORK', os.path.abspath('work5')) + '/bl'
+BL = '/home/claude/work/p5/bl'
 bpy.ops.wm.open_mainfile(filepath=f"{BL}/{ARGS.get('blend', 's2_baked.blend')}")
-OUT = ARGS.get('out', os.path.dirname(BL) + '/out/colliders.json')
+OUT = ARGS.get('out', '/home/claude/work/p5/out/colliders.json')
 
 C = 0.05
 X0, X1, Z0, Z1 = -4.6, 4.6, -5.45, 18.0

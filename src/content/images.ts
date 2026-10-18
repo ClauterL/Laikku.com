@@ -109,6 +109,8 @@ export const links = {
   havaida: 'https://havaida.com',
   demot: 'https://havaida.com/demot/',
   games: 'https://github.com/ClauterL/laikku-games',
+  play: 'https://havaida-games.netlify.app',
+  dev: 'https://laikku.dev',
   email: 'claus@laikku.com',
   repo: 'https://github.com/ClauterL/Laikku.com',
 }

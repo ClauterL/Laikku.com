@@ -1,14 +1,11 @@
 """Kerros 5 Blenderissä: koti-siiven muutokset, aula ja työ-siipi. Ajo: python -c "exec(open('s1_build.py').read())" """
-import os
-WORK = os.environ.get('P5_WORK', os.path.abspath('work5'))  # työkansio: apt-named.glb, bl/*.blend, out/
-HERE = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
 import bpy, sys, math, json
-sys.path.insert(0, HERE)
+sys.path.insert(0, '/home/claude/work/p5/bl')
 import importlib, p5lib
 importlib.reload(p5lib)
 from p5lib import *
 
-bpy.ops.wm.open_mainfile(filepath=WORK + '/bl/s0.blend')
+bpy.ops.wm.open_mainfile(filepath='/home/claude/work/p5/bl/s0.blend')
 O = bpy.data.objects
 H = math.pi / 2
 
@@ -31,9 +28,7 @@ bed = ['SM_Clay_On_Bed', 'SM_Mattress_flat_sheet', 'SM_Coverlet', 'SM_Bed_pillow
        'SM_Bag_sport']
 delete([O[n] for n in bed if n in O])
 # lukunurkka sängyn paikalle: nojatuoli, sohvapöytä ja lattiavalaisin maton päälle
-dup([O['SM_Rec_Chair']], gmatrix((-3.22, 0.09), -H, (3.25, -2.25)), 'study')
-dup([O['SM_H_Coffee_Table']], gmatrix((-3.06, -1.40), 0, (2.25, -2.15)), 'study')
-dup([O['SM_Floor_Lamp']], gmatrix((0.34, -4.88), 0, (3.85, -3.35)), 'study')
+# (työhuoneen tekniikka ja muut Fab-esineet lisätään osiossa ESINEET 2)
 
 # ---------- AULA z 5.16 ... 7.5 ----------
 OAK, WHITE, GRAY, MDF, WAL = 'MI_OakAnthracite', 'MI_WallPaintWhiteMatte', 'MI_WallPaintGrayMatte', 'MI_MDFBlack', 'MI_WoodWalnutB_1'
@@ -164,6 +159,128 @@ for src, (x0, x1, z0, z1, y0) in {'SM_H_Coffee_Table': (-3.39, -2.73, -1.91, -0.
 dup([O['SM_Japan_Bench']], gmatrix((1.5, 4.06), H, (2.55, 5.16)), 'lobby')
 dup([O['SM_3D_Artwork']], gmatrix((-0.67, -2.66), -H, (0.5, 7.44)), 'lobby')
 
+# ---------- ESINEET 2: Fab-lataukset (työhuoneen tekniikka, kasvit, drone, koriste-esineet) ----------
+import os
+FAB = os.environ.get('FAB_DIR', '/home/claude/work/fab2')
+from mathutils import Matrix as _M
+
+
+def fab(name, rel):
+    """tuo glTF/GLB, irrota meshit vanhemmistaan, poista apusolmut; palauttaa mesh-objektit"""
+    import glob
+    path = glob.glob(f'{FAB}/{rel}', recursive=True)[0]
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=path)
+    new = [o for o in bpy.data.objects if o not in before]
+    ms = [o for o in new if o.type == 'MESH']
+    for o in ms:
+        mw = o.matrix_world.copy(); o.parent = None; o.matrix_world = mw
+    delete([o for o in new if o.type != 'MESH'])
+    for i, o in enumerate(ms):
+        o.name = f'F5_{name}_{i}'
+        if o.data.users > 1:
+            o.data = o.data.copy()
+    return ms
+
+
+def gbox(objs):
+    a = [1e9] * 3; b = [-1e9] * 3
+    for o in objs:
+        mn, mx = world_bbox(o)
+        for i in range(3):
+            a[i] = min(a[i], mn[i]); b[i] = max(b[i], mx[i])
+    return a, b
+
+
+def place(objs, at, rotY=0.0, size=None, h=None, w=None, anchor='bottom', pre=None):
+    """sijoita ryhmä glTF-koordinaateissa. size=(sx,sy,sz) tavoitemitat metreinä (ei-tasainen), h/w tasainen skaalaus.
+    anchor: bottom = pohjan keskipiste, back = pohja + takapinta (min z), wall = keskikorkeus + takapinta. pre: Blenderin kiertomatriisi ennen kaikkea."""
+    if pre is not None:
+        for o in objs:
+            o.matrix_world = pre @ o.matrix_world
+    a, b = gbox(objs)
+    dim = [b[i] - a[i] for i in range(3)]
+    if size:
+        k = [size[i] / dim[i] if size[i] else None for i in range(3)]
+        u = next(v for v in k if v)
+        k = [v or u for v in k]
+    else:
+        u = (h / dim[1]) if h else (w / dim[0])
+        k = [u, u, u]
+    c = [(a[i] + b[i]) / 2 for i in range(3)]
+    ap = [c[0], a[1], c[2]]
+    if anchor == 'back':
+        ap = [c[0], a[1], a[2]]
+    elif anchor == 'wall':
+        ap = [c[0], c[1], a[2]]
+    S = _M.Diagonal((k[0], k[2], k[1], 1.0))  # glTF (x,y,z) -> Blender (x,z,y)
+    M = _M.Translation(G(*at)) @ _M.Rotation(rotY, 4, 'Z') @ S @ _M.Translation(-G(*ap))
+    for o in objs:
+        o.matrix_world = M @ o.matrix_world
+    return objs
+
+
+# työhuoneesta lukunurkan koriste-esineet pois tekniikan tieltä
+delete([O[n] for n in ['SM_Picture_decor_standing', 'SM_Picture_decor_standing2', 'SM_Sparrow_Decorative_', 'SM_Sparrow_Mirror'] if n in O])
+for o in [o for o in O if o.name.startswith('SM_Wall_Light_Ext')]:
+    if center(o)[2] < -2.5:
+        delete([o])
+
+# Työhuone: maker-penkki itäseinällä, 3D-tulostin penkillä (robottikäsi on web-esine), palvelinpino nurkassa, kaksi näyttöä
+place(fab('bench', 'Workbench_Low*/**/scene.gltf'), (3.76, 0.0, -2.05), 0.0, size=(0.68, 0.9, 1.4))
+place(fab('printer', '3D_Printer*/**/scene.gltf'), (3.78, 0.9, -2.42), -H, h=0.58)
+srv = fab('servers', 'Data_Center*/glb/*.glb')
+for o in srv:
+    for i, m in enumerate(o.data.materials):
+        if m is None:
+            continue
+        c = m.copy(); c.name = 'F5_' + m.name; o.data.materials[i] = c
+        bs = c.node_tree.nodes.get('Principled BSDF')
+        if not bs:
+            continue
+        n = m.name.upper()
+        if '7162FF' in n:  # runko
+            bs.inputs['Base Color'].default_value = (0.03, 0.033, 0.037, 1); bs.inputs['Metallic'].default_value = 0.75; bs.inputs['Roughness'].default_value = 0.32
+        elif 'WHITE.004' in n:  # reunat
+            bs.inputs['Base Color'].default_value = (0.14, 0.145, 0.15, 1); bs.inputs['Metallic'].default_value = 0.6; bs.inputs['Roughness'].default_value = 0.38
+        elif 'WHITE' in n:  # etupaneelit
+            bs.inputs['Base Color'].default_value = (0.06, 0.065, 0.07, 1); bs.inputs['Metallic'].default_value = 0.3; bs.inputs['Roughness'].default_value = 0.25
+        elif 'F7C200' in n:  # vihreät LEDit
+            bs.inputs['Base Color'].default_value = (0.1, 0.9, 0.35, 1); bs.inputs['Emission Color'].default_value = (0.1, 1.0, 0.35, 1); bs.inputs['Emission Strength'].default_value = 3.0
+        else:  # punaiset LEDit
+            bs.inputs['Base Color'].default_value = (1.0, 0.2, 0.08, 1); bs.inputs['Emission Color'].default_value = (1.0, 0.25, 0.08, 1); bs.inputs['Emission Strength'].default_value = 3.0
+place(srv, (4.1, 0.0, -3.26), -H, size=(0.8, 1.2, 0.72), anchor='back')
+tv = O['SM_Smart_TV']  # walnut-seinällä x -0.39, z -2.09, y 1.0..1.7
+for zc in (-2.35, -1.1):
+    dup([tv], gmatrix((-0.39, -2.09), math.pi, (4.07, zc), dy=0.32), 'tv')
+place(fab('python', 'Python*/glb/*.glb'), (-0.42, 1.98, -3.42), H, w=0.46, anchor='wall')  # pystynäytön yläpuolelle
+
+# Kasvit (rahapuu) tuomaan eloa
+for nm, at, r in [('plant_lobbyW', (-2.35, 0, 5.62), 0.4), ('plant_lobbyE', (1.55, 0, 5.62), 2.1), ('plant_study', (1.3, 0, -4.5), 1.0),
+                  ('plant_arc', (-3.72, 0, 7.98), 2.8), ('plant_war', (3.6, 0, 11.86), 0.2), ('plant_paja', (-3.62, 0, 17.0), 1.6)]:
+    place(fab(nm, '_FREE__Pothos*/**/scene.gltf'), at, r, h=0.85)
+
+# Aula: tutkimusdrone seinäkoristeena itäpäädyssä (yläpuoli kohti katsojaa, nokka ylöspäin), hylly etelä-seinällä
+drone = fab('drone', 'Military_drone*/**/scene.gltf')
+place(drone, (4.15, 0.72, 6.33), 0.0, w=1.0, pre=_M.Rotation(-H, 4, 'X'))  # ensin mittasuhteet kohdalleen
+# kierto y-akselin ympäri niin, että yläpuoli (nyt -z) osoittaa -x, siivet z-suuntaan; skaalaus kärkiväliin 1,7 m
+a_, b_ = gbox(drone)
+for o in drone:
+    o.matrix_world = _M.Translation(G(4.15, 0, 6.33)) @ _M.Rotation(H, 4, 'Z') @ _M.Translation(-G(4.15, 0, 6.33)) @ o.matrix_world
+a_, b_ = gbox(drone)
+place(drone, (4.13, 0.62, 6.33), 0.0, size=(0.35, 1.85, 1.7), anchor='bottom')
+a_, b_ = gbox(drone)
+for o in drone:  # takapinta seinään (x = 4.13)
+    o.matrix_world = _M.Translation(G(4.13 - b_[0], 0, 0)) @ o.matrix_world
+place(fab('shelf', 'CC0_*/**/scene.gltf'), (-1.1, 0.0, 5.17), 0.0, w=1.2, anchor='back')
+
+# War room: karttapallo sivupöydällä kartan alla, korkkitaulu eteläseinällä
+place(fab('globe', 'Antique_Globe*/**/scene.gltf'), (-3.92, 0.94, 13.2), 0.6, h=0.42)
+cork = place(fab('cork', 'Corkboard*/**/scene.gltf'), (1.45, 1.55, 11.36), -H, w=0.06, anchor='wall')
+a_, b_ = gbox(cork)
+for o in cork:  # takareuna seinäpintaan (z = 11.36), ettei korkkipinta jää seinän sisään
+    o.matrix_world = _M.Translation(G(0, 0, 11.362 - a_[2])) @ o.matrix_world
+
 # ---------- KATTOVALAISIMET (kopiot) + valot ----------
 dl = O['SM_Downlight_metal']  # x 0.51, z 4.26, y 2.7
 DL = []
@@ -190,6 +307,7 @@ for x, z in [(2.8, -1.4), (2.8, -3.1)]:
 for xx in (-0.7, 0.7):
     light('POINT', 'L_pend_war', xx, 1.75, 12.95, 22, 2900, size=0.15)
 light('AREA', 'L_paja_task', -1.2, 2.45, 17.0, 45, 4200, area=(1.3, 0.25))
+light('SPOT', 'L_drone', 3.2, CEIL - 0.05, 6.33, 22, 3300, size=0.04, spot=math.radians(50), aim=(4.1, 1.6, 6.33))
 
 # koti: olemassa olevat valaisimet -> valot
 for o in [o for o in O if o.type == 'MESH' and o.name.split('.')[0].startswith(('SM_Recessed_Downlight',)) and '__' not in o.name]:
@@ -221,6 +339,6 @@ world = bpy.data.worlds.new('Sky'); bpy.context.scene.world = world
 world.use_nodes = True
 bg = world.node_tree.nodes['Background']; bg.inputs[0].default_value = (0.42, 0.52, 0.72, 1); bg.inputs[1].default_value = 1.2
 
-json.dump({'walls': WALLS}, open(WORK + '/walls5.json', 'w'))
-bpy.ops.wm.save_as_mainfile(filepath=WORK + '/bl/s1.blend')
+json.dump({'walls': WALLS}, open('/home/claude/work/p5/walls5.json', 'w'))
+bpy.ops.wm.save_as_mainfile(filepath='/home/claude/work/p5/bl/s1.blend')
 print('saved s1', len([o for o in O if o.type == 'MESH']), 'meshes', len(LIGHTS), 'lights')

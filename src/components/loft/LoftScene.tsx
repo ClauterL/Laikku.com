@@ -8,8 +8,10 @@ import { EcctrlCameraControls, type EcctrlCameraControlsHandle } from 'ecctrl/ca
 import { useJoystickStore } from 'ecctrl/input'
 import { EcctrlAnimationStateController, useEcctrlAnimationStore, type EcctrlAnimationState } from 'ecctrl/animation'
 
-import type { LoftZoneId } from '@/content'
+import type { Content, LoftZoneId } from '@/content'
 import colliders from './colliders.json'
+import { RoboDog } from './RoboDog'
+import { Screens } from './Screens'
 import { INTERACT_RADIUS, MAP_HIGHLIGHT, MODEL_BASE, PROPS, SPAWN, SPAWN_YAW, ZONES, type Anchor, type PropDef } from './zones'
 
 export type CamView = 'tps' | 'fps'
@@ -216,6 +218,8 @@ function anchorPoint(box: THREE.Box3, anchor: Anchor): THREE.Vector3 {
       return new THREE.Vector3(c.x, box.max.y, c.z)
     case 'wall':
       return new THREE.Vector3(c.x, c.y, box.min.z)
+    case 'origin':
+      return new THREE.Vector3(0, 0, 0)
     default:
       return new THREE.Vector3(c.x, box.min.y, c.z)
   }
@@ -250,7 +254,7 @@ function prepareProp(id: string, root: THREE.Object3D) {
 }
 
 function Placed({ def, shadows, onSelect }: { def: PropDef; shadows: boolean; onSelect: (id: LoftZoneId) => void }) {
-  const { scene } = useGLTF(url(def.file), false, true)
+  const { scene, animations } = useGLTF(url(def.file), false, true)
 
   const placed = useMemo(() => {
     const obj = scene.clone(true)
@@ -262,7 +266,7 @@ function Placed({ def, shadows, onSelect }: { def: PropDef; shadows: boolean; on
     tilt.updateMatrixWorld(true)
     const box = new THREE.Box3().setFromObject(tilt)
     const size = box.getSize(new THREE.Vector3())
-    const k = def.fit.h ? def.fit.h / size.y : (def.fit.w ?? size.x) / size.x
+    const k = def.fit.s ?? (def.fit.h ? def.fit.h / size.y : (def.fit.w ?? size.x) / size.x)
     const a = anchorPoint(box, def.anchor ?? 'bottom')
     const center = box.getCenter(new THREE.Vector3())
     const cast = def.castShadow ?? true
@@ -280,8 +284,21 @@ function Placed({ def, shadows, onSelect }: { def: PropDef; shadows: boolean; on
     let collider: { args: [number, number, number]; pos: [number, number, number] } | null = null
     if (def.collider === 'box') collider = { args: [half.x, half.y, half.z], pos: [offset.x, offset.y, offset.z] }
     if (def.collider === 'thin') collider = { args: [half.x, half.y, 0.07], pos: [offset.x, offset.y, (box.min.z - a.z) * kz + 0.07] }
-    return { tilt, scale, a, collider }
+    return { tilt, obj, scale, a, collider }
   }, [scene, def, shadows])
+
+  // Animoitu esine (robottikäsi): klooni saa oman mikserin, solmujen nimet säilyvät
+  const mixer = useMemo(() => {
+    const clip = def.anim ? animations.find((c) => c.name === def.anim) : undefined
+    if (!clip) return null
+    const m = new THREE.AnimationMixer(placed.obj)
+    const action = m.clipAction(clip)
+    action.timeScale = def.animSpeed ?? 1
+    action.play()
+    return m
+  }, [animations, def, placed.obj])
+  useEffect(() => () => void mixer?.stopAllAction(), [mixer])
+  useFrame((_, dt) => mixer?.update(Math.min(dt, 0.1)))
 
   const rotY = def.rotY ?? 0
   const body = (
@@ -679,12 +696,15 @@ export function LoftScene({
   enabled,
   shadows,
   view,
+  screens,
   onNear,
   onSelect,
 }: {
   enabled: boolean
   shadows: boolean
   view: CamView
+  /** Näyttöjen tekstit (loft.screens) – Canvasin sisällä ei käytetä kielikontekstia */
+  screens: Content['loft']['screens']
   onNear: (id: LoftZoneId | null) => void
   onSelect: (id: LoftZoneId) => void
 }) {
@@ -701,6 +721,7 @@ export function LoftScene({
       <color attach="background" args={['#07080c']} />
       <Lights lit={lit} />
       <Apartment shadows={shadows} onLit={setLit} />
+      <Screens text={screens} />
 
       <Physics>
         <ApartmentColliders />
@@ -726,6 +747,7 @@ export function LoftScene({
           <InputBridge ecctrl={ecctrl} enabled={enabled} />
           <EcctrlAnimationStateController ecctrl={ecctrl} />
         </KeyboardControls>
+        <RoboDog ecctrl={ecctrl} shadows={shadows} />
       </Physics>
       <Beacons getActive={getActive} onSelect={onSelect} />
       <Rig ecctrl={ecctrl} view={view} enabled={enabled} onNear={onNear} getActive={getActive} setActive={setActive} />

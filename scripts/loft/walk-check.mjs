@@ -1,5 +1,7 @@
 // Loftin kulkutarkistus: pääseekö hahmo aloituspaikasta jokaiseen huoneeseen ja vyöhykkeeseen?
-// node walk-check.mjs [kartta.png]
+// node walk-check.mjs [kartta.png] [reitit.json]
+// COLLIDERS=polku.json korvaa src/components/loft/colliders.json (uudet esineet ennen paistoa)
+// NAV=nav.json kirjoittaa robottikoiran kulkuruudukon (10 cm, esteet laajennettu koiran säteellä)
 // Lukee src/components/loft/colliders.json + zones.ts:n PROPS/ZONES/SPAWN ja esineiden GLB-rajat,
 // rasteroi lattian 5 cm ruutuihin, laajentaa esteet hahmon kapselin säteellä ja tulvatäyttää aloituspaikasta.
 import fs from 'fs';
@@ -35,7 +37,7 @@ const SPAWN = evalTs(grab('SPAWN'));
 const RADIUS = +(/INTERACT_RADIUS = ([\d.]+)/.exec(src)[1]);
 
 // --- staattiset törmäykset ---
-const col = JSON.parse(fs.readFileSync(path.join(LOFT, 'colliders.json'), 'utf8'));
+const col = JSON.parse(fs.readFileSync(process.env.COLLIDERS || path.join(LOFT, 'colliders.json'), 'utf8'));
 const boxes = col.solid.map(([x, y, z, hx, hy, hz]) => ({ x0: x - hx, x1: x + hx, y0: y - hy, y1: y + hy, z0: z - hz, z1: z + hz, src: 'static' }));
 
 // --- esineiden törmäykset samalla logiikalla kuin LoftScene.tsx:n Placed ---
@@ -105,6 +107,46 @@ while (q.length) {
     const n = b * NX + a; if (reach[n] || blocked[n]) continue;
     reach[n] = 1; q.push(n);
   }
+}
+
+// --- robottikoiran kulkuruudukko: NAV=nav.json ---
+if (process.env.NAV) {
+  const RD = 0.3, CN = 0.1, K = Math.round(CN / C);
+  const dogBlock = new Uint8Array(NX * NZ);
+  for (const b of boxes) {
+    if (b.y1 < 0.06 || b.y0 > 0.5) continue; // koira on matala: pöytälevyt ja hyllyt sen yläpuolella eivät estä
+    const i0 = Math.max(0, Math.floor((b.x0 - RD - X0) / C)), i1 = Math.min(NX - 1, Math.ceil((b.x1 + RD - X0) / C));
+    const j0 = Math.max(0, Math.floor((b.z0 - RD - Z0) / C)), j1 = Math.min(NZ - 1, Math.ceil((b.z1 + RD - Z0) / C));
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+      const x = X0 + (i + 0.5) * C, z = Z0 + (j + 0.5) * C;
+      const dx = Math.max(b.x0 - x, 0, x - b.x1), dz = Math.max(b.z0 - z, 0, z - b.z1);
+      if (dx * dx + dz * dz <= RD * RD) dogBlock[j * NX + i] = 1;
+    }
+  }
+  const nx = Math.floor(NX / K), nz = Math.floor(NZ / K);
+  const free = new Uint8Array(nx * nz);
+  for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
+    let ok = 1;
+    for (let b = 0; b < K && ok; b++) for (let a = 0; a < K; a++) if (dogBlock[(j * K + b) * NX + i * K + a] || blocked[(j * K + b) * NX + i * K + a]) { ok = 0; break; }
+    free[j * nx + i] = ok;
+  }
+  // vain aloituspaikasta saavutettava osa (koira ei jää jumiin saarekkeisiin)
+  const reachN = new Uint8Array(nx * nz);
+  const s = Math.floor((SPAWN[2] - Z0) / CN) * nx + Math.floor((SPAWN[0] - X0) / CN);
+  const qn = [s]; reachN[s] = 1;
+  while (qn.length) {
+    const p = qn.pop(); const i = p % nx, j = (p - i) / nx;
+    for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const a = i + di, b = j + dj; if (a < 0 || b < 0 || a >= nx || b >= nz) continue;
+      const n = b * nx + a; if (reachN[n] || !free[n]) continue;
+      reachN[n] = 1; qn.push(n);
+    }
+  }
+  const bytes = new Uint8Array(Math.ceil((nx * nz) / 8));
+  let cnt = 0;
+  for (let p = 0; p < nx * nz; p++) if (reachN[p]) { bytes[p >> 3] |= 1 << (p & 7); cnt++; }
+  fs.writeFileSync(process.env.NAV, JSON.stringify({ x0: X0, z0: Z0, cell: CN, nx, nz, free: Buffer.from(bytes).toString('base64') }));
+  console.log('koiran ruudukko', process.env.NAV, nx, 'x', nz, 'kuljettavaa', (cnt * CN * CN).toFixed(1), 'm²');
 }
 
 // --- huoneet (kerros 5) ---

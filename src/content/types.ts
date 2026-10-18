@@ -1,7 +1,19 @@
 export type Lang = 'fi' | 'en'
 export type TabId = 'skills' | 'inventory' | 'items' | 'map' | 'quests' | 'order' | 'codex'
-/** 3D-loftin vyöhykkeet (kävijän reitti 1–9) */
-export type LoftZoneId = 'elevator' | 'workshop' | 'library' | 'desk' | 'warroom' | 'projects' | 'hobbies' | 'trophies' | 'window'
+/** 3D-loftin vyöhykkeet (kävijän reitti 1–12) */
+export type LoftZoneId =
+  | 'elevator'
+  | 'library'
+  | 'hobbies'
+  | 'trophies'
+  | 'desk'
+  | 'servers'
+  | 'maker'
+  | 'window'
+  | 'arcade'
+  | 'meeting'
+  | 'warroom'
+  | 'workshop'
 export type Rarity = 'common' | 'rare' | 'epic' | 'legendary'
 export type QuestStatus = 'active' | 'done' | 'planned' | 'idea'
 
@@ -178,6 +190,15 @@ export interface Content {
     form: { name: string; email: string; message: string; submit: string; subject: string; hint: string }
     portrait: Img
     builtWith: string
+    /** Suosittelijat (loftin neuvottelupöytä avaa tämän kohdan) */
+    references: {
+      title: string
+      lead: string
+      /** Näytetään, kun suosituksia ei vielä ole */
+      empty: string
+      cta: string
+      items: { name: string; role: string; org?: string; quote: string; href?: string }[]
+    }
   }
 
   /** 3D-loft: kolmannen persoonan portfolio, esineet avaavat osiot */
@@ -198,7 +219,22 @@ export interface Content {
     /** Ohje hiirikatseelle (pointer lock) */
     mouseLook: string
     controls: { move: string; run: string; look: string; interact: string; quick: string; view: string }
-    zones: { id: LoftZoneId; name: string; note: string }[]
+    /** Linkkikohteet (työkone, arcade, palvelimet): kortti ennen siirtymistä */
+    link: { open: string; newTab: string }
+    /** Työhuoneen näytöt (canvas-tekstuurit): TV-seinä, työkoneen ultrawide ja pystynäyttö */
+    screens: {
+      ops: { title: string; net: string; services: string; items: string[] }
+      git: { title: string; contributions: string; repos: string }
+      dev: { title: string; lead: string; tiles: string[] }
+      code: string[]
+    }
+    zones: {
+      id: LoftZoneId
+      name: string
+      note: string
+      /** Ulkoinen sivu – kohde avaa linkkikortin osion sijaan */
+      link?: { label: string; href: string; desc: string }
+    }[]
   }
 
   hints: { details: string; stats: string; select: string; back: string; prevTab: string; nextTab: string; mute: string; move: string }

@@ -62,12 +62,15 @@ src/
     MapScreen                oikea maailmankartta (SVG, d3-geo + TopoJSON), fog of war, reitit, zoom, pikamatkustus
     QuestsScreen             pää- ja sivutehtävät, tavoitteet, eteneminen
     OrderScreen              Havaida Oy ("kilta")
-    CodexScreen              minusta, tiedot, tilastot, yhteydenotto (mailto)
+    CodexScreen              minusta, tiedot, tilastot, yhteydenotto (mailto), suosittelijat (#codex-references)
   components/loft/
-    zones.ts                 kerros 5: koti, hissiaula ja työ-siipi, 9 vyöhykettä, esineiden sijoittelu
+    zones.ts                 kerros 5: koti, hissiaula ja työ-siipi, 12 kohdetta (osio, osion kohta tai ulkoinen linkki), esineiden sijoittelu
     colliders.json           generoitu kerroksen geometriasta (scripts/loft/floor5/s4_colliders.py) – törmäykset ja kameran esteet
-    LoftScene                kerros (yksi paistettu malli), Fab-esineet, hahmo (ecctrl + Rapier), olan yli / 1. persoonan kamera, hiirikatse
-    LoftView                 #loft-näkymä: canvas, latausilmaisin, kehote (E), pikavalikko (Q), näkymä (V), joystick, osiopaneeli
+    nav.json, dogNav.ts      robottikoiran kulkuruudukko (walk-check.mjs, NAV=…) ja A*-reitinhaku
+    LoftScene                kerros (yksi paistettu malli), Fab-esineet (myös animoidut, esim. robottikäsi), hahmo (ecctrl + Rapier), kamerat
+    RoboDog                  robottikoira vaeltaa satunnaisesti, väistää pelaajaa ja tervehtii lähelle tultaessa
+    Screens                  työhuoneen näytöt: canvas-tekstuurit (ohjauspaneeli, GitHub-aktiivisuus, laikku.dev, koodi)
+    LoftView                 #loft-näkymä: canvas, latausilmaisin, kehote (E), pikavalikko (Q), näkymä (V), joystick, osiopaneeli, linkkikortti
   components/ui/             shadcn/ui-komponentit
   hooks/useLang, useSound
 v2/                          edellinen (perinteinen) portfolio, itsenäinen projekti
@@ -128,6 +131,10 @@ Huoneet on järjestetty aulan ympärille (`scripts/loft/floor5/`, Blender 5.2 Py
 3. `node opt5.mjs $P5_WORK/out/floor5.glb ../../public/models/loft/apartment.glb` ja atlakset WebP:ksi `public/models/loft/lm/`.
 4. `s4_colliders.py out=../../src/components/loft/colliders.json` (Blenderissä) – törmäykset todellisesta geometriasta:
    kolmiot hahmon korkeudelta 5 cm ruudukkoon ja suorakulmioiksi (oviaukot ja L-muotoiset ikkunat pysyvät auki).
-5. `node walk-check.mjs kartta.png` – kulkutarkistus: jokaiseen huoneeseen ja vyöhykkeeseen pääsee aloituspaikasta
-   (hahmon kapselin säde 0,26 m), kartta näyttää kuljettavan alueen.
+5. `node walk-check.mjs kartta.png reitit.json` – kulkutarkistus: jokaiseen huoneeseen ja vyöhykkeeseen pääsee aloituspaikasta
+   (hahmon kapselin säde 0,26 m), kartta näyttää kuljettavan alueen ja Rapier-fysiikkatesti kävelee reitit.
+   `COLLIDERS=…json` testaa uudet esineet ennen paistoa, `NAV=../../src/components/loft/nav.json` kirjoittaa robottikoiran ruudukon.
+6. `s5_screens.py` – näyttöjen pinnat (TV-seinä, työkoneen näytöt) omaksi `public/models/loft/screens.glb`:ksi.
+7. Animoidut Fab-esineet (robottikäsi, robottikoira): `node opt-anim.mjs scene.gltf ../../public/models/loft/<nimi>.glb 1024 14000`
+   (solmuhierarkia ja animaatiot säilyvät).
 
