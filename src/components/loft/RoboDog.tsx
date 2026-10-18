@@ -93,6 +93,11 @@ export function RoboDog({ ecctrl, shadows }: { ecctrl: RefObject<EcctrlHandle | 
     }
   }, [grid])
 
+  // Kehitystila: koiran tila testikuvia varten (window.__dog), ei tuotannossa
+  useEffect(() => {
+    if (import.meta.env.DEV) (window as unknown as { __dog?: unknown }).__dog = Object.assign(st.current, { group, model })
+  }, [model])
+
   const play = (name: keyof typeof anim.acts) => {
     const s = st.current
     if (s.clip === name) return

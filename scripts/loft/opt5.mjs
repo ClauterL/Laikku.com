@@ -2,14 +2,14 @@
 // node opt5.mjs <floor5.glb> <apartment.glb>
 import { NodeIO, getBounds } from '@gltf-transform/core';
 import { ALL_EXTENSIONS, EXTTextureWebP } from '@gltf-transform/extensions';
-import { dedup, prune, flatten, join, quantize, meshopt } from '@gltf-transform/functions';
-import { MeshoptEncoder } from 'meshoptimizer';
+import { dedup, prune, flatten, join, quantize, meshopt, compactPrimitive } from '@gltf-transform/functions';
+import { MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer';
 import sharp from 'sharp';
 import fs from 'fs';
 
 const [IN, OUT] = process.argv.slice(2);
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.encoder': MeshoptEncoder });
-await MeshoptEncoder.ready;
+await MeshoptEncoder.ready; await MeshoptSimplifier.ready;
 const doc = await io.read(IN);
 const root = doc.getRoot();
 
@@ -21,6 +21,19 @@ for (const m of root.listMeshes()) for (const p of m.listPrimitives()) {
   for (const s of [...(lit ? [] : ['TEXCOORD_1']), 'TEXCOORD_2', 'TEXCOORD_3', 'TANGENT', 'COLOR_0']) if (p.getAttribute(s)) p.setAttribute(s, null);
 }
 console.log('lightmapped prims', lmPrims);
+
+// 1b) ylitiheät Fab-esineet (esim. drone 110 k kolmiota) kevyemmiksi: saumat (UV-rajat) lukitaan, ettei valokartta repeä
+const MAX_TRIS = 25000, TARGET = 12000;
+for (const m of root.listMeshes()) for (const p of m.listPrimitives()) {
+  const idx = p.getIndices(), pos = p.getAttribute('POSITION');
+  if (!idx || idx.getCount() / 3 <= MAX_TRIS) continue;
+  const I = new Uint32Array(idx.getArray()), P = new Float32Array(pos.getArray());
+  const t = Math.floor((TARGET * 3) / 3) * 3;
+  const [res] = MeshoptSimplifier.simplify(I, P, 3, t, 0.01, ['LockBorder']);
+  console.log('simplify', m.getName(), I.length / 3, '->', res.length / 3);
+  p.setIndices(doc.createAccessor().setType('SCALAR').setArray(new Uint32Array(res)).setBuffer(idx.getBuffer()));
+  compactPrimitive(p);
+}
 
 // 2) tekstuurit WebP:ksi kappaleen koon mukaan (pienten kappaleiden normaali- ja AO-kartat pois)
 const matSize = new Map();
