@@ -321,8 +321,8 @@ export function Screens({ text }: { text: ScreenText }) {
         const tex = new THREE.CanvasTexture(canvas)
         tex.colorSpace = THREE.SRGBColorSpace
         tex.anisotropy = 4
-        // UV:n v kasvaa ylöspäin (s5_screens.py), canvasin y alaspäin
-        tex.flipY = true
+        // glTF-vienti kääntää v:n (origo vasemmassa yläkulmassa), joten canvas ilman flipY:tä on oikein päin
+        tex.flipY = false
         const mat = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, color: new THREE.Color(0.86, 0.86, 0.86) })
         return { ...s, canvas, g: canvas.getContext('2d')!, tex, mat, next: 0 }
       }),

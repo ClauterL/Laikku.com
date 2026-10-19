@@ -190,6 +190,14 @@ export interface Content {
     form: { name: string; email: string; message: string; submit: string; subject: string; hint: string }
     portrait: Img
     builtWith: string
+    /** Koodeksi pelin tietokannan tapaan: kategoriat vasemmalla, merkintä keskellä, kuva oikealla */
+    book: {
+      hint: string
+      markAll: string
+      /** Kategoriat; suosittelijat-kategorian merkinnät tulevat references-kentästä */
+      categories: { id: 'about' | 'facts' | 'refs' | 'contact'; title: string; image: Img }[]
+      entries: Record<'story' | 'free' | 'motto' | 'info' | 'stats' | 'links' | 'contact', { title: string; image: Img }>
+    }
     /** Suosittelijat: AC-tyylinen tietokanta (ryhmät vasemmalla, merkintä keskellä, kuva oikealla).
      *  Loftin neuvottelupöytä avaa tämän kohdan. */
     references: {

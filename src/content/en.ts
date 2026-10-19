@@ -636,6 +636,25 @@ export const en: Content = {
     },
     portrait: { ...images.portrait, alt: 'Claus Laikku at his workshop bench, a drone and a 3D printer behind him.' },
     builtWith: 'React · Tailwind v4 · shadcn/ui · Web Audio · images by Higgsfield',
+    book: {
+      hint: 'Arrows browse · Enter opens or closes a category',
+      markAll: 'Mark all as read',
+      categories: [
+        { id: 'about', title: 'Claus Laikku', image: { ...images.portrait, alt: 'Claus Laikku in his workshop' } },
+        { id: 'facts', title: 'Facts', image: { ...images.tyopaja, alt: 'Claus Laikku building a drone in his workshop' } },
+        { id: 'refs', title: 'References', image: { ...images.builder, alt: 'Claus Laikku soldering electronics' } },
+        { id: 'contact', title: 'Contact', image: { ...images.winter, alt: 'Claus Laikku in a wintry city' } },
+      ],
+      entries: {
+        story: { title: 'Who I am', image: { ...images.portrait, alt: 'Claus Laikku in his workshop with a drone and a 3D printer' } },
+        free: { title: 'Off the clock', image: { ...images.adventure, alt: 'Claus Laikku on a cliff above a lake' } },
+        motto: { title: 'Motto', image: { ...images.winter, alt: 'Claus Laikku in a wintry city' } },
+        info: { title: 'The basics', image: { ...images.builder, alt: 'Claus Laikku soldering electronics at his desk' } },
+        stats: { title: 'Stats', image: { ...images.tyopaja, alt: 'Claus Laikku building a drone in his workshop' } },
+        links: { title: 'Links', image: { ...images.discipline, alt: 'Claus Laikku walking a misty forest road' } },
+        contact: { title: 'Send a message', image: { ...images.portrait, alt: 'Claus Laikku in his workshop' } },
+      },
+    },
     references: {
       title: 'References',
       lead: 'What partners, colleagues and fellow students say.',

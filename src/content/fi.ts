@@ -647,6 +647,25 @@ export const fi: Content = {
     },
     portrait: { ...images.portrait, alt: 'Claus Laikku työpajassaan, taustalla drone ja 3D-tulostin.' },
     builtWith: 'React · Tailwind v4 · shadcn/ui · Web Audio · kuvat Higgsfield',
+    book: {
+      hint: 'Nuolet selaavat · Enter avaa tai sulkee kategorian',
+      markAll: 'Merkitse kaikki luetuiksi',
+      categories: [
+        { id: 'about', title: 'Claus Laikku', image: { ...images.portrait, alt: 'Claus Laikku työpajassaan' } },
+        { id: 'facts', title: 'Tiedot', image: { ...images.tyopaja, alt: 'Claus Laikku rakentamassa dronea työpajassa' } },
+        { id: 'refs', title: 'Suosittelijat', image: { ...images.builder, alt: 'Claus Laikku juottamassa elektroniikkaa' } },
+        { id: 'contact', title: 'Yhteydenotto', image: { ...images.winter, alt: 'Claus Laikku talvisessa kaupungissa' } },
+      ],
+      entries: {
+        story: { title: 'Kuka olen', image: { ...images.portrait, alt: 'Claus Laikku työpajassaan, taustalla drone ja 3D-tulostin' } },
+        free: { title: 'Vapaalla', image: { ...images.adventure, alt: 'Claus Laikku järvimaiseman yllä kalliolla' } },
+        motto: { title: 'Motto', image: { ...images.winter, alt: 'Claus Laikku talvisessa kaupungissa' } },
+        info: { title: 'Perustiedot', image: { ...images.builder, alt: 'Claus Laikku juottamassa elektroniikkaa työpöydän ääressä' } },
+        stats: { title: 'Tilastot', image: { ...images.tyopaja, alt: 'Claus Laikku rakentamassa dronea työpajassa' } },
+        links: { title: 'Linkit', image: { ...images.discipline, alt: 'Claus Laikku kävelemässä sumuista metsätietä' } },
+        contact: { title: 'Lähetä viesti', image: { ...images.portrait, alt: 'Claus Laikku työpajassaan' } },
+      },
+    },
     references: {
       title: 'Suosittelijat',
       lead: 'Mitä yhteistyökumppanit, kollegat ja opiskelukaverit sanovat.',

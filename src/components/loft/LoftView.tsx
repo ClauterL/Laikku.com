@@ -17,7 +17,7 @@ import { CodexScreen } from '@/components/game/CodexScreen'
 import { LoftScene, type CamView } from './LoftScene'
 import { ZONES } from './zones'
 
-const SCREENS: Record<Exclude<TabId, 'order'>, ComponentType> = {
+const SCREENS: Record<Exclude<TabId, 'order'>, ComponentType<{ section?: string }>> = {
   skills: SkillsScreen,
   inventory: InventoryScreen,
   items: GoodsScreen,
@@ -110,7 +110,7 @@ function Panel({
           </button>
         </header>
         <div ref={bodyRef} className="min-h-0 flex-1 overflow-y-auto">
-          {Screen ? <Screen /> : <OrderScreen onSelectTab={onTab} />}
+          {Screen ? <Screen section={section} /> : <OrderScreen onSelectTab={onTab} />}
         </div>
       </section>
     </div>

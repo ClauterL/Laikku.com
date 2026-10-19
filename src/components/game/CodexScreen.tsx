@@ -1,22 +1,121 @@
-import { useState, type FormEvent } from 'react'
-import { ArrowUpRight, AtSign, BadgeCheck, Download, MapPin, Quote, Send, User } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from 'react'
+import { ArrowUpRight, AtSign, BadgeCheck, CheckCheck, ChevronDown, Download, MapPin, PenLine, Quote, Send, User } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { useLang } from '@/hooks/useLang'
 import { useSound } from '@/hooks/useSound'
-import { images } from '@/content'
-import { ReferencesCodex } from './ReferencesCodex'
+import type { Content, Img } from '@/content'
+import { cn } from '@/lib/utils'
 
+type Codex = Content['codex']
+type Ref = Codex['references']['items'][number]
+type CatId = Codex['book']['categories'][number]['id']
+type Kind = 'story' | 'free' | 'motto' | 'info' | 'stats' | 'links' | 'contact' | 'ref' | 'refsEmpty'
+
+interface Entry {
+  key: string
+  cat: CatId
+  kind: Kind
+  title: string
+  subtitle?: string
+  image: Img
+  ref?: Ref
+}
+
+/** Luonnokset (suosittelija ei vielä hyväksynyt) näkyvät vain kehitystilassa ja esikatselussa (VITE_SHOW_DRAFTS=1) */
+const SHOW_DRAFTS = import.meta.env.DEV || import.meta.env.VITE_SHOW_DRAFTS === '1'
+/** Pelin tietokannan nuolikärkinen rivi */
+const ARROW = 'polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%)'
 const INFO_ICONS = [User, AtSign, MapPin, BadgeCheck]
 const field =
-  'w-full rounded-sm border border-line bg-bg-2/70 px-3 py-2 text-sm text-ink placeholder:text-muted-foreground/70 outline-none transition-colors focus-visible:border-brass'
+  'w-full rounded-sm border border-line bg-bg/70 px-3 py-2 text-sm text-ink placeholder:text-muted-foreground/70 outline-none transition-colors focus-visible:border-brass'
 
-/* Koodeksi: kuka, tilastot, linkit ja yhteydenotto */
-export function CodexScreen() {
+function initials(name: string) {
+  return name
+    .replace(/[[\]]/g, '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join('')
+}
+
+/** Ohut viiva, jonka keskellä messinkitimantti */
+function DiamondRule() {
+  return (
+    <div className="relative my-5 h-px w-full max-w-xl bg-gradient-to-r from-line-2/30 via-line-2 to-line-2/30" aria-hidden>
+      <span className="absolute left-1/2 top-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2 rotate-45 border border-brass bg-bg" />
+    </div>
+  )
+}
+
+/* Koodeksi pelin tietokannan tapaan: kategoriat vasemmalla (kuvanauha, luetut / kaikki), merkintä keskellä
+   (otsikko, timanttiviiva, sisältö) ja merkinnän kuva oikealla taustaan häivyttyen.
+   section = loftin kohde (neuvottelupöytä avaa suosittelijat). */
+export function CodexScreen({ section }: { section?: string }) {
   const { t } = useLang()
   const { play } = useSound()
   const c = t.codex
+  const b = c.book
+  const r = c.references
+
+  const entries = useMemo<Entry[]>(() => {
+    const e = b.entries
+    const groupOf = (id: string) => r.groups.find((g) => g.id === id)
+    const refs = r.items.filter((it) => SHOW_DRAFTS || !it.draft)
+    return [
+      { key: 'story', cat: 'about', kind: 'story', title: e.story.title, subtitle: `${t.name} · ${t.role}`, image: e.story.image },
+      { key: 'free', cat: 'about', kind: 'free', title: e.free.title, image: e.free.image },
+      { key: 'motto', cat: 'about', kind: 'motto', title: e.motto.title, image: e.motto.image },
+      { key: 'info', cat: 'facts', kind: 'info', title: e.info.title, image: e.info.image },
+      { key: 'stats', cat: 'facts', kind: 'stats', title: e.stats.title, image: e.stats.image },
+      { key: 'links', cat: 'facts', kind: 'links', title: e.links.title, image: e.links.image },
+      ...(refs.length
+        ? refs.map<Entry>((it, i) => ({
+            key: `ref-${i}`,
+            cat: 'refs',
+            kind: 'ref',
+            title: it.name,
+            subtitle: [groupOf(it.group)?.title, it.role, it.org].filter(Boolean).join(' · '),
+            image: groupOf(it.group)?.image ?? e.info.image,
+            ref: it,
+          }))
+        : [{ key: 'ref-empty', cat: 'refs' as const, kind: 'refsEmpty' as const, title: r.title, image: e.info.image }]),
+      { key: 'contact', cat: 'contact', kind: 'contact', title: e.contact.title, image: e.contact.image },
+    ]
+  }, [b.entries, r, t.name, t.role])
+
+  const wantRefs = section === 'codex-references'
+  const firstRef = entries.find((e) => e.cat === 'refs')?.key ?? 'story'
+  const [selKey, setSelKey] = useState(wantRefs ? firstRef : 'story')
+  const [open, setOpen] = useState<Record<CatId, boolean>>({ about: true, facts: true, refs: true, contact: true })
+  const [seen, setSeen] = useState<Set<string>>(() => new Set([wantRefs ? firstRef : 'story']))
   const [form, setForm] = useState({ name: '', email: '', message: '' })
+  const listRef = useRef<HTMLDivElement>(null)
+  const articleRef = useRef<HTMLElement>(null)
+  const focusMessage = useRef(false)
+
+  const sel = entries.find((e) => e.key === selKey) ?? entries[0]
+
+  const choose = (key: string, sound = true) => {
+    if (sound && key !== selKey) play('tick')
+    setSelKey(key)
+    setSeen((s) => (s.has(key) ? s : new Set(s).add(key)))
+  }
+
+  // "Kirjoita suositus" vie yhteydenottoon ja kohdistaa viestikenttään
+  const writeReference = () => {
+    play('select')
+    focusMessage.current = true
+    setOpen((o) => ({ ...o, contact: true }))
+    choose('contact', false)
+  }
+  useEffect(() => {
+    if (sel.kind === 'contact' && focusMessage.current) {
+      focusMessage.current = false
+      document.getElementById('codex-message')?.focus()
+    }
+  }, [sel.kind])
 
   function onSubmit(e: FormEvent) {
     e.preventDefault()
@@ -25,82 +124,64 @@ export function CodexScreen() {
     window.location.href = `mailto:${c.info[1].value}?subject=${encodeURIComponent(c.form.subject)}&body=${encodeURIComponent(body)}`
   }
 
-  return (
-    <div className="mx-auto grid max-w-[1400px] gap-5 px-3 py-5 sm:px-5 lg:grid-cols-[320px_1fr_360px]">
-      {/* muotokuva + lainaus */}
-      <aside className="flex flex-col gap-4">
-        <div className="relative overflow-hidden rounded-sm border border-line">
-          <img
-            src={c.portrait.src}
-            srcSet={c.portrait.srcSet}
-            sizes="(min-width: 1024px) 320px, 90vw"
-            alt={c.portrait.alt}
-            width={c.portrait.width}
-            height={c.portrait.height}
-            loading="lazy"
-            className="aspect-[4/5] w-full object-cover object-top"
-          />
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-bg via-bg/70 to-transparent px-4 pb-4 pt-16">
-            <p className="font-display text-lg tracking-[0.08em] text-ink">{t.name}</p>
-            <p className="label-caps text-brass">{t.role}</p>
-          </div>
-        </div>
-        <figure className="panel corners rounded-sm p-4">
-          <Quote className="mb-2 size-4 text-ember" />
-          <blockquote className="font-display text-[0.95rem] italic leading-snug text-ink-2">{c.quote}</blockquote>
-        </figure>
-        <div className="grid grid-cols-2 gap-2">
-          {[images.builder, images.adventure, images.discipline, images.winter].map((im, i) => (
-            <img key={i} src={im.src} alt="" width={im.width} height={im.height} loading="lazy" className="aspect-square w-full rounded-sm border border-line object-cover object-top" />
-          ))}
-        </div>
-      </aside>
+  // ylös/alas selaa avointen kategorioiden merkintöjä
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+    if ((e.target as HTMLElement).closest('input, textarea')) return
+    const flat = entries.filter((x) => open[x.cat])
+    if (!flat.length) return
+    e.preventDefault()
+    const i = flat.findIndex((x) => x.key === selKey)
+    const next = flat[(i + (e.key === 'ArrowDown' ? 1 : -1) + flat.length) % flat.length]
+    choose(next.key)
+    listRef.current?.querySelector<HTMLButtonElement>(`[data-entry="${next.key}"]`)?.focus()
+  }
 
-      {/* teksti + tiedot + tilastot */}
-      <section className="flex flex-col gap-5">
-        <div>
-          <h2 className="brass-rule decode text-2xl tracking-[0.1em] text-ink">{c.title}</h2>
-          <p className="mt-2 text-sm text-muted-foreground">{c.lead}</p>
-        </div>
-        <div className="space-y-3 text-[0.95rem] leading-relaxed text-ink-2">
-          {c.paragraphs.map((p) => (
-            <p key={p}>{p}</p>
-          ))}
-        </div>
-
-        <div className="panel corners rounded-sm px-4 py-2">
-          <dl className="divide-y divide-line/70">
-            {c.info.map((row, i) => {
-              const Icon = INFO_ICONS[i % INFO_ICONS.length]
-              return (
-                <div key={row.label} className="grid grid-cols-[auto_96px_1fr] items-center gap-3 py-2.5 text-sm">
-                  <Icon className="size-4 text-brass" />
-                  <dt className="label-caps">{row.label}</dt>
-                  <dd className="min-w-0 break-words font-semibold text-ink">
-                    {row.href ? (
-                      <a href={row.href} className="hover:underline">
-                        {row.value}
-                      </a>
-                    ) : (
-                      row.value
-                    )}
-                  </dd>
-                </div>
-              )
-            })}
-          </dl>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {c.stats.map((s) => (
-            <div key={s.label} className="rounded-sm border border-line/70 bg-bg-2/40 px-3 py-3" onMouseEnter={() => play('tick')}>
-              <p className="font-display text-2xl text-brass-2 tabular-nums">{s.value}</p>
-              <p className="mt-1 text-[0.66rem] uppercase leading-snug tracking-wider text-muted-foreground">{s.label}</p>
+  const content: Record<Kind, () => ReactNode> = {
+    story: () => <p className="max-w-[62ch] text-[1.02rem] leading-relaxed text-ink-2">{c.paragraphs[0]}</p>,
+    free: () => <p className="max-w-[62ch] text-[1.02rem] leading-relaxed text-ink-2">{c.paragraphs[1]}</p>,
+    motto: () => (
+      <figure className="max-w-[46ch]">
+        <Quote className="mb-3 size-6 text-ember" />
+        <blockquote className="font-display text-xl italic leading-snug text-ink [text-wrap:balance] sm:text-2xl">{c.quote}</blockquote>
+        <figcaption className="label-caps mt-4 text-brass">— {t.name}</figcaption>
+      </figure>
+    ),
+    info: () => (
+      <dl className="max-w-xl divide-y divide-line/70 border-y border-line/70">
+        {c.info.map((row, i) => {
+          const Icon = INFO_ICONS[i % INFO_ICONS.length]
+          return (
+            <div key={row.label} className="grid grid-cols-[auto_minmax(80px,110px)_1fr] items-center gap-3 py-3 text-sm">
+              <Icon className="size-4 text-brass" />
+              <dt className="label-caps">{row.label}</dt>
+              <dd className="min-w-0 break-words font-semibold text-ink">
+                {row.href ? (
+                  <a href={row.href} className="hover:underline">
+                    {row.value}
+                  </a>
+                ) : (
+                  row.value
+                )}
+              </dd>
             </div>
-          ))}
-        </div>
-
-        <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+          )
+        })}
+      </dl>
+    ),
+    stats: () => (
+      <div className="grid max-w-xl grid-cols-2 gap-3">
+        {c.stats.map((s) => (
+          <div key={s.label} className="rounded-sm border border-line/70 bg-bg/60 px-4 py-4" onMouseEnter={() => play('tick')}>
+            <p className="font-display text-3xl text-brass-2 tabular-nums">{s.value}</p>
+            <p className="mt-1 text-[0.68rem] uppercase leading-snug tracking-wider text-muted-foreground">{s.label}</p>
+          </div>
+        ))}
+      </div>
+    ),
+    links: () => (
+      <div className="flex max-w-xl flex-col gap-4">
+        <ul className="divide-y divide-line/70 border-y border-line/70">
           {c.links.map((l) => (
             <li key={l.label}>
               <a
@@ -109,10 +190,10 @@ export function CodexScreen() {
                 rel="noreferrer noopener"
                 onMouseEnter={() => play('tick')}
                 onClick={() => play('select')}
-                className="inline-flex items-center gap-1.5 font-semibold text-ink hover:text-brass-2"
+                className="flex items-center gap-3 py-3 text-sm font-semibold text-ink hover:text-brass-2"
               >
-                <span className="label-caps">{l.label}</span>
-                {l.value}
+                <span className="label-caps w-24 shrink-0">{l.label}</span>
+                <span className="min-w-0 flex-1 truncate">{l.value}</span>
                 {!l.href.startsWith('mailto:') && <ArrowUpRight className="size-3.5 text-muted-foreground" />}
               </a>
             </li>
@@ -127,12 +208,11 @@ export function CodexScreen() {
           </Button>
         )}
         <p className="text-xs text-muted-foreground">{c.builtWith}</p>
-      </section>
-
-      {/* yhteydenotto */}
-      <aside className="panel corners h-fit rounded-sm p-5">
-        <h3 className="font-display text-[0.8rem] uppercase tracking-[0.22em] text-ink">{c.contactTitle}</h3>
-        <form onSubmit={onSubmit} className="mt-4 grid gap-3">
+      </div>
+    ),
+    contact: () => (
+      <form onSubmit={onSubmit} className="grid max-w-xl gap-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           <label className="grid gap-1 text-xs font-semibold text-ink-2">
             {c.form.name}
             <input id="codex-name" name="name" autoComplete="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={field} />
@@ -141,33 +221,193 @@ export function CodexScreen() {
             {c.form.email}
             <input id="codex-email" name="email" type="email" autoComplete="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={field} />
           </label>
-          <label className="grid gap-1 text-xs font-semibold text-ink-2">
-            {c.form.message}
-            <textarea id="codex-message" name="message" required rows={6} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className={`${field} resize-y`} />
-          </label>
-          <Button type="submit" className="rounded-sm font-display text-[0.7rem] uppercase tracking-[0.18em]" onMouseEnter={() => play('tick')}>
-            {c.form.submit}
-            <Send />
+        </div>
+        <label className="grid gap-1 text-xs font-semibold text-ink-2">
+          {c.form.message}
+          <textarea id="codex-message" name="message" required rows={6} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className={`${field} resize-y`} />
+        </label>
+        <Button type="submit" className="w-fit rounded-sm font-display text-[0.7rem] uppercase tracking-[0.18em]" onMouseEnter={() => play('tick')}>
+          {c.form.submit}
+          <Send />
+        </Button>
+        <p className="text-[0.7rem] text-muted-foreground">{c.form.hint}</p>
+      </form>
+    ),
+    ref: () =>
+      sel.ref ? (
+        <div className="flex max-w-[62ch] flex-col gap-4">
+          <blockquote className="text-[1.02rem] leading-relaxed text-ink-2">
+            <Quote className="mb-2 size-5 text-ember" />
+            {sel.ref.quote}
+          </blockquote>
+          {sel.ref.href && (
+            <a href={sel.ref.href} target="_blank" rel="noreferrer noopener" onMouseEnter={() => play('tick')} className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-ink hover:text-brass-2">
+              <span className="label-caps">{r.profile}</span>
+              <ArrowUpRight className="size-3.5 text-muted-foreground" />
+            </a>
+          )}
+          {sel.ref.draft && <p className="w-fit border border-dashed border-ember/60 px-2.5 py-1.5 text-[0.7rem] uppercase tracking-[0.14em] text-ember-2">{r.draft}</p>}
+          <Button type="button" variant="outline" className="w-fit rounded-sm border-brass/60 font-display text-[0.68rem] uppercase tracking-[0.18em]" onMouseEnter={() => play('tick')} onClick={writeReference}>
+            <PenLine />
+            {r.cta}
           </Button>
-          <p className="text-[0.7rem] text-muted-foreground">{c.form.hint}</p>
-        </form>
-      </aside>
+        </div>
+      ) : null,
+    refsEmpty: () => (
+      <div className="flex max-w-[62ch] flex-col gap-4">
+        <p className="text-[1.02rem] leading-relaxed text-ink-2">{r.empty}</p>
+        <Button type="button" variant="outline" className="w-fit rounded-sm border-brass/60 font-display text-[0.68rem] uppercase tracking-[0.18em]" onMouseEnter={() => play('tick')} onClick={writeReference}>
+          <PenLine />
+          {r.cta}
+        </Button>
+      </div>
+    ),
+  }
 
-      {/* suosittelijat (loftin neuvottelupöytä vierittää tähän) */}
-      <section id="codex-references" aria-labelledby="codex-references-title" className="scroll-mt-4 lg:col-span-3">
-        <h3 id="codex-references-title" className="brass-rule font-display text-xl tracking-[0.1em] text-ink">
-          {c.references.title}
-        </h3>
-        <p className="mt-2 text-sm text-muted-foreground">{c.references.lead}</p>
-        <ReferencesCodex
-          onWrite={() => {
-            play('select')
-            const msg = document.getElementById('codex-message')
-            msg?.scrollIntoView({ block: 'center', behavior: 'smooth' })
-            msg?.focus({ preventScroll: true })
+  const medallion = sel.kind === 'ref' && sel.ref && (
+    <figcaption className="absolute bottom-4 left-4 flex items-center gap-3 lg:bottom-8 lg:left-[18%]">
+      <span className="relative grid size-20 shrink-0 place-items-center overflow-hidden rounded-full border border-brass/60 bg-bg/85 font-display text-2xl tracking-[0.08em] text-brass-2 shadow-[0_0_0_5px_rgba(20,17,15,0.75),0_0_0_6px_rgba(201,168,106,0.3)]">
+        {sel.ref.photo ? (
+          <img src={sel.ref.photo.src} srcSet={sel.ref.photo.srcSet} sizes="80px" alt={sel.ref.photo.alt} width={sel.ref.photo.width} height={sel.ref.photo.height} className="size-full object-cover object-top" />
+        ) : (
+          initials(sel.ref.name) || '?'
+        )}
+      </span>
+      {!sel.ref.photo && <span className="label-caps rounded-sm bg-bg/70 px-2 py-1 text-ink-2">{r.photoSoon}</span>}
+    </figcaption>
+  )
+
+  return (
+    <div className="mx-auto max-w-[1400px] px-3 py-5 sm:px-5">
+      <header>
+        <h2 className="brass-rule decode text-2xl tracking-[0.1em] text-ink">{c.title}</h2>
+        <p className="mt-2 text-sm text-muted-foreground">{c.lead}</p>
+      </header>
+
+      <div className="panel relative mt-4 overflow-hidden rounded-sm lg:min-h-[600px]">
+        {/* merkinnän kuva oikealla, häivytys vasemmalle (työpöytä) */}
+        <figure className="pointer-events-none absolute inset-y-0 right-0 hidden w-[44%] lg:block" aria-hidden={sel.kind !== 'ref'}>
+          <img
+            key={sel.image.src}
+            src={sel.image.src}
+            srcSet={sel.image.srcSet}
+            sizes="(min-width: 1024px) 620px, 100vw"
+            alt={sel.image.alt}
+            width={sel.image.width}
+            height={sel.image.height}
+            className="screen-in size-full object-cover object-[50%_25%] [mask-image:linear-gradient(to_right,transparent,black_45%)]"
+          />
+          {medallion}
+        </figure>
+
+        <div className="relative grid lg:min-h-[600px] lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)_38%]">
+          {/* kategoriat ja merkinnät */}
+          <div ref={listRef} onKeyDown={onKey} className="flex flex-col gap-2 border-b border-line/70 bg-bg/40 p-4 backdrop-blur-[2px] lg:border-b-0 lg:border-r">
+            {b.categories.map((cat) => {
+              const list = entries.filter((e) => e.cat === cat.id)
+              const isOpen = open[cat.id]
+              const read = list.filter((e) => seen.has(e.key)).length
+              return (
+                <div key={cat.id} id={cat.id === 'refs' ? 'codex-references' : undefined} className="flex scroll-mt-4 flex-col gap-1.5">
+                  <button
+                    type="button"
+                    aria-expanded={isOpen}
+                    onClick={() => {
+                      play(isOpen ? 'close' : 'open')
+                      setOpen((o) => ({ ...o, [cat.id]: !isOpen }))
+                    }}
+                    style={{ clipPath: ARROW }}
+                    className="group relative flex min-h-16 w-full items-center gap-3 overflow-hidden border border-line-2/70 bg-bg-2 py-2.5 pl-3 pr-6 text-left cursor-pointer outline-none"
+                  >
+                    <img
+                      src={cat.image.src}
+                      alt=""
+                      aria-hidden
+                      loading="lazy"
+                      className="absolute inset-y-0 right-0 h-full w-3/5 object-cover object-[50%_30%] opacity-70 grayscale-[35%] transition-[opacity,filter] duration-300 [mask-image:linear-gradient(to_right,transparent,black_65%)] group-hover:opacity-90 group-hover:grayscale-0 group-focus-visible:opacity-90"
+                    />
+                    <span className="absolute inset-0 bg-gradient-to-r from-panel-2 via-panel-2/80 to-transparent" aria-hidden />
+                    <ChevronDown className={cn('relative size-4 shrink-0 text-brass transition-transform', !isOpen && '-rotate-90')} />
+                    <span className="relative min-w-0 flex-1 [text-shadow:0_1px_6px_rgba(0,0,0,0.8)]">
+                      <span className="block truncate font-display text-[0.95rem] tracking-[0.06em] text-ink">{cat.title}</span>
+                      <span className="block font-display text-[0.7rem] tabular-nums text-ink-2">
+                        {read} / {list.length}
+                      </span>
+                    </span>
+                  </button>
+                  {isOpen &&
+                    list.map((e) => {
+                      const active = e.key === sel.key
+                      return (
+                        <button
+                          key={e.key}
+                          type="button"
+                          data-entry={e.key}
+                          onClick={() => {
+                            play('select')
+                            choose(e.key, false)
+                            // puhelimella merkintä on listan alla: vieritä siihen
+                            if (window.matchMedia('(max-width: 1023px)').matches)
+                              requestAnimationFrame(() => articleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+                          }}
+                          onFocus={() => choose(e.key)}
+                          style={{ clipPath: ARROW }}
+                          className={cn(
+                            'relative ml-4 flex items-center gap-2 border py-2 pl-3 pr-7 text-left transition-colors outline-none cursor-pointer',
+                            active ? 'border-brass-2 bg-ink/90 text-bg' : 'border-line/70 bg-bg-2/70 text-ink-2 hover:border-line-2 hover:text-ink',
+                          )}
+                        >
+                          {!seen.has(e.key) && <span className="size-1.5 shrink-0 rotate-45 bg-ember" aria-hidden />}
+                          <span className="min-w-0 flex-1 truncate font-display text-[0.82rem] tracking-[0.04em]">{e.title}</span>
+                          {active && (
+                            <span className="absolute right-6 grid size-6 place-items-center rounded-full border border-bg/50" aria-hidden>
+                              <span className="size-1 rounded-full bg-bg/70" />
+                            </span>
+                          )}
+                        </button>
+                      )
+                    })}
+                </div>
+              )
+            })}
+          </div>
+
+          {/* merkintä */}
+          <article key={sel.key} ref={articleRef} className="screen-in flex min-w-0 scroll-mt-16 flex-col p-5 sm:p-8">
+            {/* puhelimella kuva merkinnän yläpuolella */}
+            <figure className="relative -mx-5 -mt-5 mb-5 h-56 overflow-hidden sm:-mx-8 sm:-mt-8 sm:h-72 lg:hidden">
+              <img src={sel.image.src} alt={sel.image.alt} width={sel.image.width} height={sel.image.height} className="size-full object-cover object-[50%_25%] [mask-image:linear-gradient(to_top,transparent,black_45%)]" />
+              {medallion}
+            </figure>
+            <h3 className="font-display text-2xl tracking-[0.04em] text-ink [text-wrap:balance] sm:text-3xl">{sel.title}</h3>
+            {sel.subtitle && <p className="label-caps mt-2 text-brass">{sel.subtitle}</p>}
+            <DiamondRule />
+            {content[sel.kind]()}
+          </article>
+          <div className="hidden lg:block" aria-hidden />
+        </div>
+      </div>
+
+      {/* ohjeet pelin alapalkin tapaan */}
+      <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-[0.7rem] text-muted-foreground">
+        <span className="hidden items-center gap-1.5 sm:flex">
+          <span className="key">↑</span>
+          <span className="key">↓</span>
+          {b.hint}
+        </span>
+        <button
+          type="button"
+          onClick={() => {
+            play('unlock')
+            setSeen(new Set(entries.map((e) => e.key)))
           }}
-        />
-      </section>
+          onMouseEnter={() => play('tick')}
+          className="inline-flex items-center gap-1.5 hover:text-brass-2 cursor-pointer"
+        >
+          <CheckCheck className="size-3.5" />
+          {b.markAll}
+        </button>
+      </div>
     </div>
   )
 }
