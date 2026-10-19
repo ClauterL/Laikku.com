@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Anchor, Compass, Flag, Home, Minus, Plus, Scan } from 'lucide-react'
+import { Anchor, Flag, Home, Minus, Plus, Scan, Star, Swords } from 'lucide-react'
 import { geoGraticule10, geoNaturalEarth1, geoPath } from 'd3-geo'
 import { select } from 'd3-selection'
 import { zoom, zoomIdentity, type ZoomBehavior, type ZoomTransform } from 'd3-zoom'
@@ -38,27 +38,57 @@ const BORDER_D = path(mesh(topo, countries, (a, b) => a !== b)) ?? ''
 const GRAT_D = path(geoGraticule10()) ?? ''
 const SPHERE_D = path({ type: 'Sphere' }) ?? ''
 
-const ICON: Record<Marker['kind'], typeof Home> = { home: Home, travel: Flag, quest: Compass, offmap: Anchor }
+const ICON: Record<Marker['kind'], typeof Home> = {
+  home: Home,
+  travel: Flag,
+  quest: Swords,
+  bucket: Star,
+  offmap: Anchor,
+}
 const COLOR: Record<Marker['kind'], string> = {
   home: 'var(--gold)',
   travel: 'var(--ember-2)',
   quest: 'var(--teal-2)',
+  bucket: '#b48ce6', // sama violetti kuin eeppinen harvinaisuus (Slot.tsx)
   offmap: 'var(--brass)',
 }
+/* Järjestys selitteessä, pikamatkustuksessa ja päällekkäisyyksissä (ensimmäinen voittaa) */
+const KIND_ORDER: Marker['kind'][] = ['home', 'travel', 'quest', 'bucket', 'offmap']
 /* Fog of war -paljastuksen säde kartan yksiköissä (1 yksikkö ≈ 26 km päiväntasaajalla) */
-const REVEAL: Record<Marker['kind'], number> = { home: 84, travel: 58, quest: 40, offmap: 0 }
+const REVEAL: Record<Marker['kind'], number> = { home: 84, travel: 58, quest: 40, bucket: 36, offmap: 0 }
+/* Merkkien välimatka CSS-pikseleinä (täysikokoisina), jota lähempänä alemman prioriteetin merkki
+   niputetaan tärkeämpään (+N-merkki); klikkaus zoomaa niin lähelle, että nippu aukeaa */
+const CLUSTER_PX = 34
+const DEFAULT_K = 5.5
+/* Merkit pienempinä koko maailman näkymässä */
+const markerSize = (k: number) => (k < 1.8 ? 0.8 : k < 3.5 ? 0.9 : 1)
+/* Nimen arvioitu leveys CSS-pikseleinä (11 px Cinzel, versaalit, 0,18 em välistys) */
+const labelW = (name: string) => name.length * 9.6 + 8
 const REGION_SIZE = { lg: 21, md: 16, sm: 12 }
 const SEA_REGIONS = /meri|ocean|sea|lahti|gulf|valtameri/i
 
 function CompassRose() {
   return (
-    <svg viewBox="0 0 100 100" className="size-16 text-brass drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] sm:size-20" aria-hidden>
+    <svg
+      viewBox="0 0 100 100"
+      className="size-16 text-brass drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] sm:size-20"
+      aria-hidden
+    >
       <circle cx="50" cy="50" r="46" fill="rgba(20,17,15,0.55)" stroke="currentColor" strokeWidth="1" opacity="0.9" />
       <circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2 3" />
       <path d="M50 6 L55 45 L50 50 L45 45 Z" fill="var(--ember-2)" />
-      <path d="M50 94 L55 55 L50 50 L45 55 Z M6 50 L45 45 L50 50 L45 55 Z M94 50 L55 45 L50 50 L55 55 Z" fill="currentColor" />
-      <path d="M22 22 L47 47 L50 50 L45 45 Z M78 22 L53 47 L50 50 L55 45 Z M22 78 L47 53 L50 50 L45 55 Z M78 78 L53 53 L50 50 L55 55 Z" fill="currentColor" opacity="0.55" />
-      <text x="50" y="4" textAnchor="middle" fontSize="7" fontFamily="var(--font-display)" fill="currentColor">N</text>
+      <path
+        d="M50 94 L55 55 L50 50 L45 55 Z M6 50 L45 45 L50 50 L45 55 Z M94 50 L55 45 L50 50 L55 55 Z"
+        fill="currentColor"
+      />
+      <path
+        d="M22 22 L47 47 L50 50 L45 45 Z M78 22 L53 47 L50 50 L55 45 Z M22 78 L47 53 L50 50 L45 55 Z M78 78 L53 53 L50 50 L55 55 Z"
+        fill="currentColor"
+        opacity="0.55"
+      />
+      <text x="50" y="4" textAnchor="middle" fontSize="7" fontFamily="var(--font-display)" fill="currentColor">
+        N
+      </text>
     </svg>
   )
 }
@@ -76,9 +106,13 @@ export function MapScreen() {
   const [px, setPx] = useState(1)
 
   const points = useMemo(
-    () => m.markers.map((mk) => ({ mk, xy: projection([mk.lon, mk.lat]) ?? [0, 0] })),
+    () =>
+      m.markers
+        .map((mk) => ({ mk, xy: projection([mk.lon, mk.lat]) ?? [0, 0] }))
+        .sort((a, b) => KIND_ORDER.indexOf(a.mk.kind) - KIND_ORDER.indexOf(b.mk.kind)),
     [m.markers],
   )
+  const kinds = useMemo(() => KIND_ORDER.filter((kind) => m.markers.some((mk) => mk.kind === kind)), [m.markers])
   const routes = useMemo(
     () => m.routes.map((r) => ({ ...r, d: path({ type: 'LineString', coordinates: r.points }) ?? '' })),
     [m.routes],
@@ -89,11 +123,18 @@ export function MapScreen() {
   const fitAll = useCallback(() => {
     const xs = points.map((p) => p.xy[0])
     const ys = points.map((p) => p.xy[1])
-    const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys)
+    const x0 = Math.min(...xs),
+      x1 = Math.max(...xs),
+      y0 = Math.min(...ys),
+      y1 = Math.max(...ys)
     const v = view.current
     const k = Math.max(1, Math.min(MAX_K, 0.7 / Math.max((x1 - x0) / v.w, (y1 - y0) / v.h, 0.05)))
-    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2 - 10
-    return zoomIdentity.translate(W / 2, H / 2).scale(k).translate(-cx, -cy)
+    const cx = (x0 + x1) / 2,
+      cy = (y0 + y1) / 2 - 10
+    return zoomIdentity
+      .translate(W / 2, H / 2)
+      .scale(k)
+      .translate(-cx, -cy)
   }, [points])
 
   useEffect(() => {
@@ -141,12 +182,34 @@ export function MapScreen() {
     select(svgRef.current).transition().duration(750).call(z.transform, target)
   }, [])
 
-  const zoomTo = useCallback(
-    (mk: Marker, k = 5.5) => {
-      const [x, y] = projection([mk.lon, mk.lat]) ?? [W / 2, H / 2]
-      animateTo(zoomIdentity.translate(W / 2, H / 2).scale(k).translate(-x, -y))
+  /* Zoom, jolla merkki erottuu lähinaapureistaan (ei jää nippuun) */
+  const separateK = useCallback(
+    (mk: Marker) => {
+      const p = points.find((q) => q.mk.id === mk.id)
+      if (!p) return DEFAULT_K
+      let need = DEFAULT_K
+      for (const q of points) {
+        if (q.mk.id === mk.id) continue
+        const d = Math.hypot(q.xy[0] - p.xy[0], q.xy[1] - p.xy[1])
+        const ki = (CLUSTER_PX * 1.5 * px) / Math.max(d, 0.01)
+        if (ki > need && ki <= MAX_K) need = ki
+      }
+      return need
     },
-    [animateTo],
+    [points, px],
+  )
+
+  const zoomTo = useCallback(
+    (mk: Marker, k = separateK(mk)) => {
+      const [x, y] = projection([mk.lon, mk.lat]) ?? [W / 2, H / 2]
+      animateTo(
+        zoomIdentity
+          .translate(W / 2, H / 2)
+          .scale(k)
+          .translate(-x, -y),
+      )
+    },
+    [animateTo, separateK],
   )
 
   const zoomBy = (f: number) => {
@@ -158,12 +221,63 @@ export function MapScreen() {
 
   const k = tf.k
   const inv = 1 / k
-  const markerScale = inv * px // merkit CSS-pikseleinä zoomista riippumatta
+  const size = markerSize(k)
+  const markerScale = inv * px * size // merkit CSS-pikseleinä zoomista riippumatta
   const regionScale = Math.pow(inv, 0.6) * Math.sqrt(px)
+
+  /* Päällekkäisyydet: tärkeämpi merkki (KIND_ORDER, aktiivinen ensin) piirretään, liian lähellä olevat
+     niputetaan sen alle (+N). Nimi näytetään vain, jos se ei osu jo sijoitettuun nimeen. */
+  const layout = useMemo(() => {
+    const placed: { id: string; x: number; y: number }[] = []
+    const labels: { x: number; y: number; w: number }[] = []
+    const hidden = new Set<string>()
+    const count = new Map<string, number>()
+    const label = new Set<string>()
+    const thr = CLUSTER_PX * size
+    const order = [...points].sort((a, b) => Number(b.mk.id === active.id) - Number(a.mk.id === active.id))
+    for (const { mk, xy } of order) {
+      const x = (xy[0] * k) / px
+      const y = (xy[1] * k) / px
+      const host = placed.find((q) => Math.hypot(q.x - x, q.y - y) < thr)
+      if (host) {
+        hidden.add(mk.id)
+        count.set(host.id, (count.get(host.id) ?? 0) + 1)
+        continue
+      }
+      placed.push({ id: mk.id, x, y })
+    }
+    // nimet: ei toisen nimen eikä toisen merkin päälle (merkki ≈ ±16 px)
+    const r = 16 * size
+    for (const pl of placed) {
+      const w = labelW(points.find((q) => q.mk.id === pl.id)?.mk.name ?? '') * size
+      const ly = pl.y + 32 * size
+      const hitsLabel = labels.some((l) => Math.abs(l.x - pl.x) < (l.w + w) / 2 && Math.abs(l.y - ly) < 15)
+      const hitsMarker = placed.some(
+        (q) => q.id !== pl.id && Math.abs(q.x - pl.x) < w / 2 + r && Math.abs(q.y - ly) < r + 6,
+      )
+      if (!hitsLabel && !hitsMarker) {
+        labels.push({ x: pl.x, y: ly, w })
+        label.add(pl.id)
+      }
+    }
+    return { hidden, count, label }
+  }, [points, k, px, size, active.id])
+  /* Piirtojärjestys: tärkein päällimmäiseksi, aktiivinen kaikkien päälle */
+  const drawOrder = useMemo(
+    () =>
+      [...points]
+        .filter((p) => !layout.hidden.has(p.mk.id))
+        .reverse()
+        .sort((a, b) => Number(a.mk.id === active.id) - Number(b.mk.id === active.id)),
+    [points, layout, active.id],
+  )
 
   return (
     <div className="mx-auto grid max-w-[1400px] gap-5 px-3 py-5 sm:px-5 lg:grid-cols-[1fr_300px]">
-      <section className="corners relative overflow-hidden rounded-sm border border-line bg-[#1f3a3d]" aria-label={m.title}>
+      <section
+        className="corners relative self-start overflow-hidden rounded-sm border border-line bg-[#1f3a3d]"
+        aria-label={m.title}
+      >
         <div
           className="relative aspect-square w-full sm:aspect-[4/3] lg:aspect-[16/10]"
           style={{ backgroundImage: `url(${backgrounds.map})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
@@ -236,16 +350,21 @@ export function MapScreen() {
 
               {/* reitit */}
               {routes.map((r) => (
-                <path key={r.id} d={r.d} className={cn('map-route', r.kind === 'travel' ? 'map-route-travel' : 'map-route-plan')}>
+                <path
+                  key={r.id}
+                  d={r.d}
+                  className={cn('map-route', r.kind === 'travel' ? 'map-route-travel' : 'map-route-plan')}
+                >
                   <title>{r.label}</title>
                 </path>
               ))}
 
               {/* merkit – pysyvät samankokoisina zoomatessa */}
-              {points.map(({ mk, xy }) => {
+              {drawOrder.map(({ mk, xy }) => {
                 const Icon = ICON[mk.kind]
                 const isActive = active.id === mk.id
                 const color = COLOR[mk.kind]
+                const more = layout.count.get(mk.id) ?? 0
                 return (
                   <g
                     key={mk.id}
@@ -253,7 +372,7 @@ export function MapScreen() {
                     transform={`translate(${xy[0]},${xy[1]}) scale(${markerScale})`}
                     tabIndex={0}
                     role="button"
-                    aria-label={mk.name}
+                    aria-label={more ? `${mk.name} (+${more})` : mk.name}
                     aria-pressed={isActive}
                     onMouseEnter={() => {
                       if (!isActive) play('tick')
@@ -293,9 +412,19 @@ export function MapScreen() {
                       className="marker-frame"
                     />
                     <Icon x={-7} y={-7} width={14} height={14} color={color} strokeWidth={2} />
-                    <text y={32} className="map-label" fill={isActive ? 'var(--brass-2)' : 'var(--ink-2)'}>
-                      {mk.name}
-                    </text>
+                    {more > 0 && (
+                      <g transform="translate(13,-13)" aria-hidden>
+                        <circle r={8.5} fill="#1c1714" stroke="var(--brass)" strokeWidth={1.2} />
+                        <text y={3.2} textAnchor="middle" fontSize={9} fontWeight={700} fill="var(--brass-2)">
+                          +{more}
+                        </text>
+                      </g>
+                    )}
+                    {(layout.label.has(mk.id) || isActive) && (
+                      <text y={32} className="map-label" fill={isActive ? 'var(--brass-2)' : 'var(--ink-2)'}>
+                        {mk.name}
+                      </text>
+                    )}
                   </g>
                 )
               })}
@@ -316,7 +445,14 @@ export function MapScreen() {
               [
                 [Plus, m.ui.zoomIn, () => zoomBy(1.6)],
                 [Minus, m.ui.zoomOut, () => zoomBy(1 / 1.6)],
-                [Scan, m.ui.reset, () => { play('tick'); animateTo(fitAll()) }],
+                [
+                  Scan,
+                  m.ui.reset,
+                  () => {
+                    play('tick')
+                    animateTo(fitAll())
+                  },
+                ],
               ] as const
             ).map(([Ic, label, fn]) => (
               <button
@@ -335,7 +471,7 @@ export function MapScreen() {
 
           {/* selite */}
           <div className="pointer-events-none absolute left-3 bottom-3 hidden gap-x-4 gap-y-1 rounded-sm border border-line/70 bg-bg/70 px-3 py-2 text-[0.62rem] uppercase tracking-[0.18em] text-ink-2 backdrop-blur-sm sm:flex sm:flex-wrap">
-            {(Object.keys(m.legend) as Marker['kind'][]).map((kind) => (
+            {kinds.map((kind) => (
               <span key={kind} className="flex items-center gap-1.5">
                 <span className="size-2 rotate-45" style={{ background: COLOR[kind] }} />
                 {m.legend[kind]}
@@ -368,38 +504,67 @@ export function MapScreen() {
           <p className="text-xs text-ink-2">{active.caption}</p>
           <p className="mt-3 text-sm text-ink-2">{active.desc}</p>
           <p className="mt-3 font-mono text-[0.68rem] text-muted-foreground">
-            {m.ui.coords}: {active.lat.toFixed(2)}° N · {Math.abs(active.lon).toFixed(2)}° {active.lon < 0 ? 'W' : 'E'}
+            {m.ui.coords}: {Math.abs(active.lat).toFixed(2)}° {active.lat < 0 ? 'S' : 'N'} ·{' '}
+            {Math.abs(active.lon).toFixed(2)}° {active.lon < 0 ? 'W' : 'E'}
           </p>
         </div>
         <div className="panel rounded-sm p-3">
           <p className="label-caps mb-2 px-1">{m.fastTravel}</p>
-          <ul className="flex flex-col">
-            {m.markers.map((mk) => (
-              <li key={mk.id}>
-                <button
-                  type="button"
-                  onMouseEnter={() => play('tick')}
-                  onClick={() => {
-                    play('select')
-                    setActive(mk)
-                    zoomTo(mk)
-                  }}
-                  className={cn(
-                    'flex w-full items-center gap-3 rounded-sm px-2 py-2 text-left text-sm transition-colors hover:bg-brass/10 cursor-pointer',
-                    active.id === mk.id && 'bg-brass/10 text-brass-2',
-                  )}
+          <div className="flex flex-col gap-2 lg:max-h-[24rem] lg:overflow-y-auto lg:pr-1">
+            {kinds.map((kind) => (
+              <div key={kind}>
+                <p
+                  className="flex items-center gap-2 px-2 pb-1 pt-1 text-[0.62rem] uppercase tracking-[0.18em]"
+                  style={{ color: COLOR[kind] }}
                 >
-                  <span className="size-2 rotate-45" style={{ background: COLOR[mk.kind] }} />
-                  <span className="flex-1">{mk.name}</span>
-                  <span className="text-[0.65rem] uppercase tracking-wider text-muted-foreground">{m.legend[mk.kind]}</span>
-                </button>
-              </li>
+                  <span className="size-1.5 rotate-45" style={{ background: COLOR[kind] }} />
+                  {m.legend[kind]}
+                </p>
+                <ul className="flex flex-col">
+                  {m.markers
+                    .filter((mk) => mk.kind === kind)
+                    .map((mk) => (
+                      <li key={mk.id}>
+                        <button
+                          type="button"
+                          onMouseEnter={() => play('tick')}
+                          onClick={() => {
+                            play('select')
+                            setActive(mk)
+                            zoomTo(mk)
+                          }}
+                          className={cn(
+                            'flex w-full items-center gap-3 rounded-sm px-2 py-2 text-left text-sm transition-colors hover:bg-brass/10 cursor-pointer',
+                            active.id === mk.id && 'bg-brass/10 text-brass-2',
+                          )}
+                        >
+                          {(() => {
+                            const Ic = ICON[mk.kind]
+                            return <Ic className="size-3.5 shrink-0" style={{ color: COLOR[mk.kind] }} />
+                          })()}
+                          <span className="flex-1">{mk.name}</span>
+                          <span className="truncate text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                            {mk.caption.split(' · ')[1] ?? ''}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                </ul>
+              </div>
             ))}
-          </ul>
+          </div>
           <div className="mt-2 border-t border-line/70 px-1 pt-2">
             {routes.map((r) => (
-              <p key={r.id} className="flex items-center gap-2 py-1 text-[0.68rem] uppercase tracking-[0.14em] text-muted-foreground">
-                <span className={cn('h-0 w-5 border-t-2', r.kind === 'travel' ? 'border-dashed border-ember-2' : 'border-dotted border-teal-2')} />
+              <p
+                key={r.id}
+                className="flex items-center gap-2 py-1 text-[0.68rem] uppercase tracking-[0.14em] text-muted-foreground"
+              >
+                <span
+                  className={cn(
+                    'h-0 w-5 border-t-2',
+                    r.kind === 'travel' ? 'border-dashed border-ember-2' : 'border-dotted border-teal-2',
+                  )}
+                />
                 {r.label}
               </p>
             ))}

@@ -82,7 +82,8 @@ export interface Marker {
   caption: string
   lat: number
   lon: number
-  kind: 'home' | 'travel' | 'quest' | 'offmap'
+  /** quest = haaste, bucket = bucket list -kohde */
+  kind: 'home' | 'travel' | 'quest' | 'bucket' | 'offmap'
   desc: string
 }
 
@@ -142,7 +143,7 @@ export interface Content {
     title: string
     lead: string
     markers: Marker[]
-    legend: Record<Marker['kind'], string>
+    legend: Partial<Record<Marker['kind'], string>>
     fastTravel: string
     offmapHint: string
     /** Käsin kirjoitetut aluenimet kartalla */
@@ -196,9 +197,12 @@ export interface Content {
       markAll: string
       /** Kategoriat; suosittelijat-kategorian merkinnät tulevat references-kentästä */
       categories: { id: 'about' | 'facts' | 'refs' | 'contact'; title: string; image: Img }[]
-      entries: Record<'story' | 'free' | 'motto' | 'info' | 'stats' | 'links' | 'contact', { title: string; image: Img }>
+      /** Yksi merkintä per kategoria: Claus Laikku (tarina, vapaa-aika, motto), Tiedot (perustiedot, tilastot, linkit), Yhteydenotto */
+      entries: Record<'about' | 'facts' | 'contact', { title: string; image: Img }>
+      /** Väliotsikot merkintöjen sisällä */
+      sections: Record<'free' | 'motto' | 'info' | 'stats' | 'links', string>
     }
-    /** Suosittelijat: AC-tyylinen tietokanta (ryhmät vasemmalla, merkintä keskellä, kuva oikealla).
+    /** Suosittelijat: koodeksin kategoria (kuva = suosittelijan kuva, luvalla).
      *  Loftin neuvottelupöytä avaa tämän kohdan. */
     references: {
       title: string
@@ -214,10 +218,7 @@ export interface Content {
       photoSoon: string
       /** Linkki suosittelijan profiiliin */
       profile: string
-      /** Ryhmät; kuva (sivuston omat kuvat) otsikkonauhaan ja isoon kuvapaneeliin AC:n tapaan */
-      groups: { id: string; title: string; image: Img }[]
       items: {
-        group: string
         name: string
         role: string
         org?: string

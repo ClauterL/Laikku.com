@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 type Codex = Content['codex']
 type Ref = Codex['references']['items'][number]
 type CatId = Codex['book']['categories'][number]['id']
-type Kind = 'story' | 'free' | 'motto' | 'info' | 'stats' | 'links' | 'contact' | 'ref' | 'refsEmpty'
+type Kind = 'about' | 'facts' | 'contact' | 'ref' | 'refsEmpty'
 
 interface Entry {
   key: string
@@ -40,6 +40,16 @@ function initials(name: string) {
     .join('')
 }
 
+/** Väliotsikko merkinnän sisällä */
+function SubHeading({ children }: { children: ReactNode }) {
+  return (
+    <h4 className="label-caps mb-3 mt-8 flex items-center gap-2 text-brass first:mt-0">
+      <span className="size-1.5 rotate-45 bg-brass" aria-hidden />
+      {children}
+    </h4>
+  )
+}
+
 /** Ohut viiva, jonka keskellä messinkitimantti */
 function DiamondRule() {
   return (
@@ -61,35 +71,31 @@ export function CodexScreen({ section }: { section?: string }) {
 
   const entries = useMemo<Entry[]>(() => {
     const e = b.entries
-    const groupOf = (id: string) => r.groups.find((g) => g.id === id)
+    const refsImage = b.categories.find((cat) => cat.id === 'refs')?.image ?? e.facts.image
     const refs = r.items.filter((it) => SHOW_DRAFTS || !it.draft)
     return [
-      { key: 'story', cat: 'about', kind: 'story', title: e.story.title, subtitle: `${t.name} · ${t.role}`, image: e.story.image },
-      { key: 'free', cat: 'about', kind: 'free', title: e.free.title, image: e.free.image },
-      { key: 'motto', cat: 'about', kind: 'motto', title: e.motto.title, image: e.motto.image },
-      { key: 'info', cat: 'facts', kind: 'info', title: e.info.title, image: e.info.image },
-      { key: 'stats', cat: 'facts', kind: 'stats', title: e.stats.title, image: e.stats.image },
-      { key: 'links', cat: 'facts', kind: 'links', title: e.links.title, image: e.links.image },
+      { key: 'about', cat: 'about', kind: 'about', title: e.about.title, subtitle: `${t.name} · ${t.role}`, image: e.about.image },
+      { key: 'facts', cat: 'facts', kind: 'facts', title: e.facts.title, image: e.facts.image },
       ...(refs.length
         ? refs.map<Entry>((it, i) => ({
             key: `ref-${i}`,
             cat: 'refs',
             kind: 'ref',
             title: it.name,
-            subtitle: [groupOf(it.group)?.title, it.role, it.org].filter(Boolean).join(' · '),
-            image: groupOf(it.group)?.image ?? e.info.image,
+            subtitle: [it.role, it.org].filter(Boolean).join(' · '),
+            image: it.photo ?? refsImage,
             ref: it,
           }))
-        : [{ key: 'ref-empty', cat: 'refs' as const, kind: 'refsEmpty' as const, title: r.title, image: e.info.image }]),
+        : [{ key: 'ref-empty', cat: 'refs' as const, kind: 'refsEmpty' as const, title: r.title, image: refsImage }]),
       { key: 'contact', cat: 'contact', kind: 'contact', title: e.contact.title, image: e.contact.image },
     ]
-  }, [b.entries, r, t.name, t.role])
+  }, [b.entries, b.categories, r, t.name, t.role])
 
   const wantRefs = section === 'codex-references'
-  const firstRef = entries.find((e) => e.cat === 'refs')?.key ?? 'story'
-  const [selKey, setSelKey] = useState(wantRefs ? firstRef : 'story')
+  const firstRef = entries.find((e) => e.cat === 'refs')?.key ?? 'about'
+  const [selKey, setSelKey] = useState(wantRefs ? firstRef : 'about')
   const [open, setOpen] = useState<Record<CatId, boolean>>({ about: true, facts: true, refs: true, contact: true })
-  const [seen, setSeen] = useState<Set<string>>(() => new Set([wantRefs ? firstRef : 'story']))
+  const [seen, setSeen] = useState<Set<string>>(() => new Set([wantRefs ? firstRef : 'about']))
   const [form, setForm] = useState({ name: '', email: '', message: '' })
   const listRef = useRef<HTMLDivElement>(null)
   const articleRef = useRef<HTMLElement>(null)
@@ -138,76 +144,81 @@ export function CodexScreen({ section }: { section?: string }) {
   }
 
   const content: Record<Kind, () => ReactNode> = {
-    story: () => <p className="max-w-[62ch] text-[1.02rem] leading-relaxed text-ink-2">{c.paragraphs[0]}</p>,
-    free: () => <p className="max-w-[62ch] text-[1.02rem] leading-relaxed text-ink-2">{c.paragraphs[1]}</p>,
-    motto: () => (
-      <figure className="max-w-[46ch]">
-        <Quote className="mb-3 size-6 text-ember" />
-        <blockquote className="font-display text-xl italic leading-snug text-ink [text-wrap:balance] sm:text-2xl">{c.quote}</blockquote>
-        <figcaption className="label-caps mt-4 text-brass">— {t.name}</figcaption>
-      </figure>
-    ),
-    info: () => (
-      <dl className="max-w-xl divide-y divide-line/70 border-y border-line/70">
-        {c.info.map((row, i) => {
-          const Icon = INFO_ICONS[i % INFO_ICONS.length]
-          return (
-            <div key={row.label} className="grid grid-cols-[auto_minmax(80px,110px)_1fr] items-center gap-3 py-3 text-sm">
-              <Icon className="size-4 text-brass" />
-              <dt className="label-caps">{row.label}</dt>
-              <dd className="min-w-0 break-words font-semibold text-ink">
-                {row.href ? (
-                  <a href={row.href} className="hover:underline">
-                    {row.value}
-                  </a>
-                ) : (
-                  row.value
-                )}
-              </dd>
-            </div>
-          )
-        })}
-      </dl>
-    ),
-    stats: () => (
-      <div className="grid max-w-xl grid-cols-2 gap-3">
-        {c.stats.map((s) => (
-          <div key={s.label} className="rounded-sm border border-line/70 bg-bg/60 px-4 py-4" onMouseEnter={() => play('tick')}>
-            <p className="font-display text-3xl text-brass-2 tabular-nums">{s.value}</p>
-            <p className="mt-1 text-[0.68rem] uppercase leading-snug tracking-wider text-muted-foreground">{s.label}</p>
-          </div>
-        ))}
+    about: () => (
+      <div className="flex max-w-[62ch] flex-col">
+        <p className="text-[1.02rem] leading-relaxed text-ink-2">{c.paragraphs[0]}</p>
+        <SubHeading>{b.sections.free}</SubHeading>
+        <p className="text-[1.02rem] leading-relaxed text-ink-2">{c.paragraphs[1]}</p>
+        <SubHeading>{b.sections.motto}</SubHeading>
+        <figure className="max-w-[46ch] border-l-2 border-ember/70 pl-4">
+          <Quote className="mb-2 size-5 text-ember" />
+          <blockquote className="font-display text-xl italic leading-snug text-ink [text-wrap:balance]">{c.quote}</blockquote>
+          <figcaption className="label-caps mt-3 text-brass">— {t.name}</figcaption>
+        </figure>
       </div>
     ),
-    links: () => (
-      <div className="flex max-w-xl flex-col gap-4">
-        <ul className="divide-y divide-line/70 border-y border-line/70">
-          {c.links.map((l) => (
-            <li key={l.label}>
-              <a
-                href={l.href}
-                target={l.href.startsWith('mailto:') ? undefined : '_blank'}
-                rel="noreferrer noopener"
-                onMouseEnter={() => play('tick')}
-                onClick={() => play('select')}
-                className="flex items-center gap-3 py-3 text-sm font-semibold text-ink hover:text-brass-2"
-              >
-                <span className="label-caps w-24 shrink-0">{l.label}</span>
-                <span className="min-w-0 flex-1 truncate">{l.value}</span>
-                {!l.href.startsWith('mailto:') && <ArrowUpRight className="size-3.5 text-muted-foreground" />}
-              </a>
-            </li>
+    facts: () => (
+      <div className="flex max-w-xl flex-col">
+        <SubHeading>{b.sections.info}</SubHeading>
+        <dl className="divide-y divide-line/70 border-y border-line/70">
+          {c.info.map((row, i) => {
+            const Icon = INFO_ICONS[i % INFO_ICONS.length]
+            return (
+              <div key={row.label} className="grid grid-cols-[auto_minmax(80px,110px)_1fr] items-center gap-3 py-3 text-sm">
+                <Icon className="size-4 text-brass" />
+                <dt className="label-caps">{row.label}</dt>
+                <dd className="min-w-0 break-words font-semibold text-ink">
+                  {row.href ? (
+                    <a href={row.href} className="hover:underline">
+                      {row.value}
+                    </a>
+                  ) : (
+                    row.value
+                  )}
+                </dd>
+              </div>
+            )
+          })}
+        </dl>
+        <SubHeading>{b.sections.stats}</SubHeading>
+        <div className="grid grid-cols-2 gap-3">
+          {c.stats.map((s) => (
+            <div key={s.label} className="rounded-sm border border-line/70 bg-bg/60 px-4 py-4" onMouseEnter={() => play('tick')}>
+              <p className="font-display text-3xl text-brass-2 tabular-nums">{s.value}</p>
+              <p className="mt-1 text-[0.68rem] uppercase leading-snug tracking-wider text-muted-foreground">{s.label}</p>
+            </div>
           ))}
-        </ul>
-        {c.cv && (
-          <Button asChild variant="outline" className="w-fit rounded-sm border-brass/60 font-display text-[0.7rem] uppercase tracking-[0.18em]">
-            <a href={c.cv.href} download onClick={() => play('select')}>
-              <Download />
-              {c.cv.label}
-            </a>
-          </Button>
-        )}
-        <p className="text-xs text-muted-foreground">{c.builtWith}</p>
+        </div>
+        <SubHeading>{b.sections.links}</SubHeading>
+        <div className="flex flex-col gap-4">
+          <ul className="divide-y divide-line/70 border-y border-line/70">
+            {c.links.map((l) => (
+              <li key={l.label}>
+                <a
+                  href={l.href}
+                  target={l.href.startsWith('mailto:') ? undefined : '_blank'}
+                  rel="noreferrer noopener"
+                  onMouseEnter={() => play('tick')}
+                  onClick={() => play('select')}
+                  className="flex items-center gap-3 py-3 text-sm font-semibold text-ink hover:text-brass-2"
+                >
+                  <span className="label-caps w-24 shrink-0">{l.label}</span>
+                  <span className="min-w-0 flex-1 truncate">{l.value}</span>
+                  {!l.href.startsWith('mailto:') && <ArrowUpRight className="size-3.5 text-muted-foreground" />}
+                </a>
+              </li>
+            ))}
+          </ul>
+          {c.cv && (
+            <Button asChild variant="outline" className="w-fit rounded-sm border-brass/60 font-display text-[0.7rem] uppercase tracking-[0.18em]">
+              <a href={c.cv.href} download onClick={() => play('select')}>
+                <Download />
+                {c.cv.label}
+              </a>
+            </Button>
+          )}
+          <p className="text-xs text-muted-foreground">{c.builtWith}</p>
+        </div>
       </div>
     ),
     contact: () => (
@@ -264,18 +275,17 @@ export function CodexScreen({ section }: { section?: string }) {
     ),
   }
 
-  const medallion = sel.kind === 'ref' && sel.ref && (
+  const medallion = sel.kind === 'ref' && sel.ref && !sel.ref.photo && (
     <figcaption className="absolute bottom-4 left-4 flex items-center gap-3 lg:bottom-8 lg:left-[18%]">
       <span className="relative grid size-20 shrink-0 place-items-center overflow-hidden rounded-full border border-brass/60 bg-bg/85 font-display text-2xl tracking-[0.08em] text-brass-2 shadow-[0_0_0_5px_rgba(20,17,15,0.75),0_0_0_6px_rgba(201,168,106,0.3)]">
-        {sel.ref.photo ? (
-          <img src={sel.ref.photo.src} srcSet={sel.ref.photo.srcSet} sizes="80px" alt={sel.ref.photo.alt} width={sel.ref.photo.width} height={sel.ref.photo.height} className="size-full object-cover object-top" />
-        ) : (
-          initials(sel.ref.name) || '?'
-        )}
+        {initials(sel.ref.name) || '?'}
       </span>
-      {!sel.ref.photo && <span className="label-caps rounded-sm bg-bg/70 px-2 py-1 text-ink-2">{r.photoSoon}</span>}
+      <span className="label-caps rounded-sm bg-bg/70 px-2 py-1 text-ink-2">{r.photoSoon}</span>
     </figcaption>
   )
+
+  /* suosittelijan oma kuva: kasvot näkyviin, vähemmän häivytystä */
+  const isPhoto = sel.kind === 'ref' && !!sel.ref?.photo
 
   return (
     <div className="mx-auto max-w-[1400px] px-3 py-5 sm:px-5">
@@ -295,7 +305,12 @@ export function CodexScreen({ section }: { section?: string }) {
             alt={sel.image.alt}
             width={sel.image.width}
             height={sel.image.height}
-            className="screen-in size-full object-cover object-[50%_25%] [mask-image:linear-gradient(to_right,transparent,black_45%)]"
+            className={cn(
+              'screen-in size-full object-cover',
+              isPhoto
+                ? 'object-[50%_20%] [mask-image:linear-gradient(to_right,transparent,black_28%)]'
+                : 'object-[50%_25%] [mask-image:linear-gradient(to_right,transparent,black_45%)]',
+            )}
           />
           {medallion}
         </figure>
@@ -375,8 +390,19 @@ export function CodexScreen({ section }: { section?: string }) {
           {/* merkintä */}
           <article key={sel.key} ref={articleRef} className="screen-in flex min-w-0 scroll-mt-16 flex-col p-5 sm:p-8">
             {/* puhelimella kuva merkinnän yläpuolella */}
-            <figure className="relative -mx-5 -mt-5 mb-5 h-56 overflow-hidden sm:-mx-8 sm:-mt-8 sm:h-72 lg:hidden">
-              <img src={sel.image.src} alt={sel.image.alt} width={sel.image.width} height={sel.image.height} className="size-full object-cover object-[50%_25%] [mask-image:linear-gradient(to_top,transparent,black_45%)]" />
+            <figure className={cn('relative -mx-5 -mt-5 mb-5 overflow-hidden sm:-mx-8 sm:-mt-8 lg:hidden', isPhoto ? 'h-80 sm:h-96' : 'h-56 sm:h-72')}>
+              <img
+                src={sel.image.src}
+                srcSet={sel.image.srcSet}
+                sizes="100vw"
+                alt={sel.image.alt}
+                width={sel.image.width}
+                height={sel.image.height}
+                className={cn(
+                  'size-full object-cover [mask-image:linear-gradient(to_top,transparent,black_45%)]',
+                  isPhoto ? 'object-[50%_18%]' : 'object-[50%_25%]',
+                )}
+              />
               {medallion}
             </figure>
             <h3 className="font-display text-2xl tracking-[0.04em] text-ink [text-wrap:balance] sm:text-3xl">{sel.title}</h3>

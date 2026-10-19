@@ -27,6 +27,35 @@ export const images = {
   winter: { src: '/images/winter-720.webp', width: 720, height: 1080 } satisfies Base,
   havaida: { src: '/images/havaida-800.webp', width: 800, height: 500 } satisfies Base,
   demot: { src: '/images/demot-800.webp', width: 800, height: 500 } satisfies Base,
+  /** Suosittelijoiden esittelykuvat (Higgsfield, heidän omista kuvistaan luvalla) */
+  refNetta: {
+    src: '/images/ref-netta-600.webp',
+    srcSet: '/images/ref-netta-600.webp 600w, /images/ref-netta-960.webp 960w',
+    sizes: '(min-width: 1024px) 620px, 100vw',
+    width: 960,
+    height: 1200,
+  } satisfies Base,
+  refRiku: {
+    src: '/images/ref-riku-600.webp',
+    srcSet: '/images/ref-riku-600.webp 600w, /images/ref-riku-960.webp 960w',
+    sizes: '(min-width: 1024px) 620px, 100vw',
+    width: 960,
+    height: 1200,
+  } satisfies Base,
+  refChristian: {
+    src: '/images/ref-christian-600.webp',
+    srcSet: '/images/ref-christian-600.webp 600w, /images/ref-christian-960.webp 960w',
+    sizes: '(min-width: 1024px) 620px, 100vw',
+    width: 960,
+    height: 1200,
+  } satisfies Base,
+  refMika: {
+    src: '/images/ref-mika-600.webp',
+    srcSet: '/images/ref-mika-600.webp 600w, /images/ref-mika-960.webp 960w',
+    sizes: '(min-width: 1024px) 620px, 100vw',
+    width: 960,
+    height: 1200,
+  } satisfies Base,
 }
 
 /** Esineikonit (1:1 WebP) */
