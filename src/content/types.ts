@@ -190,14 +190,35 @@ export interface Content {
     form: { name: string; email: string; message: string; submit: string; subject: string; hint: string }
     portrait: Img
     builtWith: string
-    /** Suosittelijat (loftin neuvottelupöytä avaa tämän kohdan) */
+    /** Suosittelijat: AC-tyylinen tietokanta (ryhmät vasemmalla, merkintä keskellä, kuva oikealla).
+     *  Loftin neuvottelupöytä avaa tämän kohdan. */
     references: {
       title: string
       lead: string
-      /** Näytetään, kun suosituksia ei vielä ole */
+      /** Näytetään, kun julkaistuja suosituksia ei vielä ole */
       empty: string
       cta: string
-      items: { name: string; role: string; org?: string; quote: string; href?: string }[]
+      /** Näppäinohje listan alla */
+      hint: string
+      /** Merkki luonnokselle (näkyy vain kehitystilassa ja esikatselussa) */
+      draft: string
+      /** Kuvan paikalla, kun suosittelijan kuvaa ei vielä ole */
+      photoSoon: string
+      /** Linkki suosittelijan profiiliin */
+      profile: string
+      groups: { id: string; title: string }[]
+      items: {
+        group: string
+        name: string
+        role: string
+        org?: string
+        quote: string
+        href?: string
+        /** Suosittelijan oma kuva (public/images/ref-*.webp, luvalla) */
+        photo?: Img
+        /** Luonnos: ei näy julkaistulla sivulla ennen suosittelijan hyväksyntää */
+        draft?: boolean
+      }[]
     }
   }
 
