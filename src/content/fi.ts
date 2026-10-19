@@ -657,9 +657,9 @@ export const fi: Content = {
       photoSoon: 'Kuva tulossa',
       profile: 'Profiili',
       groups: [
-        { id: 'partners', title: 'Asiakkaat ja kumppanit' },
-        { id: 'work', title: 'Työyhteisö' },
-        { id: 'study', title: 'Opiskelu' },
+        { id: 'partners', title: 'Asiakkaat ja kumppanit', image: { ...images.tyopaja, alt: 'Claus Laikku rakentamassa dronea työpajassa' } },
+        { id: 'work', title: 'Työyhteisö', image: { ...images.builder, alt: 'Claus Laikku juottamassa elektroniikkaa työpöydän ääressä' } },
+        { id: 'study', title: 'Opiskelu', image: { ...images.discipline, alt: 'Claus Laikku kävelemässä sumuista metsätietä' } },
       ],
       items: [
         {

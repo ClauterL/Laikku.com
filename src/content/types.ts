@@ -206,7 +206,8 @@ export interface Content {
       photoSoon: string
       /** Linkki suosittelijan profiiliin */
       profile: string
-      groups: { id: string; title: string }[]
+      /** Ryhmät; kuva (sivuston omat kuvat) otsikkonauhaan ja isoon kuvapaneeliin AC:n tapaan */
+      groups: { id: string; title: string; image: Img }[]
       items: {
         group: string
         name: string

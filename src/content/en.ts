@@ -646,9 +646,9 @@ export const en: Content = {
       photoSoon: 'Photo coming',
       profile: 'Profile',
       groups: [
-        { id: 'partners', title: 'Clients and partners' },
-        { id: 'work', title: 'Workplace' },
-        { id: 'study', title: 'Studies' },
+        { id: 'partners', title: 'Clients and partners', image: { ...images.tyopaja, alt: 'Claus Laikku building a drone in his workshop' } },
+        { id: 'work', title: 'Workplace', image: { ...images.builder, alt: 'Claus Laikku soldering electronics at his desk' } },
+        { id: 'study', title: 'Studies', image: { ...images.discipline, alt: 'Claus Laikku walking a misty forest road' } },
       ],
       items: [
         {

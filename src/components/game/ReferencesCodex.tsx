@@ -4,7 +4,7 @@ import { ArrowUpRight, ChevronDown, PenLine, Quote } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useLang } from '@/hooks/useLang'
 import { useSound } from '@/hooks/useSound'
-import { emblem, type Content } from '@/content'
+import type { Content } from '@/content'
 import { cn } from '@/lib/utils'
 
 type Refs = Content['codex']['references']
@@ -52,6 +52,7 @@ export function ReferencesCodex({ onWrite }: { onWrite: () => void }) {
   const [selIdx, setSelIdx] = useState(0)
   const [seenIdx, setSeenIdx] = useState<Set<number>>(() => new Set([0]))
   const sel: Ref | null = items[selIdx] ?? items[0] ?? null
+  const selGroup = sel ? r.groups.find((g) => g.id === sel.group) : undefined
   const seen = { has: (it: Ref) => seenIdx.has(items.indexOf(it)) }
   const listRef = useRef<HTMLDivElement>(null)
 
@@ -110,10 +111,19 @@ export function ReferencesCodex({ onWrite }: { onWrite: () => void }) {
                     setOpen((o) => ({ ...o, [g.id]: !isOpen }))
                   }}
                   style={{ clipPath: ARROW }}
-                  className="group flex w-full items-center gap-3 border border-line-2/70 bg-gradient-to-r from-panel-2 via-bg-2 to-bg-2/40 py-2.5 pl-3 pr-6 text-left transition-colors hover:from-brass/20 cursor-pointer outline-none focus-visible:from-brass/25"
+                  className="group relative flex min-h-16 w-full items-center gap-3 overflow-hidden border border-line-2/70 bg-bg-2 py-2.5 pl-3 pr-6 text-left cursor-pointer outline-none"
                 >
-                  <ChevronDown className={cn('size-4 shrink-0 text-brass transition-transform', !isOpen && '-rotate-90')} />
-                  <span className="min-w-0 flex-1">
+                  {/* otsikkonauhan kuva oikealla, häivytys vasemmalle (kuten pelin koodeksin kategoriat) */}
+                  <img
+                    src={g.image.src}
+                    alt=""
+                    aria-hidden
+                    loading="lazy"
+                    className="absolute inset-y-0 right-0 h-full w-3/5 object-cover object-[50%_30%] opacity-70 grayscale-[35%] transition-[opacity,filter] duration-300 [mask-image:linear-gradient(to_right,transparent,black_65%)] group-hover:opacity-90 group-hover:grayscale-0 group-focus-visible:opacity-90"
+                  />
+                  <span className="absolute inset-0 bg-gradient-to-r from-panel-2 via-panel-2/80 to-transparent" aria-hidden />
+                  <ChevronDown className={cn('relative size-4 shrink-0 text-brass transition-transform', !isOpen && '-rotate-90')} />
+                  <span className="relative min-w-0 flex-1 [text-shadow:0_1px_6px_rgba(0,0,0,0.8)]">
                     <span className="block truncate font-display text-[0.95rem] tracking-[0.06em] text-ink">{g.title}</span>
                     <span className="block font-display text-[0.7rem] tabular-nums text-ink-2">
                       {seenN} / {g.items.length}
@@ -201,32 +211,38 @@ export function ReferencesCodex({ onWrite }: { onWrite: () => void }) {
           </article>
         )}
 
-        {/* suosittelijan kuva, häivytys vasemmalle taustaan */}
-        {sel && (
-          <figure className="relative h-60 overflow-hidden border-b border-line/70 sm:h-72 lg:h-auto lg:border-b-0">
-            {sel.photo ? (
-              <img
-                key={sel.photo.src}
-                src={sel.photo.src}
-                srcSet={sel.photo.srcSet}
-                sizes="(min-width: 1024px) 380px, 100vw"
-                alt={sel.photo.alt}
-                width={sel.photo.width}
-                height={sel.photo.height}
-                loading="lazy"
-                className="screen-in absolute inset-0 size-full object-cover object-top [mask-image:linear-gradient(to_left,black_55%,transparent)]"
-              />
-            ) : (
-              <div className="absolute inset-0 grid place-items-center bg-[radial-gradient(circle_at_60%_40%,rgba(201,168,106,0.16),transparent_65%)]">
-                <img src={emblem.poster} alt="" className="absolute size-64 max-w-[80%] opacity-[0.07]" loading="lazy" />
-                <div className="relative grid place-items-center gap-3 text-center">
-                  <span className="grid size-24 place-items-center rounded-full border border-brass/50 font-display text-3xl tracking-[0.08em] text-brass-2 shadow-[0_0_0_6px_rgba(20,17,15,0.8),0_0_0_7px_rgba(201,168,106,0.25)]">
-                    {initials(sel.name) || '?'}
-                  </span>
-                  <span className="label-caps">{r.photoSoon}</span>
-                </div>
-              </div>
-            )}
+        {/* ryhmän kuva (sivuston omat kuvat) häivyttyy vasemmalle taustaan; suosittelijan kuva tai monogrammi mitalina */}
+        {sel && selGroup && (
+          <figure className="relative h-64 overflow-hidden border-b border-line/70 sm:h-80 lg:h-auto lg:border-b-0">
+            <img
+              key={selGroup.image.src}
+              src={selGroup.image.src}
+              alt={selGroup.image.alt}
+              width={selGroup.image.width}
+              height={selGroup.image.height}
+              loading="lazy"
+              className="screen-in absolute inset-0 size-full object-cover object-[50%_25%] [mask-image:linear-gradient(to_right,transparent,black_35%)] max-lg:[mask-image:linear-gradient(to_top,transparent,black_40%)]"
+            />
+            <figcaption className="absolute bottom-4 left-4 flex items-center gap-3 lg:bottom-6 lg:left-6">
+              <span className="relative grid size-20 shrink-0 place-items-center overflow-hidden rounded-full border border-brass/60 bg-bg/85 font-display text-2xl tracking-[0.08em] text-brass-2 shadow-[0_0_0_5px_rgba(20,17,15,0.75),0_0_0_6px_rgba(201,168,106,0.3)]">
+                {sel.photo ? (
+                  <img
+                    key={sel.photo.src}
+                    src={sel.photo.src}
+                    srcSet={sel.photo.srcSet}
+                    sizes="80px"
+                    alt={sel.photo.alt}
+                    width={sel.photo.width}
+                    height={sel.photo.height}
+                    loading="lazy"
+                    className="size-full object-cover object-top"
+                  />
+                ) : (
+                  initials(sel.name) || '?'
+                )}
+              </span>
+              {!sel.photo && <span className="label-caps rounded-sm bg-bg/70 px-2 py-1 text-ink-2">{r.photoSoon}</span>}
+            </figcaption>
           </figure>
         )}
       </div>
