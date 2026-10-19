@@ -803,6 +803,13 @@ export const fi: Content = {
           photo: { ...images.refMika, alt: 'Mika nauraa puvussa syksyisen lehvästön edessä' },
           draft: true,
         },
+        {
+          name: 'Miitri',
+          role: 'Insinööriopiskelija',
+          quote: 'Laikku auttoi minua [missä]. [Mitä siitä seurasi.]',
+          photo: { ...images.refMiitri, alt: 'Miitri kädet ristissä elektroniikkalaboratoriossa' },
+          draft: true,
+        },
       ],
     },
   },

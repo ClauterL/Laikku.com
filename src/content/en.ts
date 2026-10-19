@@ -792,6 +792,13 @@ export const en: Content = {
           photo: { ...images.refMika, alt: 'Mika laughing in a suit in front of autumn leaves' },
           draft: true,
         },
+        {
+          name: 'Miitri',
+          role: 'Engineering student',
+          quote: 'Laikku helped me [with what]. [What came of it.]',
+          photo: { ...images.refMiitri, alt: 'Miitri with arms crossed in an electronics lab' },
+          draft: true,
+        },
       ],
     },
   },

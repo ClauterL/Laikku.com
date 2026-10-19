@@ -56,6 +56,13 @@ export const images = {
     width: 960,
     height: 1200,
   } satisfies Base,
+  refMiitri: {
+    src: '/images/ref-miitri-600.webp',
+    srcSet: '/images/ref-miitri-600.webp 600w, /images/ref-miitri-960.webp 960w',
+    sizes: '(min-width: 1024px) 620px, 100vw',
+    width: 960,
+    height: 1200,
+  } satisfies Base,
 }
 
 /** Esineikonit (1:1 WebP) */
