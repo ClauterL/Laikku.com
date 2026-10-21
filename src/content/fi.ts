@@ -782,7 +782,7 @@ export const fi: Content = {
           role: '[Rooli]',
           org: '[Organisaatio]',
           quote: 'Laikku on ollut reilu ja osaava opiskelukaveri, joka on aina auttanut, kun on kysynyt.',
-          photo: { ...images.refNetta, alt: 'Netta hymyilee kirjaston iltavalossa muistivihko ja läppäri sylissään' },
+          photo: { ...images.refNetta, alt: 'Netta hymyilee istuen opiskelutilan pöydän reunalla iltavalossa' },
           draft: true,
         },
         {
