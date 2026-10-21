@@ -17,7 +17,11 @@ Claus Laikun portfoliosivusto pelivalikon muodossa (laikku.com). Rakenne ja kome
   Yksi tumma teema – ei vaaleaa tilaa.
   Normaali portfolio (`#portfolio`, `src/components/portfolio`) käyttää omaa auringonlaskupalettia
   (`pf-*`-tokenit: persikkataivas → oranssi/punainen → munakoiso) ja Archivo-julistefonttia (`.poster`);
-  hero-maisema on oma koodilla piirretty SVG (`Landscape.tsx`), ei kopiota mistään pelistä.
+  hero-maisema on Higgsfieldillä tehty oma sommitelma (Järvi-Suomi auringonlaskussa: sauna, saari, kuusimetsä),
+  leikattu viideksi läpinäkyväksi tasoksi `public/images/hero-{far,lake,mid,near,front}-{1280,2048,3840}.webp`
+  (3840×1118) ja elävöitetty koodilla (`Landscape.tsx` → `HeroScene`: aurinko, pilvet, linnut, välke, savu, drone,
+  parallaksi). Näkymä skaalautuu yhtenä kappaleena (`w = max(104cqw, 960px)`), joten yksityiskohtien paikat
+  annetaan prosentteina siitä. Ei kopiota mistään pelistä eikä pelien kuvia Higgsfield-referensseiksi.
 - UI-primitiivit shadcn/ui-tyyliin (`src/components/ui`), Radix UI:n päällä.
 - Äänet syntetisoidaan Web Audiolla (`src/lib/sfx.ts`) – ei äänitiedostoja repoon.
   Uusi efekti: lisää `Sfx`-unioniin ja `play()`-switchiin.

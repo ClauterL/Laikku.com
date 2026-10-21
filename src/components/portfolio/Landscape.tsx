@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, type ReactNode } from 'react'
 
+import { heroScene } from '@/content'
+import { cn } from '@/lib/utils'
 import { useReducedMotion } from './hooks'
 
-/* Normaalin portfolion hero-maisema: oma, koodilla piirretty suomalainen järvi- ja tunturimaisema
-   auringonlaskun sävyissä – kerrokselliset harjanteet, järvi ja auringon heijastus, rannan mökki,
-   kuusimetsä ja leijuva drone. Kerrokset liikkuvat eri tahtiin vierittäessä ja hiiren mukana. */
+/* Normaalin portfolion maisemat: hero-näkymä (Higgsfield-tasot + koodilla tehty elävöitys)
+   ja alatunnisteen koodilla piirretty matala harjanne. */
 
 const W = 1600
-const H = 520
 
 /** Toistettava satunnaisluku (sama maisema joka kerta) */
 function rng(seed: number) {
@@ -28,12 +28,6 @@ function ridgeFn(seed: number, base: number, amp: number, rough = 1) {
   const f = [210 + r() * 120, 80 + r() * 40, 31 + r() * 12]
   return (x: number) =>
     base - amp * (0.58 * Math.sin(x / f[0] + p[0]) + 0.3 * Math.sin(x / f[1] + p[1]) + 0.12 * rough * Math.sin(x / f[2] + p[2]))
-}
-
-function ridgePath(y: (x: number) => number, x0 = 0, x1 = W, step = 16) {
-  let d = `M${x0} ${H} L${x0} ${y(x0).toFixed(1)}`
-  for (let x = x0 + step; x <= x1; x += step) d += ` L${x} ${y(x).toFixed(1)}`
-  return `${d} L${x1} ${H} Z`
 }
 
 /** Kerroksellinen kuusi */
@@ -60,42 +54,116 @@ function forest(seed: number, y: (x: number) => number, x0: number, x1: number, 
   return d
 }
 
-function Layer({ k, dx = 0, children }: { k: number; dx?: number; children: ReactNode }) {
-  return <g style={{ transform: `translate3d(calc(var(--mx, 0) * ${dx}px), calc(var(--sy, 0) * ${k}px), 0)`, willChange: 'transform' }}>{children}</g>
+/* ---------- Hero-maisema ----------
+   Higgsfieldillä tehty oma sommitelma (Järvi-Suomi auringonlaskussa, ei kopiota mistään pelistä),
+   leikattu viideksi läpinäkyväksi syvyystasoksi. Koko näkymä skaalautuu yhtenä kappaleena:
+   leveys = max(104 % heron leveydestä, 960 px), korkeus kuvasuhteesta – joten aurinko, savu, välke
+   ja drone pysyvät aina samoissa kohdissa ja samassa mittakaavassa. Koodilla elävöitetty:
+   auringon hehku, ohi lipuvat pilvijuovat, lintuparvi, järven välke, saunan savu ja lentävä drone.
+   Parallaksi vierityksestä (--sy) ja osoittimesta (--mx); vähennetty liike → kaikki paikallaan. */
+
+/** Syvyystaso: vieritys siirtää kauempia enemmän alas, osoitin lähempiä enemmän sivulle */
+function Depth({ k, dx, className, children }: { k: number; dx: number; className?: string; children?: ReactNode }) {
+  return (
+    <div
+      className={cn('absolute inset-0', className)}
+      style={{ transform: `translate3d(calc(var(--mx, 0) * ${-dx}px), calc(var(--sy, 0) * ${k}px), 0)`, willChange: 'transform' }}
+    >
+      {children}
+    </div>
+  )
 }
 
-export function Landscape({ className }: { className?: string }) {
+function LayerImg({ layer, priority }: { layer: { src: string; srcSet: string }; priority?: boolean }) {
+  return (
+    <img
+      src={layer.src}
+      srcSet={layer.srcSet}
+      sizes={heroScene.sizes}
+      width={heroScene.width}
+      height={heroScene.height}
+      alt=""
+      draggable={false}
+      loading="eager"
+      decoding="async"
+      fetchPriority={priority ? 'high' : undefined}
+      className="absolute inset-0 size-full select-none"
+    />
+  )
+}
+
+/** Välkkeet auringon heijastuksessa (x, y, leveys % näkymästä) */
+const GLINTS: [number, number, number][] = [
+  [61.6, 21.5, 1.6],
+  [60.8, 25, 1.1],
+  [62.8, 28.5, 1.3],
+  [61.3, 33, 2],
+  [60.1, 38, 0.9],
+  [62.4, 42, 1.5],
+  [61.0, 47.5, 1.2],
+  [63.2, 52, 0.9],
+  [61.8, 57, 1.4],
+]
+
+/** Pilvijuovat: [y %, leveys %, kesto s, viive s] */
+const CLOUDS: [number, number, number, number][] = [
+  [-10, 26, 170, -40],
+  [-3.5, 34, 210, -130],
+  [3, 20, 150, -80],
+]
+
+function Drone() {
+  return (
+    <svg viewBox="-40 -16 80 32" className="drone block w-full overflow-visible" aria-hidden>
+      <g fill="var(--pf-deep)">
+        <path d="M-31 -4 H31" stroke="var(--pf-deep)" strokeWidth={3} strokeLinecap="round" />
+        <ellipse className="hero-prop" cx={-31} cy={-8} rx={11} ry={1.8} opacity={0.7} />
+        <ellipse className="hero-prop" style={{ animationDelay: '-0.05s' }} cx={31} cy={-8} rx={11} ry={1.8} opacity={0.7} />
+        <rect x={-33} y={-8} width={4} height={6} rx={1} />
+        <rect x={29} y={-8} width={4} height={6} rx={1} />
+        <path d="M-11 -7 H11 L8 5 H-8 Z" />
+        <path d="M-7 5 L-11 12 M7 5 L11 12" stroke="var(--pf-deep)" strokeWidth={2} strokeLinecap="round" />
+        <circle cx={0} cy={7} r={2.6} />
+      </g>
+      <circle className="blink" cx={-31} cy={-2} r={1.8} fill="#ff5b4a" />
+      <circle className="blink-2" cx={31} cy={-2} r={1.8} fill="#7dff9a" />
+    </svg>
+  )
+}
+
+function Bird({ x, y, s, d }: { x: number; y: number; s: number; d: number }) {
+  return (
+    <svg
+      viewBox="0 0 20 8"
+      className="absolute overflow-visible"
+      style={{ left: `${x}%`, top: `${y}%`, width: `${s}%` }}
+      aria-hidden
+    >
+      <path
+        className="hero-wing"
+        style={{ animationDelay: `${d}s` }}
+        d="M0 2 Q5 -1 10 4 Q15 -1 20 2"
+        fill="none"
+        stroke="var(--pf-deep)"
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+export function HeroScene({ className }: { className?: string }) {
   const root = useRef<HTMLDivElement>(null)
   const reduce = useReducedMotion()
 
-  const art = useMemo(() => {
-    const far = ridgeFn(11, 205, 46, 0.6)
-    const mid = ridgeFn(23, 252, 54, 0.9)
-    const near = ridgeFn(37, 298, 40, 1)
-    const shoreL = (x: number) => 352 - 34 * Math.max(0, 1 - x / 760) - 6 * Math.sin(x / 47)
-    const shoreR = (x: number) => 350 - 30 * Math.max(0, (x - 1080) / 520) - 5 * Math.sin(x / 53)
-    const band = ridgeFn(51, 430, 10, 1)
-    const front = ridgeFn(67, 492, 8, 1)
-    return {
-      far: ridgePath(far),
-      mid: ridgePath(mid),
-      near: ridgePath(near),
-      nearTrees: forest(5, near, 0, W, [16, 34], 14, 26, 0.9),
-      shoreL: ridgePath(shoreL, 0, 760),
-      shoreR: ridgePath(shoreR, 1080, W),
-      shoreTrees: forest(7, shoreL, 0, 600, [12, 22], 22, 42) + forest(8, shoreR, 1120, W, [12, 22], 22, 44),
-      band: ridgePath(band),
-      bandTrees: forest(9, band, -10, W + 10, [14, 26], 46, 92),
-      front: ridgePath(front),
-      frontTrees: forest(13, front, -20, 520, [20, 34], 90, 160) + forest(14, front, 1120, W + 20, [20, 34], 90, 170),
-      cabinY: shoreL(640),
-    }
-  }, [])
-
-  // Parallaksi: vieritys (--sy) ja osoitin (--mx), vain näkyvissä ja ilman vähennettyä liikettä
+  // Parallaksi + animaatioiden tauko, kun hero ei ole näkyvissä
   useEffect(() => {
     const el = root.current
-    if (!el || reduce) return
+    if (!el) return
+    const io = new IntersectionObserver(([e]) => el.toggleAttribute('data-off', !e.isIntersecting))
+    io.observe(el)
+    if (reduce) return () => io.disconnect()
     let raf = 0
     let sy = 0
     let mx = 0
@@ -108,7 +176,7 @@ export function Landscape({ className }: { className?: string }) {
       if (!raf) raf = requestAnimationFrame(apply)
     }
     const onScroll = () => {
-      sy = Math.min(window.scrollY, 1000)
+      sy = Math.min(window.scrollY, 1200)
       queue()
     }
     const onMove = (e: PointerEvent) => {
@@ -120,107 +188,90 @@ export function Landscape({ className }: { className?: string }) {
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('pointermove', onMove, { passive: true })
     return () => {
+      io.disconnect()
       cancelAnimationFrame(raf)
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('pointermove', onMove)
     }
   }, [reduce])
 
-  const sun = { x: 900, y: 238 }
   return (
-    <div ref={root} className={className} aria-hidden>
-      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMax slice" className="block size-full">
-        <defs>
-          <radialGradient id="pf-glow">
-            <stop offset="0%" stopColor="#ffe08a" stopOpacity="0.9" />
-            <stop offset="45%" stopColor="#ffc163" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="#ffc163" stopOpacity="0" />
-          </radialGradient>
-          <linearGradient id="pf-lake" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#f9ad66" />
-            <stop offset="100%" stopColor="#e5643f" />
-          </linearGradient>
-          <linearGradient id="pf-haze" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#fde2cf" stopOpacity="0" />
-            <stop offset="100%" stopColor="#fde2cf" stopOpacity="0.35" />
-          </linearGradient>
-        </defs>
-
-        <Layer k={0.16} dx={-3}>
-          <circle cx={sun.x} cy={sun.y} r={240} fill="url(#pf-glow)" />
-          <circle cx={sun.x} cy={sun.y} r={66} fill="var(--pf-sun)" />
-        </Layer>
-
-        <Layer k={0.13} dx={-4}>
-          <path d={art.far} fill="#f8ab80" />
-          <path d={art.far} fill="url(#pf-haze)" />
-        </Layer>
-        <Layer k={0.1} dx={-6}>
-          <path d={art.mid} fill="var(--pf-amber)" />
-        </Layer>
-        <Layer k={0.075} dx={-8}>
-          <path d={art.near} fill="var(--pf-orange)" />
-          <path d={art.nearTrees} fill="#e8613c" />
-        </Layer>
-
-        {/* järvi ja auringon heijastus */}
-        <Layer k={0.055} dx={-9}>
-          <rect x={0} y={322} width={W} height={H - 322} fill="url(#pf-lake)" />
-          {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-            <rect
-              key={i}
-              className="shimmer"
-              style={{ animationDelay: `${i * 0.37}s` }}
-              x={sun.x - (60 - i * 7)}
-              y={334 + i * 8}
-              width={(60 - i * 7) * 2}
-              height={2.4}
-              rx={1.2}
-              fill="#ffe08a"
+    <div
+      ref={root}
+      aria-hidden
+      className={cn(
+        'hero-scene pointer-events-none absolute bottom-0 left-1/2 aspect-[3840/1118] w-[max(104cqw,960px)] -translate-x-[58%] md:-translate-x-1/2',
+        className,
+      )}
+    >
+      {/* aurinko, hehku ja pilvijuovat */}
+      <Depth k={0.34} dx={2}>
+        <div className="hero-glow absolute left-[61.8%] top-[9%] aspect-square w-[46%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,232,170,0.7)_0%,rgba(255,210,140,0.42)_16%,rgba(255,190,120,0.16)_40%,rgba(255,190,120,0)_66%)]" />
+        <div className="absolute left-[61.8%] top-[9.1%] aspect-square w-[5.4%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_42%_38%,#fff2bf,#ffd977_58%,#ffc457)] shadow-[0_0_28px_6px_rgba(255,200,100,0.45)]" />
+        {CLOUDS.map(([y, w, dur, delay], i) => (
+          <div
+            key={i}
+            className="hero-cloud absolute inset-x-0 min-h-[3px]"
+            style={{ top: `${y}%`, height: `${1.6 + (i % 2) * 0.8}%`, animationDuration: `${dur}s`, animationDelay: `${delay}s` }}
+          >
+            <div
+              className="h-full rounded-full bg-[linear-gradient(90deg,transparent,rgba(255,244,228,0.6)_25%,rgba(255,236,214,0.5)_70%,transparent)] blur-[3px]"
+              style={{ width: `${w}%` }}
             />
-          ))}
-        </Layer>
+          </div>
+        ))}
+      </Depth>
 
-        <Layer k={0.045} dx={-10}>
-          <path d={art.shoreL} fill="var(--pf-red)" />
-          <path d={art.shoreR} fill="var(--pf-red)" />
-          <path d={art.shoreTrees} fill="#c93c40" />
-          {/* mökki/työpaja rannalla, ikkunassa valo */}
-          <g transform={`translate(640 ${art.cabinY - 2})`}>
-            <path d="M-20 0 V-18 L0 -32 L20 -18 V0 Z" fill="var(--pf-deep)" />
-            <rect x={-12} y={-15} width={8} height={7} fill="var(--pf-sun)" />
-            <rect x={5} y={-26} width={4} height={10} fill="var(--pf-deep)" />
-          </g>
-        </Layer>
+      <Depth k={0.24} dx={4}>
+        <LayerImg layer={heroScene.far} priority />
+      </Depth>
 
-        <Layer k={0.025} dx={-12}>
-          <path d={art.band} fill="var(--pf-crimson)" />
-          <path d={art.bandTrees} fill="var(--pf-crimson)" />
-        </Layer>
-        <Layer k={0.01} dx={-15}>
-          <path d={art.front} fill="var(--pf-plum)" />
-          <path d={art.frontTrees} fill="var(--pf-plum)" />
-        </Layer>
-        <path d={`M0 ${H} L0 506 Q400 498 800 504 T${W} 500 L${W} ${H} Z`} fill="var(--pf-bg)" />
+      {/* järvi + niemi, sauna ja saari liikkuvat yhdessä (sama vedenpinta) */}
+      <Depth k={0.15} dx={7}>
+        <LayerImg layer={heroScene.lake} priority />
+        {GLINTS.map(([x, y, w], i) => (
+          <span
+            key={i}
+            className="hero-glint absolute h-[0.28%] min-h-[2px] -translate-x-1/2 rounded-full bg-[#fff0c0]"
+            style={{ left: `${x}%`, top: `${y}%`, width: `${w}%`, animationDelay: `${(i * 0.53) % 2.6}s` }}
+          />
+        ))}
+        <LayerImg layer={heroScene.mid} />
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            className="hero-smoke absolute left-[21.35%] top-[35.2%] aspect-square w-[0.45%] min-w-[3px] -translate-x-1/2 -translate-y-full rounded-full bg-[#fde6d4] blur-[1.5px]"
+            style={{ animationDelay: `${i * 2.2}s` }}
+          />
+        ))}
+      </Depth>
 
-        {/* leijuva drone */}
-        <Layer k={-0.12} dx={10}>
-          <g transform="translate(985 176)">
-            <g className="drone">
-              <path d="M-34 -3 H34" stroke="var(--pf-deep)" strokeWidth={3} strokeLinecap="round" />
-              <ellipse cx={-34} cy={-7} rx={14} ry={2.2} fill="var(--pf-deep)" opacity={0.75} />
-              <ellipse cx={34} cy={-7} rx={14} ry={2.2} fill="var(--pf-deep)" opacity={0.75} />
-              <rect x={-36} y={-7} width={4} height={6} fill="var(--pf-deep)" />
-              <rect x={32} y={-7} width={4} height={6} fill="var(--pf-deep)" />
-              <path d="M-12 -6 H12 L9 6 H-9 Z" fill="var(--pf-deep)" />
-              <path d="M-7 6 L-11 13 M7 6 L11 13" stroke="var(--pf-deep)" strokeWidth={2} strokeLinecap="round" />
-              <circle cx={0} cy={8} r={2.6} fill="var(--pf-deep)" />
-              <circle className="blink" cx={-34} cy={-1} r={2} fill="#ff5b4a" />
-              <circle className="blink-2" cx={34} cy={-1} r={2} fill="#7dff9a" />
-            </g>
-          </g>
-        </Layer>
-      </svg>
+      {/* lintuparvi lentää hitaasti taivaan poikki */}
+      <Depth k={0.2} dx={-5}>
+        <div className="hero-flock absolute inset-0">
+          <Bird x={30} y={-16} s={1.1} d={0} />
+          <Bird x={31.6} y={-13.5} s={0.9} d={0.2} />
+          <Bird x={29.2} y={-11} s={0.8} d={0.35} />
+          <Bird x={33.2} y={-18.5} s={0.75} d={0.1} />
+          <Bird x={27.8} y={-14.2} s={0.7} d={0.45} />
+        </div>
+      </Depth>
+
+      {/* drone kiertelee järven yllä */}
+      <Depth k={0.12} dx={8}>
+        <div className="hero-fly absolute inset-0">
+          <div className="hero-tilt absolute left-[67%] top-[24%] w-[clamp(34px,3.4%,84px)]">
+            <Drone />
+          </div>
+        </div>
+      </Depth>
+
+      <Depth k={0.07} dx={12}>
+        <LayerImg layer={heroScene.near} />
+      </Depth>
+      <Depth k={0} dx={18}>
+        <LayerImg layer={heroScene.front} />
+      </Depth>
     </div>
   )
 }

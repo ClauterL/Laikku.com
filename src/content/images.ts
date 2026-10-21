@@ -27,6 +27,14 @@ export const images = {
   winter: { src: '/images/winter-720.webp', width: 720, height: 1080 } satisfies Base,
   havaida: { src: '/images/havaida-800.webp', width: 800, height: 500 } satisfies Base,
   demot: { src: '/images/demot-800.webp', width: 800, height: 500 } satisfies Base,
+  /** Hero: Claus järven rannalla auringonlaskussa (Higgsfield, Claus-referenssi) */
+  clausLake: {
+    src: '/images/claus-lake-720.webp',
+    srcSet: '/images/claus-lake-720.webp 720w, /images/claus-lake-1200.webp 1200w',
+    sizes: '(min-width: 1280px) 290px, (min-width: 768px) 240px, 64px',
+    width: 1200,
+    height: 1500,
+  } satisfies Base,
   /** Suosittelijoiden esittelykuvat (Higgsfield, heidän omista kuvistaan luvalla) */
   refNetta: {
     src: '/images/ref-netta-600.webp',
@@ -162,4 +170,21 @@ export const links = {
   dev: 'https://laikku.dev',
   email: 'claus@laikku.com',
   repo: 'https://github.com/ClauterL/Laikku.com',
+}
+
+/** Normaalin portfolion hero-maisema: Higgsfieldillä tehty oma sommitelma (Järvi-Suomi auringonlaskussa),
+    leikattu läpinäkyviksi syvyystasoiksi parallaksia varten. Kaikki tasot samaa kokoa (3840×1118). */
+const heroLayer = (n: string) => ({
+  src: `/images/hero-${n}-2048.webp`,
+  srcSet: `/images/hero-${n}-1280.webp 1280w, /images/hero-${n}-2048.webp 2048w, /images/hero-${n}-3840.webp 3840w`,
+})
+export const heroScene = {
+  width: 3840,
+  height: 1118,
+  sizes: '(max-width: 923px) 960px, 104vw',
+  far: heroLayer('far'),
+  lake: heroLayer('lake'),
+  mid: heroLayer('mid'),
+  near: heroLayer('near'),
+  front: heroLayer('front'),
 }

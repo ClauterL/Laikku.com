@@ -304,6 +304,10 @@ export interface Content {
       build: string
       words: string[]
       scroll: string
+      /** Hero-kortin kuva ja kuvateksti */
+      photo: Img
+      photoCaption: string
+      photoNote: string
     }
     focus: { title: string; lead: string }
     skills: { title: string; lead: string; stack: string; matrix: string }

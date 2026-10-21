@@ -26,7 +26,7 @@ import { images, links, pfIcons, type PortfolioSection, type Quest } from '@/con
 import { SHOW_DRAFTS } from '@/lib/env'
 import { cn } from '@/lib/utils'
 import { Reveal, spotHandlers, useCountUp, useInView, useReducedMotion } from './hooks'
-import { Landscape } from './Landscape'
+import { HeroScene } from './Landscape'
 import { goToSection, sectionId } from './nav'
 
 const INFO_ICONS = [User, AtSign, MapPin, BadgeCheck]
@@ -161,37 +161,52 @@ function Stat({ value, label, delay }: { value: string; label: string; delay: nu
   )
 }
 
-/* ---------- Hero ---------- */
+/* ---------- Hero ----------
+   Taivas on CSS-liukuväri, maisema HeroScene (Higgsfield-tasot) ankkuroituna alareunaan. Sisältö on
+   normaalissa virrassa ja sen alla varataan tila maisemalle, joten teksti ei koskaan mene metsän päälle:
+   matalilla näytöillä hero vain kasvaa. Muotokuvakortti seisoo maiseman edessä (md+), mobiilissa avatar. */
 export function Hero() {
   const { t } = useLang()
   const h = t.portfolio.hero
-  const c = t.codex
   return (
-    <section id="pf-hero" aria-labelledby="pf-hero-title" className="relative overflow-hidden">
-      <div className="relative flex min-h-[100svh] flex-col bg-[linear-gradient(180deg,#fde7d6_0%,#fdd9c0_38%,#fbc39b_68%,#f8a874_100%)]">
-        <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-4 pt-24 sm:px-6 sm:pt-28">
-          <div className="flex flex-col items-start gap-6 text-pf-deep">
-            <p className="inline-flex items-center gap-2 rounded-full border border-pf-deep/15 bg-white/35 px-3 py-1 text-xs font-bold backdrop-blur duration-700 animate-in fade-in">
+    <section id="pf-hero" aria-labelledby="pf-hero-title" className="@container relative isolate overflow-hidden">
+      <div className="relative flex min-h-[100svh] flex-col overflow-hidden bg-[linear-gradient(180deg,#fde4cd_0%,#fdd6b5_42%,#fcc297_72%,#f9a874_100%)]">
+        <HeroScene />
+
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pt-24 sm:px-6 sm:pt-28">
+          <div className="flex items-center gap-3 duration-700 animate-in fade-in">
+            <img
+              src={h.photo.src}
+              alt=""
+              width={h.photo.width}
+              height={h.photo.height}
+              className="size-12 shrink-0 rounded-full object-cover object-[50%_14%] ring-2 ring-white/60 md:hidden"
+            />
+            <p className="inline-flex items-center gap-2 rounded-full border border-pf-deep/15 bg-white/35 px-3 py-1 text-xs font-bold text-pf-deep backdrop-blur">
               <span className="relative flex size-2" aria-hidden>
                 <span className="absolute inline-flex size-full animate-ping rounded-full bg-[#2f9e5b] opacity-50 motion-reduce:animate-none" />
                 <span className="relative inline-flex size-2 rounded-full bg-[#2f9e5b]" />
               </span>
               {h.available}
             </p>
-            <div className="duration-700 animate-in fade-in slide-in-from-bottom-3">
-              <p className="text-xs font-bold uppercase tracking-[0.26em] text-pf-plum">{h.eyebrow}</p>
-              <h1 id="pf-hero-title" className="poster mt-3 text-[clamp(3rem,8.6vw,6.6rem)] leading-[0.88] text-pf-deep">
-                {t.name}
-              </h1>
-              <p className="mt-5 text-[clamp(1.35rem,3vw,2.1rem)] font-extrabold leading-tight [font-family:var(--font-poster)]">
-                <span className="sr-only">{h.title}</span>
-                <span aria-hidden>
-                  {h.build} <RotatingWord words={h.words} />
-                </span>
-              </p>
-            </div>
-            <p className="max-w-[56ch] text-[1.05rem] font-medium leading-relaxed text-pf-deep/80 duration-1000 animate-in fade-in">{h.lead}</p>
-            <div className="flex flex-wrap items-center gap-3 duration-1000 animate-in fade-in">
+          </div>
+
+          <div className="mt-6 text-pf-deep duration-700 animate-in fade-in slide-in-from-bottom-3">
+            <p className="text-xs font-bold uppercase tracking-[0.26em] text-pf-plum">{h.eyebrow}</p>
+            <h1 id="pf-hero-title" className="poster mt-3 text-[clamp(2.6rem,min(8.6vw,13svh),6.6rem)] leading-[0.88] text-pf-deep [text-wrap:balance]">
+              {t.name}
+            </h1>
+          </div>
+
+          <div className="relative mt-5 text-pf-deep md:pr-[250px] lg:pr-[310px] xl:pr-[330px]">
+            <p className="whitespace-nowrap text-[clamp(1.3rem,3vw,2.1rem)] font-extrabold leading-tight [font-family:var(--font-poster)]">
+              <span className="sr-only">{h.title}</span>
+              <span aria-hidden>
+                {h.build} <RotatingWord words={h.words} />
+              </span>
+            </p>
+            <p className="mt-5 max-w-[56ch] text-[1.05rem] font-medium leading-relaxed text-pf-deep/80 duration-1000 animate-in fade-in">{h.lead}</p>
+            <div className="mt-6 flex flex-wrap items-center gap-3 duration-1000 animate-in fade-in">
               <button type="button" className={`${btn} bg-pf-deep text-pf-sky hover:bg-pf-plum`} onClick={() => goToSection('contact')}>
                 <Mail />
                 {h.contact}
@@ -203,34 +218,35 @@ export function Hero() {
               <span className="mx-1 hidden h-6 w-px bg-pf-deep/20 sm:block" aria-hidden />
               <Socials light />
             </div>
+
+            {/* muotokuva seisoo maiseman edessä */}
+            <figure className="absolute right-0 top-0 hidden w-[220px] rotate-[2.5deg] 2xl:-right-24 rounded-2xl border border-white/45 bg-white/25 p-2 shadow-2xl shadow-pf-deep/30 backdrop-blur-md duration-1000 animate-in fade-in zoom-in-95 md:block lg:w-[270px] xl:w-[290px]">
+              <Picture image={h.photo} priority className="aspect-[4/5] rounded-xl" imgClassName="object-[50%_16%]" />
+              <figcaption className="px-1.5 pb-0.5 pt-2 text-pf-deep">
+                <p className="poster text-[0.8rem]">{h.photoCaption}</p>
+                <p className="text-[0.7rem] font-semibold opacity-75">{h.photoNote}</p>
+              </figcaption>
+            </figure>
           </div>
         </div>
 
-        {/* maisema täyttää loput näkymästä; muotokuva kelluvana korttina oikealla */}
-        <div className="relative min-h-[260px] flex-1 sm:min-h-[300px]">
-          <Landscape className="absolute inset-0" />
-          <figure className="absolute bottom-[30%] right-[max(1rem,calc((100vw-72rem)/2+1.5rem))] z-10 hidden w-[230px] rotate-[2.5deg] rounded-2xl border border-white/40 bg-white/25 p-2 shadow-2xl shadow-pf-deep/30 backdrop-blur-md duration-1000 animate-in fade-in zoom-in-95 lg:block xl:w-[260px]">
-            <Picture image={c.portrait} priority className="aspect-[4/5] rounded-xl" imgClassName="object-[50%_22%]" />
-            <figcaption className="px-1.5 pb-0.5 pt-2 text-pf-deep">
-              <p className="poster text-[0.8rem]">{t.order.name}</p>
-              <p className="text-[0.7rem] font-semibold opacity-75">{t.order.founded}</p>
-            </figcaption>
-          </figure>
-          <button
-            type="button"
-            onClick={() => goToSection('about')}
-            className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full px-3 py-1.5 text-[0.7rem] font-bold uppercase tracking-[0.2em] text-pf-ink-2/80 hover:text-pf-ink cursor-pointer"
-          >
-            <MousePointer2 className="size-3.5 rotate-[200deg]" aria-hidden />
-            {h.scroll}
-          </button>
-        </div>
+        {/* tila maisemalle: ~86 % sen korkeudesta, ylin osa (puiden latvat, kaukaiset vaarat) saa jäädä sisällön taakse */}
+        <div aria-hidden className="mt-auto h-[calc(max(104cqw,960px)/3.435*0.86)] shrink-0" />
+
+        <button
+          type="button"
+          onClick={() => goToSection('about')}
+          className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-[0.7rem] font-bold uppercase tracking-[0.2em] text-pf-ink-2/80 hover:text-pf-ink"
+        >
+          <MousePointer2 className="size-3.5 rotate-[200deg]" aria-hidden />
+          {h.scroll}
+        </button>
       </div>
 
       {/* tilastot */}
       <div className="border-b border-pf-line bg-pf-bg">
         <dl className="mx-auto grid max-w-6xl grid-cols-2 gap-x-6 px-4 sm:px-6 md:grid-cols-4">
-          {c.stats.map((s, i) => (
+          {t.codex.stats.map((s, i) => (
             <Stat key={s.label} value={s.value} label={s.label} delay={i * 90} />
           ))}
         </dl>

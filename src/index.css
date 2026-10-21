@@ -470,8 +470,54 @@
 @keyframes pf-word { from { opacity: 0; transform: translateY(0.4em); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
 .pf .word-in { animation: pf-word 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 
+/* hero-maisema: elävät yksityiskohdat (pysähtyvät, kun hero ei ole näkyvissä) */
+.pf .hero-scene[data-off] * { animation-play-state: paused !important; }
+@keyframes hero-glow { 0%, 100% { opacity: 0.82; scale: 0.96; } 50% { opacity: 1; scale: 1.05; } }
+.pf .hero-glow { animation: hero-glow 7s ease-in-out infinite; }
+@keyframes hero-drift { from { transform: translateX(-35%); } to { transform: translateX(105%); } }
+.pf .hero-cloud { animation: hero-drift 160s linear infinite; }
+@keyframes hero-glint { 0%, 100% { opacity: 0; scale: 0.4 1; } 40% { opacity: 0.7; scale: 1 1; } 70% { opacity: 0.2; } }
+.pf .hero-glint { opacity: 0; animation: hero-glint 2.6s ease-in-out infinite; }
+@keyframes hero-smoke {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.6); }
+  15% { opacity: 0.4; }
+  100% { opacity: 0; transform: translate(170%, -640%) scale(2.6); }
+}
+.pf .hero-smoke { opacity: 0; animation: hero-smoke 6.6s ease-out infinite; }
+@keyframes hero-wing { from { scale: 1 1; } to { scale: 1 -0.45; } }
+.pf .hero-wing { transform-box: fill-box; transform-origin: 50% 60%; animation: hero-wing 0.45s ease-in-out infinite alternate; }
+@keyframes hero-flock {
+  0% { transform: translate(-40%, 6%); opacity: 0; }
+  6% { opacity: 1; }
+  70% { transform: translate(75%, -4%); opacity: 1; }
+  76%, 100% { transform: translate(85%, -6%); opacity: 0; }
+}
+.pf .hero-flock { animation: hero-flock 46s linear infinite; }
+@keyframes hero-fly {
+  0%, 100% { transform: translate(0, 0); }
+  18% { transform: translate(-9%, -2%); }
+  40% { transform: translate(-17%, 1.5%); }
+  55% { transform: translate(-12%, -3.5%); }
+  78% { transform: translate(5%, -1%); }
+}
+.pf .hero-fly { animation: hero-fly 28s ease-in-out infinite; }
+@keyframes hero-tilt {
+  0%, 100% { rotate: 0deg; }
+  9% { rotate: -7deg; }
+  30% { rotate: -4deg; }
+  47% { rotate: 6deg; }
+  66% { rotate: 7deg; }
+  88% { rotate: -3deg; }
+}
+.pf .hero-tilt { animation: hero-tilt 28s ease-in-out infinite; }
+@keyframes hero-prop { 50% { opacity: 0.25; } }
+.pf .hero-prop { animation: hero-prop 0.12s steps(2) infinite; }
+
 @media (prefers-reduced-motion: reduce) {
   .pf [data-reveal] { opacity: 1; transform: none; transition: none; }
+  .pf .hero-glow, .pf .hero-cloud, .pf .hero-flock, .pf .hero-wing, .pf .hero-fly, .pf .hero-tilt, .pf .hero-prop { animation: none; }
+  .pf .hero-glint { animation: none; opacity: 0.6; }
+  .pf .hero-smoke { display: none; }
   .pf .marquee-track, .pf .drone, .pf .blink, .pf .blink-2, .pf .shimmer, .pf .word-in { animation: none; }
   .pf .blink, .pf .blink-2 { opacity: 1; }
 }
