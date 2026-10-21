@@ -10,8 +10,8 @@ pienet HUD-slotit, oikea reppu laskee GitHub-kontribuutiot, repot, demosivustot 
 teknologiat. **Tavarat**-välilehti on Odyssey-tyylinen esineruudukko (työaseman osat,
 laitteet & työkalut, palvelut) resurssirivillä ja kelluvalla tietopaneelilla.
 Yläpalkin välilehdet: Taidot · Projektit · Tavarat · Kartta · Tehtävät · Havaida · Koodeksi.
-Sivu avautuu aloitusruutuun, jossa teräksinen riimutunnus paljastuu animoituna
-(Higgsfield image-to-video, mykkä mp4/webm-silmukka), ja kävijä valitsee **Normaali** tai
+Sivu avautuu aloitusruutuun, jossa on tunnus – kuvake ihmisestä läppärin takana, näytöllä `<#>` ja
+pääsiäismunana SMART morsena – ja kävijä valitsee **Normaali** tai
 **Pelillistetty**. Pelillistetty avaa 3D-loftin suoraan (Esc → pelivalikko), normaali on perinteinen
 yhden sivun portfolio (`#portfolio`, suora linkki ohittaa aloitusruudun) samasta sisällöstä.
 Kaksikielinen (fi/en), näppäimistöllä navigoitava, pelillistetyssä ääniefektit.
@@ -88,8 +88,8 @@ v2/                          edellinen (perinteinen) portfolio, itsenäinen proj
   pelitavaratyyli) ja viite `src/content/images.ts` → `icons`.
 - Tavarat: `goods.groups[].items` (kind `good`, `count`, `spec`) ja `goods.resources` (repos/commits
   GitHub-datasta, muut `value`). Uusi esine: `public/images/good-<nimi>.webp` (512×512) + `images.ts` → `goods`.
-- Tunnus: `public/images/emblem-reveal.mp4` + `.webm` (720×720, 5 s, mykkä) ja still
-  `emblem-768.webp`; polut `images.ts` → `emblem`. Toimii myös favikonina (`favicon.png`).
+- Tunnus: `src/components/Logo.tsx` (Higgsfieldin kuvake vektoroituna, `<#>` + morse-pääsiäismuna `play="loop" | "hover"`);
+  favikoni `favicon.png` renderöity samasta polusta.
 - Taso-numero ja HUD-slotit: `hud.level`, `hud.slots`. Reppu: `hud.bag.rows`
   (commits/repos tulevat GitHub-datasta, muut `value`-kentästä).
 - Tehtävät: `quests.main` ja `quests.side` (status: active/done/planned/idea, progress 0–100).

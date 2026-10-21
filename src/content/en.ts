@@ -322,7 +322,7 @@ export const en: Content = {
           },
           {
             id: 'higgsfield', kind: 'good', name: 'Higgsfield', tag: 'Images & video', icon: goods.higgsfield, rarity: 'epic',
-            desc: 'The character, items and emblem intro on this site were made here with my own reference character.',
+            desc: 'The character, items and referee portraits on this site were made here with my own reference character.',
           },
           {
             id: 'supabase', kind: 'good', name: 'Supabase', tag: 'Database', icon: goods.supabase, rarity: 'rare',

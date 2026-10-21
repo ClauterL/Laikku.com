@@ -3,7 +3,8 @@ import { Gamepad2, Newspaper } from 'lucide-react'
 
 import { useLang } from '@/hooks/useLang'
 import { useSound } from '@/hooks/useSound'
-import { backgrounds, emblem } from '@/content'
+import { Logo } from '@/components/Logo'
+import { backgrounds } from '@/content'
 import { cn } from '@/lib/utils'
 
 export type Mode = 'normal' | 'game'
@@ -21,7 +22,6 @@ export function StartScreen({ onPick, onDone }: { onPick?: (mode: Mode) => void;
   const [revealed, setRevealed] = useState(false)
   const [sel, setSel] = useState<Mode>('game')
   const [picked, setPicked] = useState<Mode | null>(null)
-  const video = useRef<HTMLVideoElement>(null)
   const buttons = useRef<Partial<Record<Mode, HTMLButtonElement | null>>>({})
 
   // Nimi ja kehote tulevat esiin, kun tunnuksen paljastus on edennyt hetken.
@@ -82,26 +82,15 @@ export function StartScreen({ onPick, onDone }: { onPick?: (mode: Mode) => void;
       <div className="screen-bg" style={{ ['--bg-image' as string]: `url(${backgrounds.menu})` }} />
 
       <div className="relative flex w-full max-w-[520px] flex-col items-center gap-5 px-6">
-        {/* tunnus: video (mykkä, automaattinen) + hehku; still-kuva fallbackina */}
+        {/* tunnus: kuvake läppärin takana, <#> – pääsiäismunana SMART morsena + hehku */}
         <div className={cn('relative w-[min(62vw,340px,38svh)] transition-transform duration-[2000ms] ease-out', phase !== 'idle' && 'scale-[1.08]')}>
           <div
             aria-hidden
             className="absolute inset-[-30%] rounded-full bg-[radial-gradient(closest-side,rgba(226,222,214,0.14),transparent_70%)] animate-pulse-ring [animation-duration:4s]"
           />
-          <video
-            ref={video}
-            poster={emblem.poster}
-            muted
-            autoPlay
-            loop
-            playsInline
-            preload="auto"
-            aria-label={t.name}
-            className="relative aspect-square w-full rounded-full object-cover [mask-image:radial-gradient(closest-side,#000_62%,transparent_100%)] [-webkit-mask-image:radial-gradient(closest-side,#000_62%,transparent_100%)]"
-          >
-            <source src={emblem.video} type="video/mp4" />
-            <source src={emblem.videoWebm} type="video/webm" />
-          </video>
+          <div className="relative grid aspect-square w-full place-items-center rounded-full bg-[radial-gradient(closest-side,rgba(24,20,17,0.96)_60%,rgba(20,17,15,0.7)_85%,transparent_100%)]">
+            <Logo play="loop" className="w-[66%] text-ink drop-shadow-[0_0_22px_rgba(232,207,150,0.22)]" />
+          </div>
           {/* ohut kehä, joka piirtyy */}
           <svg aria-hidden viewBox="0 0 100 100" className="absolute inset-[-6%] size-[112%] -rotate-90">
             <circle
@@ -120,9 +109,7 @@ export function StartScreen({ onPick, onDone }: { onPick?: (mode: Mode) => void;
         </div>
 
         <div className={cn('flex flex-col items-center gap-3 transition-opacity duration-700', revealed ? 'opacity-100' : 'opacity-0')}>
-          <p className="label-caps decode">{t.start.eyebrow}</p>
           <h1 className="decode text-[2rem] leading-none tracking-[0.14em] text-ink sm:text-[2.8rem]">{t.name}</h1>
-          <p className="decode font-display text-[0.78rem] uppercase tracking-[0.32em] text-brass">{t.role}</p>
         </div>
 
         <div className={cn('mt-2 w-full transition-opacity duration-700', revealed ? 'opacity-100' : 'pointer-events-none opacity-0')}>

@@ -323,7 +323,7 @@ export const fi: Content = {
           },
           {
             id: 'higgsfield', kind: 'good', name: 'Higgsfield', tag: 'Kuvat & video', icon: goods.higgsfield, rarity: 'epic',
-            desc: 'Tämän sivun hahmo, esineet ja tunnuksen intro on tehty täällä omalla referenssihahmolla.',
+            desc: 'Tämän sivun hahmo, esineet ja suosittelijoiden kuvat on tehty täällä omalla referenssihahmolla.',
           },
           {
             id: 'supabase', kind: 'good', name: 'Supabase', tag: 'Tietokanta', icon: goods.supabase, rarity: 'rare',

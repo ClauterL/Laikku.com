@@ -3,7 +3,8 @@ import { ArrowUp, Gamepad2, Menu } from 'lucide-react'
 
 import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { useLang } from '@/hooks/useLang'
-import { emblem, links, type Lang, type PortfolioSection } from '@/content'
+import { Logo } from '@/components/Logo'
+import { links, type Lang, type PortfolioSection } from '@/content'
 import { cn } from '@/lib/utils'
 import { Ridgeline } from './Landscape'
 import { goToSection, sectionId } from './nav'
@@ -149,7 +150,14 @@ export default function Portfolio({ onGame }: { onGame: () => void }) {
       >
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6">
           <button type="button" onClick={toTop} className="flex min-w-0 items-center gap-3 text-left cursor-pointer">
-            <img src={emblem.poster} alt="" width={36} height={36} className="size-9 shrink-0 rounded-full object-cover ring-1 ring-black/20" />
+            <span
+              className={cn(
+                'grid size-10 shrink-0 place-items-center rounded-full transition-colors',
+                onSky ? 'bg-pf-deep text-pf-sky' : 'bg-pf-bg-3 text-pf-ink ring-1 ring-pf-line-2',
+              )}
+            >
+              <Logo play="hover" className="size-7" />
+            </span>
             <span className="poster truncate text-[0.95rem] tracking-[0.04em]">{t.name}</span>
           </button>
 
@@ -267,7 +275,9 @@ export default function Portfolio({ onGame }: { onGame: () => void }) {
           </p>
           <div className="mt-8 flex flex-col gap-6 border-t border-pf-line pt-8 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-3">
-              <img src={emblem.poster} alt="" width={40} height={40} className="size-10 rounded-full object-cover ring-1 ring-pf-line-2" />
+              <span className="grid size-14 shrink-0 place-items-center rounded-full bg-pf-bg text-pf-ink ring-1 ring-pf-line-2">
+                <Logo play="hover" className="size-10" />
+              </span>
               <div>
                 <p className="poster text-sm text-pf-ink">{t.name}</p>
                 <p className="text-xs text-pf-muted">

@@ -126,14 +126,7 @@ export const goods = {
   vast: '/images/good-vast.webp',
 }
 
-/** Tunnus: animoitu paljastus (Higgsfield image-to-video) + still */
-export const emblem = {
-  video: '/images/emblem-reveal.mp4',
-  videoWebm: '/images/emblem-reveal.webm',
-  poster: '/images/emblem-768.webp',
-  small: '/images/emblem-256.webp',
-}
-
+/** Taustakuvat */
 export const backgrounds = {
   menu: '/images/bg-menu.webp',
   map: '/images/bg-map.webp',
