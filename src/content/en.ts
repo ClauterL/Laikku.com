@@ -771,7 +771,7 @@ export const en: Content = {
           role: '[Role]',
           org: '[Organisation]',
           quote: 'Laikku has been a fair and capable study mate who always helped whenever we asked.',
-          photo: { ...images.refNetta, alt: 'Netta smiling in autumn evening light in a striped knit sweater' },
+          photo: { ...images.refNetta, alt: 'Netta smiling in a library at dusk, holding a notebook and laptop' },
           draft: true,
         },
         {
