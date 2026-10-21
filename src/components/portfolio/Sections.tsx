@@ -22,7 +22,7 @@ import {
 import { Picture } from '@/components/Picture'
 import { TechIcon, hasTechIcon } from '@/components/TechIcon'
 import { useLang } from '@/hooks/useLang'
-import { images, links, type PortfolioSection, type Quest } from '@/content'
+import { images, links, pfIcons, type PortfolioSection, type Quest } from '@/content'
 import { SHOW_DRAFTS } from '@/lib/env'
 import { cn } from '@/lib/utils'
 import { Reveal, spotHandlers, useCountUp, useInView, useReducedMotion } from './hooks'
@@ -310,7 +310,14 @@ export function Skills() {
             className={cn(card, 'spot flex flex-col gap-4 p-6 transition-colors hover:border-pf-line-2', i === 0 && 'lg:col-span-2')}
           >
             <div className="flex items-center gap-4">
-              <img src={g.icon} alt="" width={64} height={64} loading="lazy" className="size-14 shrink-0 rounded-2xl object-cover ring-1 ring-pf-line-2 sm:size-16" />
+              <img
+                src={pfIcons[g.id] ?? g.icon}
+                alt=""
+                width={80}
+                height={80}
+                loading="lazy"
+                className="size-16 shrink-0 rounded-2xl object-cover shadow-lg shadow-black/30 ring-1 ring-pf-line-2 sm:size-20"
+              />
               <div className="min-w-0 flex-1">
                 <h4 className="poster break-words text-lg text-pf-ink sm:text-xl">{g.name}</h4>
                 <p className="text-[0.72rem] font-bold uppercase tracking-wider text-pf-orange">{g.tag}</p>
@@ -432,12 +439,12 @@ export function Projects() {
             <div className="relative shrink-0">
               <div className="absolute -inset-2 rounded-3xl bg-gradient-to-br from-pf-orange/25 to-pf-crimson/10 opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100" aria-hidden />
               <img
-                src={it.icon}
+                src={pfIcons[it.id] ?? it.icon}
                 alt=""
-                width={120}
-                height={120}
+                width={128}
+                height={128}
                 loading="lazy"
-                className="relative size-24 rounded-2xl object-cover ring-1 ring-pf-line-2 transition-transform duration-500 group-hover:-rotate-2 group-hover:scale-[1.04] sm:size-28"
+                className="relative size-28 rounded-2xl object-cover shadow-lg shadow-black/30 ring-1 ring-pf-line-2 transition-transform duration-500 group-hover:-rotate-2 group-hover:scale-[1.04] sm:size-32"
               />
             </div>
             <div className="flex min-w-0 flex-1 flex-col gap-3">

@@ -25,6 +25,8 @@ Claus Laikun portfoliosivusto pelivalikon muodossa (laikku.com). Rakenne ja kome
   esineikonit (icon-*, good-*) fotorealistisella AC Odyssey/Mirage -esinetyylillä: yksi esine,
   tumma liuskekivitausta #1b2229, harvinaisuuden mukainen hehku (kulta/violetti/teräksensininen/harmaa),
   ei tekstiä, ei brändilogoja – ohjelmistot kuvataan esineinä (esim. Ollama = obsidiaanilaama).
+  Normaalin portfolion kuvakkeet (`pf-*.webp`, `images.ts` → `pfIcons` id:n mukaan) Higgsfieldillä sivun
+  oman hero-maiseman tyyliin: litteät kerrokselliset auringonlaskun siluetit pf-paletilla, ei tekstiä eikä logoja.
 - Tunnus (`src/components/Logo.tsx`): Higgsfieldillä piirretty ja vektoroitu kuvake ihmisestä läppärin takana,
   näytöllä `<#>`. Pääsiäismuna: #:n perään välähtää yksi morsemerkki kerrallaan kuin kursori, peräkkäin
   SMART (`... -- .- .-. -`) – kirjaimia eikä koko viestiä näytetä koskaan;

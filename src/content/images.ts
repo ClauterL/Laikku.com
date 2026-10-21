@@ -126,6 +126,19 @@ export const goods = {
   vast: '/images/good-vast.webp',
 }
 
+/** Normaalin portfolion kuvakkeet (osaamisalueet ja projektit, id:n mukaan): Higgsfieldillä sivun oman
+ *  maisemakuvituksen tyyliin – litteät kerrokselliset auringonlaskun siluetit, ei tekstiä eikä logoja */
+export const pfIcons: Record<string, string> = {
+  code: '/images/pf-code.webp',
+  ai: '/images/pf-ai.webp',
+  electronics: '/images/pf-electronics.webp',
+  drones: '/images/pf-drones.webp',
+  waretrack: '/images/pf-waretrack.webp',
+  kerros: '/images/pf-kerros.webp',
+  nfc: '/images/pf-nfc.webp',
+  games: '/images/pf-games.webp',
+}
+
 /** Taustakuvat */
 export const backgrounds = {
   menu: '/images/bg-menu.webp',
