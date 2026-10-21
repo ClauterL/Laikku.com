@@ -784,10 +784,10 @@ export const en: Content = {
         },
         {
           name: 'Christian',
-          role: '[Role]',
+          role: 'Head of Unit',
           org: '[Organisation]',
           quote: 'Laikku knew [the skill] – [an example of how it showed].',
-          photo: { ...images.refChristian, alt: 'Christian saluting in M05 camouflage' },
+          photo: { ...images.refChristian, alt: 'Christian in a dark suit with arms crossed in an office at dusk' },
           draft: true,
         },
         {

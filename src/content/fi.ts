@@ -795,10 +795,10 @@ export const fi: Content = {
         },
         {
           name: 'Christian',
-          role: '[Rooli]',
+          role: 'Yksikön päällikkö',
           org: '[Organisaatio]',
           quote: 'Laikku osasi [taidon] – [esimerkki siitä, miten se näkyi].',
-          photo: { ...images.refChristian, alt: 'Christian M05-maastopuvussa tekemässä kunniaa' },
+          photo: { ...images.refChristian, alt: 'Christian tummassa puvussa kädet ristissä toimiston iltavalossa' },
           draft: true,
         },
         {
