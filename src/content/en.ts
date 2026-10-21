@@ -758,7 +758,7 @@ export const en: Content = {
     },
     references: {
       title: 'References',
-      lead: 'What partners, colleagues and fellow students say.',
+      lead: 'What partners, colleagues, teachers and fellow students say.',
       empty: 'References are being collected. If we have worked together, write a couple of lines – I will add yours here with your permission.',
       cta: 'Write a reference',
       hint: 'Arrows browse · Enter opens a group',
@@ -803,6 +803,14 @@ export const en: Content = {
           role: 'Engineering student',
           quote: 'Laikku helped me [with what]. [What came of it.]',
           photo: { ...images.refMiitri, alt: 'Miitri with arms crossed in an electronics lab' },
+          draft: true,
+        },
+        {
+          name: 'Teemu',
+          role: 'IT tutor teacher',
+          org: 'JAMK',
+          quote: "Laikku is [an observation from a tutor's perspective]. [An example of how it showed.]",
+          photo: { ...images.refTeemu, alt: 'Teemu smiling with a marker in hand next to a whiteboard in an IT classroom' },
           draft: true,
         },
       ],

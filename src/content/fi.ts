@@ -769,7 +769,7 @@ export const fi: Content = {
     },
     references: {
       title: 'Suosittelijat',
-      lead: 'Mitä yhteistyökumppanit, kollegat ja opiskelukaverit sanovat.',
+      lead: 'Mitä yhteistyökumppanit, kollegat, opettajat ja opiskelukaverit sanovat.',
       empty: 'Suosituksia kootaan parhaillaan. Jos olemme tehneet töitä yhdessä, kirjoita pari riviä – lisään sen tänne luvallasi.',
       cta: 'Kirjoita suositus',
       hint: 'Nuolet selaavat · Enter avaa ryhmän',
@@ -814,6 +814,14 @@ export const fi: Content = {
           role: 'Insinööriopiskelija',
           quote: 'Laikku auttoi minua [missä]. [Mitä siitä seurasi.]',
           photo: { ...images.refMiitri, alt: 'Miitri kädet ristissä elektroniikkalaboratoriossa' },
+          draft: true,
+        },
+        {
+          name: 'Teemu',
+          role: 'IT-tuutoropettaja',
+          org: 'JAMK',
+          quote: 'Laikku on [havainto tuutoropettajan näkökulmasta]. [Esimerkki siitä, miten se näkyi.]',
+          photo: { ...images.refTeemu, alt: 'Teemu hymyilee tussi kädessä IT-luokan valkotaulun vieressä' },
           draft: true,
         },
       ],

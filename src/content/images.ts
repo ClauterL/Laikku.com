@@ -63,6 +63,13 @@ export const images = {
     width: 960,
     height: 1200,
   } satisfies Base,
+  refTeemu: {
+    src: '/images/ref-teemu-600.webp',
+    srcSet: '/images/ref-teemu-600.webp 600w, /images/ref-teemu-960.webp 960w',
+    sizes: '(min-width: 1024px) 620px, 100vw',
+    width: 960,
+    height: 1200,
+  } satisfies Base,
 }
 
 /** Esineikonit (1:1 WebP) */
