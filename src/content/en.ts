@@ -930,7 +930,7 @@ export const en: Content = {
       copied: 'Copied',
     },
     footer: { built: 'Built with React and Tailwind in Jyväskylä, Finland.', top: 'Back to top' },
-    carousel: { prev: 'Previous', next: 'Next' },
+    carousel: { pause: 'Pause the references', play: 'Play the references' },
   },
 
   hints: {

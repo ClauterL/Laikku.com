@@ -1,8 +1,6 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from 'react'
 import {
   ArrowDown,
-  ArrowLeft,
-  ArrowRight,
   ArrowUpRight,
   AtSign,
   BadgeCheck,
@@ -13,7 +11,9 @@ import {
   Mail,
   MapPin,
   MousePointer2,
+  Pause,
   PenLine,
+  Play,
   Quote,
   Send,
   User,
@@ -381,7 +381,7 @@ export function Skills() {
 
       {/* liukuva työkalunauha */}
       <div className="marquee relative mt-14 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-        <ul className="marquee-track flex w-max gap-3 py-1 motion-reduce:w-auto motion-reduce:flex-wrap">
+        <ul className="marquee-track flex w-max gap-3 py-1 pr-3 motion-reduce:w-auto motion-reduce:flex-wrap">
           {[...tools, ...tools].map((n, i) => (
             <li
               key={`${n.name}-${i}`}
@@ -669,90 +669,84 @@ export function Havaida() {
   )
 }
 
-/* ---------- Suosittelijat: karuselli ---------- */
+/* ---------- Suosittelijat: liukuva nauha kuten työkaluissa ---------- */
 export function References() {
   const { t } = useLang()
   const p = t.portfolio
   const r = t.codex.references
   const items = r.items.filter((it) => SHOW_DRAFTS || !it.draft)
-  const track = useRef<HTMLUListElement>(null)
-  const [edge, setEdge] = useState({ start: true, end: false })
-
-  const update = () => {
-    const el = track.current
-    if (!el) return
-    setEdge({ start: el.scrollLeft < 8, end: el.scrollLeft + el.clientWidth > el.scrollWidth - 8 })
-  }
-  useEffect(update, [items.length])
-  const go = (dir: 1 | -1) => {
-    const el = track.current
-    if (!el) return
-    const first = el.querySelector('li')
-    const step = first ? first.getBoundingClientRect().width + 20 : el.clientWidth * 0.8
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    el.scrollBy({ left: dir * step, behavior: reduce ? 'auto' : 'smooth' })
-  }
+  const [paused, setPaused] = useState(false)
+  // n. 40 px/s, jotta lainaukset ehtii lukea
+  const dur = `${Math.max(items.length, 3) * 9}s`
 
   return (
     <Section id="refs" index="06" title={r.title} lead={r.lead} className="bg-pf-bg-2/40">
       {items.length ? (
-        <>
-          <div className="-mt-6 mb-6 flex justify-end gap-2">
-            {(
-              [
-                [-1, ArrowLeft, p.carousel.prev, edge.start],
-                [1, ArrowRight, p.carousel.next, edge.end],
-              ] as const
-            ).map(([dir, Ic, label, disabled]) => (
-              <button
-                key={label}
-                type="button"
-                onClick={() => go(dir)}
-                disabled={disabled}
-                aria-label={label}
-                className="grid size-11 place-items-center rounded-full border border-pf-line-2 text-pf-ink transition-colors hover:border-pf-orange hover:text-pf-orange disabled:pointer-events-none disabled:opacity-35 cursor-pointer"
-              >
-                <Ic className="size-5" />
-              </button>
-            ))}
+        <Reveal>
+          <div className="-mt-6 mb-6 flex justify-end motion-reduce:hidden">
+            <button
+              type="button"
+              onClick={() => setPaused((v) => !v)}
+              aria-pressed={paused}
+              aria-label={paused ? p.carousel.play : p.carousel.pause}
+              title={paused ? p.carousel.play : p.carousel.pause}
+              className="grid size-11 cursor-pointer place-items-center rounded-full border border-pf-line-2 text-pf-ink transition-colors hover:border-pf-orange hover:text-pf-orange"
+            >
+              {paused ? <Play className="size-5" /> : <Pause className="size-5" />}
+            </button>
           </div>
-          <ul
-            ref={track}
-            onScroll={update}
-            className="-mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-4 px-4 pb-4 [scrollbar-width:thin] sm:-mx-6 sm:scroll-px-6 sm:px-6"
-          >
-            {items.map((it, i) => (
-              <Reveal as="li" key={it.name} delay={Math.min(i, 3) * 80} className="w-[82%] shrink-0 snap-start sm:w-[340px]">
-                <figure className={cn(card, 'flex h-full flex-col overflow-hidden')}>
-                  {it.photo ? (
-                    <Picture image={{ ...it.photo, sizes: '(min-width: 640px) 340px, 82vw' }} className="aspect-[4/3.4]" imgClassName="object-[50%_18%]" />
-                  ) : (
-                    <div className="poster grid aspect-[4/3.4] place-items-center bg-pf-bg text-5xl text-pf-orange">{it.name.slice(0, 1)}</div>
-                  )}
-                  <div className="flex flex-1 flex-col gap-4 p-5">
-                    <blockquote className="leading-relaxed text-pf-ink-2">
-                      <Quote className="mb-2 size-5 text-pf-orange" aria-hidden />
-                      {it.quote}
-                    </blockquote>
-                    <figcaption className="mt-auto">
-                      <p className="poster text-base text-pf-ink">{it.name}</p>
-                      {(it.role || it.org) && <p className="text-xs font-semibold text-pf-muted">{[it.role, it.org].filter(Boolean).join(' · ')}</p>}
-                      {it.href && (
-                        <a href={it.href} target="_blank" rel="noreferrer noopener" className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-pf-ink hover:text-pf-orange">
-                          {r.profile}
-                          <ArrowUpRight className="size-3" />
-                        </a>
+          <div className="marquee relative -mx-4 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)] motion-reduce:overflow-x-auto motion-reduce:[mask-image:none] sm:-mx-6">
+            <ul
+              className="marquee-track flex w-max py-1 pb-4"
+              data-paused={paused || undefined}
+              style={{ '--dur': dur } as CSSProperties}
+            >
+              {[...items, ...items].map((it, i) => {
+                const copy = i >= items.length
+                return (
+                  <li
+                    key={`${it.name}-${i}`}
+                    aria-hidden={copy || undefined}
+                    className={cn('w-[300px] shrink-0 pl-5 sm:w-[360px]', copy && 'motion-reduce:hidden')}
+                  >
+                    <figure className={cn(card, 'flex h-full flex-col overflow-hidden')}>
+                      {it.photo ? (
+                        <Picture image={{ ...it.photo, alt: copy ? '' : it.photo.alt, sizes: '(min-width: 640px) 340px, 280px' }} className="aspect-[4/3.4]" imgClassName="object-[50%_18%]" />
+                      ) : (
+                        <div className="poster grid aspect-[4/3.4] place-items-center bg-pf-bg text-5xl text-pf-orange">{it.name.slice(0, 1)}</div>
                       )}
-                      {it.draft && (
-                        <p className="mt-3 w-fit rounded-lg border border-dashed border-pf-red/70 px-2 py-1 text-[0.62rem] font-bold uppercase tracking-[0.1em] text-pf-red">{r.draft}</p>
-                      )}
-                    </figcaption>
-                  </div>
-                </figure>
-              </Reveal>
-            ))}
-          </ul>
-        </>
+                      <div className="flex flex-1 flex-col gap-4 p-5">
+                        <blockquote className="leading-relaxed text-pf-ink-2">
+                          <Quote className="mb-2 size-5 text-pf-orange" aria-hidden />
+                          {it.quote}
+                        </blockquote>
+                        <figcaption className="mt-auto">
+                          <p className="poster text-base text-pf-ink">{it.name}</p>
+                          {(it.role || it.org) && <p className="text-xs font-semibold text-pf-muted">{[it.role, it.org].filter(Boolean).join(' · ')}</p>}
+                          {it.href && (
+                            <a
+                              href={it.href}
+                              target="_blank"
+                              rel="noreferrer noopener"
+                              tabIndex={copy ? -1 : undefined}
+                              className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-pf-ink hover:text-pf-orange"
+                            >
+                              {r.profile}
+                              <ArrowUpRight className="size-3" />
+                            </a>
+                          )}
+                          {it.draft && (
+                            <p className="mt-3 w-fit rounded-lg border border-dashed border-pf-red/70 px-2 py-1 text-[0.62rem] font-bold uppercase tracking-[0.1em] text-pf-red">{r.draft}</p>
+                          )}
+                        </figcaption>
+                      </div>
+                    </figure>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        </Reveal>
       ) : (
         <p className="max-w-2xl text-[1.05rem] leading-relaxed text-pf-ink-2">{r.empty}</p>
       )}

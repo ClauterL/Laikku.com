@@ -454,8 +454,8 @@
 
 /* teknologiamarquee */
 @keyframes pf-marquee { to { transform: translateX(-50%); } }
-.pf .marquee-track { animation: pf-marquee 38s linear infinite; }
-.pf .marquee:hover .marquee-track { animation-play-state: paused; }
+.pf .marquee-track { animation: pf-marquee var(--dur, 38s) linear infinite; }
+.pf .marquee:hover .marquee-track, .pf .marquee:focus-within .marquee-track, .pf .marquee-track[data-paused] { animation-play-state: paused; }
 
 /* drone leijuu, valot vilkkuvat */
 @keyframes pf-hover { 0%, 100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-10px) rotate(1.5deg); } }

@@ -941,7 +941,7 @@ export const fi: Content = {
       copied: 'Kopioitu',
     },
     footer: { built: 'Tehty Reactilla ja Tailwindilla Jyväskylässä.', top: 'Takaisin ylös' },
-    carousel: { prev: 'Edellinen', next: 'Seuraava' },
+    carousel: { pause: 'Pysäytä suositusten liuku', play: 'Jatka suositusten liukua' },
   },
 
   hints: {

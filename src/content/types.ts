@@ -312,7 +312,7 @@ export interface Content {
     havaida: { kicker: string }
     contact: { title: string; lead: string; direct: string; copy: string; copied: string }
     footer: { built: string; top: string }
-    carousel: { prev: string; next: string }
+    carousel: { pause: string; play: string }
   }
 
   hints: { details: string; stats: string; select: string; back: string; prevTab: string; nextTab: string; mute: string; move: string }
