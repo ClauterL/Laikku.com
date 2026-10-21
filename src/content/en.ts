@@ -16,9 +16,14 @@ export const en: Content = {
 
   start: {
     eyebrow: 'Portfolio · Jyväskylä, Finland',
-    press: 'Press any key to start',
-    hint: 'This page has sound effects – press M to mute.',
+    hint: 'The gamified version has sound effects – press M to mute.',
     loading: 'Loading profile',
+    choose: 'Choose how to explore',
+    modes: {
+      normal: { title: 'Classic', desc: 'A traditional portfolio page – quick to browse' },
+      game: { title: 'Gamified', desc: 'A 3D loft and a game menu, with sound' },
+    },
+    keys: '← → choose · Enter start',
   },
 
   nav: {
@@ -35,6 +40,7 @@ export const en: Content = {
     contact: 'Contact',
     sound: 'Sound on',
     soundOff: 'Sound off',
+    normalMode: 'Classic portfolio',
   },
 
   hud: {
@@ -816,8 +822,8 @@ export const en: Content = {
     close: 'Close',
     fps: 'First person',
     tps: 'Third person',
-    mouseLook: 'Click the view: mouse steers your gaze · Esc releases',
-    controls: { move: 'Move', run: 'Run', look: 'Look', interact: 'Open', quick: 'Quick menu', view: 'View' },
+    mouseLook: 'Click the view: mouse steers your gaze · Esc releases the mouse, a second Esc opens the menu',
+    controls: { move: 'Move', run: 'Run', look: 'Look', interact: 'Open', quick: 'Quick menu', view: 'View', menu: 'Menu' },
     link: { open: 'Open site', newTab: 'Opens in a new tab' },
     screens: {
       ops: { title: 'Havaida · control panel', net: 'Network traffic', services: 'Services', items: ['laikku.com', 'laikku.dev', 'havaida.com', 'havaida-games'] },
@@ -876,6 +882,41 @@ export const en: Content = {
       { id: 'warroom', name: 'War room', note: 'Roadmap and quests' },
       { id: 'workshop', name: 'Workshop', note: 'Gear, tools and software' },
     ],
+  },
+
+  portfolio: {
+    skip: 'Skip to content',
+    menu: 'Menu',
+    gameMode: 'Gamified version',
+    gameModeHint: 'A 3D loft and a game menu',
+    nav: [
+      { id: 'about', label: 'About' },
+      { id: 'skills', label: 'Skills' },
+      { id: 'projects', label: 'Projects' },
+      { id: 'now', label: 'Now' },
+      { id: 'havaida', label: 'Havaida' },
+      { id: 'refs', label: 'References' },
+      { id: 'contact', label: 'Contact' },
+    ],
+    hero: {
+      eyebrow: 'Developer & entrepreneur · Jyväskylä, Finland',
+      title: 'Web apps, automation and smart devices',
+      lead: 'I build React and TypeScript apps, AI automation and hardware – from design to launch. Founder of Havaida Oy and an ICT engineering student at JAMK.',
+      contact: 'Get in touch',
+      projects: 'See projects',
+      available: 'Available for new projects',
+    },
+    focus: { title: 'What I do', lead: 'Four areas I work in every day.' },
+    skills: { title: 'Skills', lead: 'The technologies and tools behind the projects.', stack: 'Everyday tools' },
+    projects: { title: 'Projects', lead: 'My own products and tools – some launched, some in the works.', more: 'More work online' },
+    now: { title: 'Now', lead: 'What I am working on right now and what comes next.', main: 'Main goal', side: 'Other projects' },
+    havaida: { kicker: 'Company' },
+    contact: {
+      title: 'Get in touch',
+      lead: 'Tell me about your project, ask a question or suggest working together.',
+      direct: 'Directly',
+    },
+    footer: { built: 'Built with React and Tailwind in Jyväskylä, Finland.', top: 'Back to top' },
   },
 
   hints: {

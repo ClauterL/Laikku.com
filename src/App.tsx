@@ -1,94 +1,67 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 
-import { Tabs, TabsContent } from '@/components/ui/tabs'
-import { StartScreen } from '@/components/game/StartScreen'
-import { TopBar } from '@/components/game/TopBar'
-import { BottomBar } from '@/components/game/BottomBar'
-import { InventoryScreen } from '@/components/game/InventoryScreen'
-import { GoodsScreen } from '@/components/game/GoodsScreen'
-import { SkillsScreen } from '@/components/game/SkillsScreen'
-import { MapScreen } from '@/components/game/MapScreen'
-import { QuestsScreen } from '@/components/game/QuestsScreen'
-import { OrderScreen } from '@/components/game/OrderScreen'
-import { CodexScreen } from '@/components/game/CodexScreen'
+import { StartScreen, type Mode } from '@/components/game/StartScreen'
 import { LangContext, useLangState } from '@/hooks/useLang'
 import { SoundContext, useSoundState } from '@/hooks/useSound'
 import { backgrounds, type TabId } from '@/content'
+import { PORTFOLIO_HASH, TAB_IDS, isGameHash, setHash } from '@/lib/routes'
 
-// 3D-loft ladataan vasta kun se avataan (three + rapier omaan pakettiinsa)
-const LoftView = lazy(() => import('@/components/loft/LoftView'))
+// Kumpikin portfolio on oma pakettinsa: normaalin valitsija ei lataa pelivalikkoa eikä 3D:tä, ja päinvastoin
+const loadPortfolio = () => import('@/components/portfolio/Portfolio')
+const loadGame = () => import('@/components/game/GameShell')
+const loadLoft = () => import('@/components/loft/LoftView')
+const Portfolio = lazy(loadPortfolio)
+const GameShell = lazy(loadGame)
 
-const TAB_IDS: TabId[] = ['skills', 'inventory', 'items', 'map', 'quests', 'order', 'codex']
+type View = 'start' | Mode
 
-const isLoftHash = () => window.location.hash === '#loft'
-
-function readHash(): TabId {
-  const h = window.location.hash.replace('#', '') as TabId
-  return TAB_IDS.includes(h) ? h : 'inventory'
-}
-
+/* Kaksi portfoliota samassa sivustossa: aloitusruutu kysyy, kumpi avataan.
+   - Normaali (#portfolio): perinteinen yhden sivun portfolio, ei ääniä eikä 3D:tä.
+   - Pelillistetty: 3D-loft aukeaa suoraan; Esc vie pelivalikkoon (välilehdet).
+   Suora linkki #portfolio ohittaa aloitusruudun. */
 export default function App() {
   const lang = useLangState()
   const sound = useSoundState()
-  const [started, setStarted] = useState(false)
-  const [tab, setTabState] = useState<TabId>(readHash)
-  const [fx, setFx] = useState(0)
-  const [loft, setLoft] = useState(isLoftHash)
+  const [view, setView] = useState<View>(() => (window.location.hash === PORTFOLIO_HASH ? 'normal' : 'start'))
+  /** Välilehti, jolle Esc loftista vie (osoitteen #map tms. mukaan, muuten Projektit) */
+  const [gameTab, setGameTab] = useState<TabId | undefined>()
 
-  const openLoft = useCallback(() => {
-    setLoft(true)
-    try {
-      window.history.replaceState(null, '', '#loft')
-    } catch {}
+  const toNormal = useCallback(() => {
+    sound.setAmbient(false)
+    setHash(PORTFOLIO_HASH)
+    setView('normal')
+    window.scrollTo(0, 0)
+  }, [sound])
+
+  /** Pelillistetty: loft aukeaa aina suoraan; osoitteen välilehti (#map …) muistetaan Esc-valikkoa varten */
+  const toGame = useCallback(() => {
+    sound.start()
+    const h = window.location.hash.slice(1) as TabId
+    setGameTab(TAB_IDS.includes(h) ? h : undefined)
+    setHash('#loft')
+    setView('game')
+    window.scrollTo(0, 0)
+  }, [sound])
+
+  const onPick = useCallback((mode: Mode) => {
+    if (mode === 'game') void Promise.all([loadGame(), loadLoft()])
+    else void loadPortfolio()
   }, [])
 
-  const setTab = useCallback(
-    (id: TabId) => {
-      setTabState(id)
-      setFx((n) => n + 1)
-      try {
-        window.history.replaceState(null, '', `#${id}`)
-      } catch {}
+  const onStartDone = useCallback(
+    (mode: Mode) => {
+      if (mode === 'normal') toNormal()
+      else toGame()
     },
-    [],
+    [toNormal, toGame],
   )
 
-  const step = useCallback(
-    (dir: 1 | -1) => {
-      const i = TAB_IDS.indexOf(tab)
-      const next = TAB_IDS[(i + dir + TAB_IDS.length) % TAB_IDS.length]
-      sound.play('tab')
-      setTab(next)
-    },
-    [tab, setTab, sound],
-  )
-
-  const closeLoft = useCallback(() => {
-    setLoft(false)
-    try {
-      window.history.replaceState(null, '', `#${tab}`)
-    } catch {}
-  }, [tab])
-
-  // Globaalit näppäimet: Q/E välilehdet, M mykistys (loftissa omat näppäimet)
-  useEffect(() => {
-    if (!started) return
-    const onKey = (e: KeyboardEvent) => {
-      const el = document.activeElement as HTMLElement | null
-      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) return
-      if (e.key === 'm' || e.key === 'M') return sound.toggleMute()
-      if (loft) return
-      if (e.key === 'q' || e.key === 'Q' || e.key === '[') step(-1)
-      else if (e.key === 'e' || e.key === 'E' || e.key === ']') step(1)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [started, step, sound, loft])
-
+  // Selaimen osoiterivi / takaisin-nappi vaihtaa portfoliota
   useEffect(() => {
     const onHash = () => {
-      setLoft(isLoftHash())
-      if (!isLoftHash()) setTabState(readHash())
+      const h = window.location.hash
+      if (h === PORTFOLIO_HASH) setView((v) => (v === 'start' ? v : 'normal'))
+      else if (isGameHash(h)) setView((v) => (v === 'normal' ? 'game' : v))
     }
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
@@ -97,47 +70,21 @@ export default function App() {
   return (
     <LangContext.Provider value={lang}>
       <SoundContext.Provider value={sound}>
-        <div className="screen-bg" style={{ ['--bg-image' as string]: `url(${backgrounds.menu})` }} />
-        <div className="scanlines" aria-hidden />
-        {!started && <StartScreen onDone={() => setStarted(true)} />}
-
-        <Tabs
-          value={tab}
-          onValueChange={(v) => {
-            sound.play('tab')
-            setTab(v as TabId)
-          }}
-          className="flex min-h-full flex-col"
-        >
-          <TopBar tab={tab} onSelectTab={(id) => setTab(id)} onOpenLoft={openLoft} />
-          <main id="main" key={fx} className={started ? 'screen-in flex-1' : 'iris-open flex-1'}>
-            <TabsContent value="skills">
-              <SkillsScreen />
-            </TabsContent>
-            <TabsContent value="inventory">
-              <InventoryScreen />
-            </TabsContent>
-            <TabsContent value="items">
-              <GoodsScreen />
-            </TabsContent>
-            <TabsContent value="map">
-              <MapScreen />
-            </TabsContent>
-            <TabsContent value="quests">
-              <QuestsScreen />
-            </TabsContent>
-            <TabsContent value="order">
-              <OrderScreen onSelectTab={setTab} />
-            </TabsContent>
-            <TabsContent value="codex">
-              <CodexScreen />
-            </TabsContent>
-          </main>
-          <BottomBar />
-        </Tabs>
-        {started && loft && (
+        {view !== 'normal' && (
+          <>
+            <div className="screen-bg" style={{ ['--bg-image' as string]: `url(${backgrounds.menu})` }} />
+            <div className="scanlines" aria-hidden />
+          </>
+        )}
+        {view === 'start' && <StartScreen onPick={onPick} onDone={onStartDone} />}
+        {view === 'game' && (
           <Suspense fallback={null}>
-            <LoftView onExit={closeLoft} />
+            <GameShell initialTab={gameTab} onNormal={toNormal} />
+          </Suspense>
+        )}
+        {view === 'normal' && (
+          <Suspense fallback={<div className="min-h-svh bg-bg" />}>
+            <Portfolio onGame={toGame} />
           </Suspense>
         )}
       </SoundContext.Provider>

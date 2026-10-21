@@ -17,9 +17,14 @@ export const fi: Content = {
 
   start: {
     eyebrow: 'Portfolio · Jyväskylä',
-    press: 'Paina mitä tahansa aloittaaksesi',
-    hint: 'Sivulla on ääniefektejä – mykistä M-näppäimellä.',
+    hint: 'Pelillistetyssä versiossa on ääniefektejä – mykistä M-näppäimellä.',
     loading: 'Ladataan profiilia',
+    choose: 'Valitse, miten haluat tutustua',
+    modes: {
+      normal: { title: 'Normaali', desc: 'Perinteinen portfoliosivu – nopea selata' },
+      game: { title: 'Pelillistetty', desc: '3D-loft ja pelivalikko äänineen' },
+    },
+    keys: '← → valitse · Enter aloita',
   },
 
   nav: {
@@ -36,6 +41,7 @@ export const fi: Content = {
     contact: 'Yhteys',
     sound: 'Ääni päällä',
     soundOff: 'Ääni pois',
+    normalMode: 'Normaali portfolio',
   },
 
   hud: {
@@ -827,8 +833,8 @@ export const fi: Content = {
     close: 'Sulje',
     fps: 'Ensimmäinen persoona',
     tps: 'Kolmas persoona',
-    mouseLook: 'Klikkaa näkymää: hiiri ohjaa katsetta · Esc vapauttaa',
-    controls: { move: 'Liiku', run: 'Juokse', look: 'Katse', interact: 'Avaa', quick: 'Pikavalikko', view: 'Näkymä' },
+    mouseLook: 'Klikkaa näkymää: hiiri ohjaa katsetta · Esc vapauttaa hiiren, toinen Esc avaa valikon',
+    controls: { move: 'Liiku', run: 'Juokse', look: 'Katse', interact: 'Avaa', quick: 'Pikavalikko', view: 'Näkymä', menu: 'Valikko' },
     link: { open: 'Avaa sivu', newTab: 'Aukeaa uuteen välilehteen' },
     screens: {
       ops: { title: 'Havaida · ohjauspaneeli', net: 'Verkkoliikenne', services: 'Palvelut', items: ['laikku.com', 'laikku.dev', 'havaida.com', 'havaida-games'] },
@@ -887,6 +893,41 @@ export const fi: Content = {
       { id: 'warroom', name: 'War room', note: 'Roadmap ja tehtävät' },
       { id: 'workshop', name: 'Paja', note: 'Laitteet, työkalut ja ohjelmistot' },
     ],
+  },
+
+  portfolio: {
+    skip: 'Siirry sisältöön',
+    menu: 'Valikko',
+    gameMode: 'Pelillistetty versio',
+    gameModeHint: '3D-loft ja pelivalikko',
+    nav: [
+      { id: 'about', label: 'Minusta' },
+      { id: 'skills', label: 'Osaaminen' },
+      { id: 'projects', label: 'Projektit' },
+      { id: 'now', label: 'Työn alla' },
+      { id: 'havaida', label: 'Havaida' },
+      { id: 'refs', label: 'Suosittelijat' },
+      { id: 'contact', label: 'Yhteys' },
+    ],
+    hero: {
+      eyebrow: 'Kehittäjä & yrittäjä · Jyväskylä',
+      title: 'Web-sovelluksia, automaatiota ja älylaitteita',
+      lead: 'Rakennan React- ja TypeScript-sovelluksia, AI-automaatiota ja laitteita – suunnittelusta julkaisuun. Havaida Oy:n perustaja ja ICT-insinööriopiskelija JAMKissa.',
+      contact: 'Ota yhteyttä',
+      projects: 'Katso projektit',
+      available: 'Vapaana uusiin projekteihin',
+    },
+    focus: { title: 'Mitä teen', lead: 'Neljä osaamisaluetta, joiden parissa teen töitä joka päivä.' },
+    skills: { title: 'Osaaminen', lead: 'Teknologiat ja työkalut, joilla projektit tehdään.', stack: 'Päivittäiset työkalut' },
+    projects: { title: 'Projektit', lead: 'Omia tuotteita ja työkaluja – osa julkaistu, osa rakenteilla.', more: 'Lisää töitä verkossa' },
+    now: { title: 'Työn alla', lead: 'Mitä teen juuri nyt ja mitä on tulossa.', main: 'Päätavoite', side: 'Muut hankkeet' },
+    havaida: { kicker: 'Yritys' },
+    contact: {
+      title: 'Ota yhteyttä',
+      lead: 'Kerro projektistasi, kysy tai ehdota yhteistyötä.',
+      direct: 'Suoraan',
+    },
+    footer: { built: 'Tehty Reactilla ja Tailwindilla Jyväskylässä.', top: 'Takaisin ylös' },
   },
 
   hints: {

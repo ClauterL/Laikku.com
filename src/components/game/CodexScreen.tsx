@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { useLang } from '@/hooks/useLang'
 import { useSound } from '@/hooks/useSound'
 import type { Content, Img } from '@/content'
+import { SHOW_DRAFTS } from '@/lib/env'
 import { cn } from '@/lib/utils'
 
 type Codex = Content['codex']
@@ -22,8 +23,6 @@ interface Entry {
   ref?: Ref
 }
 
-/** Luonnokset (suosittelija ei vielä hyväksynyt) näkyvät vain kehitystilassa ja esikatselussa (VITE_SHOW_DRAFTS=1) */
-const SHOW_DRAFTS = import.meta.env.DEV || import.meta.env.VITE_SHOW_DRAFTS === '1'
 /** Pelin tietokannan nuolikärkinen rivi */
 const ARROW = 'polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%)'
 const INFO_ICONS = [User, AtSign, MapPin, BadgeCheck]

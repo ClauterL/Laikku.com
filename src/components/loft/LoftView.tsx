@@ -182,10 +182,16 @@ export default function LoftView({ onExit }: { onExit: () => void }) {
   const [view, setView] = useState<CamView>('tps')
   const [locked, setLocked] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  /** Milloin osoittimen lukitus viimeksi vapautui (Esc vapauttaa ensin lukituksen, vasta seuraava avaa valikon) */
+  const unlockedAt = useRef(0)
 
   // Hiirikatse: osoittimen lukitus näkymään (työpöytä)
   useEffect(() => {
-    const onChange = () => setLocked(document.pointerLockElement === canvasRef.current)
+    const onChange = () => {
+      const isLocked = document.pointerLockElement === canvasRef.current
+      if (!isLocked) unlockedAt.current = performance.now()
+      setLocked(isLocked)
+    }
     document.addEventListener('pointerlockchange', onChange)
     return () => {
       document.removeEventListener('pointerlockchange', onChange)
@@ -234,7 +240,7 @@ export default function LoftView({ onExit }: { onExit: () => void }) {
     setOpen(null)
   }, [play])
 
-  // E / Enter avaa lähimmän, Esc sulkee, Q pikavalikko
+  // E / Enter avaa lähimmän, Esc sulkee paneelin – tai vie valikkoon, Q pikavalikko
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const el = document.activeElement as HTMLElement | null
@@ -242,6 +248,10 @@ export default function LoftView({ onExit }: { onExit: () => void }) {
       if (e.key === 'Escape') {
         if (open) close()
         else if (quick) setQuick(false)
+        else if (!document.pointerLockElement && performance.now() - unlockedAt.current > 300) {
+          play('back')
+          onExit()
+        }
         return
       }
       if (open) return
@@ -257,7 +267,7 @@ export default function LoftView({ onExit }: { onExit: () => void }) {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [near, open, quick, close, openZone, play, toggleView])
+  }, [near, open, quick, close, openZone, play, toggleView, onExit])
 
   const nearZone = near ? zoneText.get(near) : null
   const nearTab = near ? ZONES.find((z) => z.id === near)?.tab : undefined
@@ -425,6 +435,10 @@ export default function LoftView({ onExit }: { onExit: () => void }) {
           <li className="flex items-center gap-1.5">
             <span className="key">Q</span>
             <span className="label-caps">{t.loft.controls.quick}</span>
+          </li>
+          <li className="flex items-center gap-1.5">
+            <span className="key">Esc</span>
+            <span className="label-caps">{t.loft.controls.menu}</span>
           </li>
         </ul>
       )}

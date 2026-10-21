@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Box, Mail, Menu, Volume2, VolumeX } from 'lucide-react'
+import { Box, Mail, Menu, Newspaper, Volume2, VolumeX } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
@@ -56,7 +56,18 @@ export function SoundToggle() {
   )
 }
 
-export function TopBar({ tab, onSelectTab, onOpenLoft }: { tab: TabId; onSelectTab: (id: TabId) => void; onOpenLoft?: () => void }) {
+export function TopBar({
+  tab,
+  onSelectTab,
+  onOpenLoft,
+  onNormal,
+}: {
+  tab: TabId
+  onSelectTab: (id: TabId) => void
+  onOpenLoft?: () => void
+  /** Vaihto normaaliin portfolioon */
+  onNormal?: () => void
+}) {
   const { t } = useLang()
   const { play, ambient, setAmbient } = useSound()
   const listRef = useRef<HTMLDivElement>(null)
@@ -101,6 +112,22 @@ export function TopBar({ tab, onSelectTab, onOpenLoft }: { tab: TabId; onSelectT
                   </button>
                 </SheetClose>
               ))}
+              {onNormal && (
+                <SheetClose asChild>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      play('select')
+                      onNormal()
+                    }}
+                    onMouseEnter={() => play('tick')}
+                    className="mt-2 flex items-center gap-2 rounded-sm border-t border-line/70 px-3 pb-3 pt-4 text-left font-display text-[0.8rem] uppercase tracking-[0.2em] text-brass transition-colors hover:bg-brass/10 hover:text-brass-2 cursor-pointer"
+                  >
+                    <Newspaper className="size-4" />
+                    {t.nav.normalMode}
+                  </button>
+                </SheetClose>
+              )}
             </nav>
             <div className="mt-auto space-y-4 border-t border-line px-6 py-5">
               <p className="label-caps">{t.ui.settings}</p>
@@ -163,6 +190,22 @@ export function TopBar({ tab, onSelectTab, onOpenLoft }: { tab: TabId; onSelectT
             <LangSwitch />
           </div>
           <SoundToggle />
+          {onNormal && (
+            <button
+              type="button"
+              onClick={() => {
+                play('select')
+                onNormal()
+              }}
+              onMouseEnter={() => play('tick')}
+              title={t.nav.normalMode}
+              aria-label={t.nav.normalMode}
+              className="hidden h-9 items-center gap-2 rounded-sm border border-line bg-bg-2/70 px-2.5 font-display text-[0.68rem] uppercase tracking-[0.18em] text-ink-2 transition-colors hover:border-brass hover:text-brass-2 sm:flex cursor-pointer"
+            >
+              <Newspaper className="size-4" />
+              <span className="hidden 2xl:inline">{t.nav.normalMode}</span>
+            </button>
+          )}
           {onOpenLoft && (
             <button
               type="button"

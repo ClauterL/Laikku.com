@@ -54,6 +54,9 @@ const registry: Record<string, { si?: SimpleIcon; lucide?: LucideIcon; mono?: bo
 
 export type TechKey = keyof typeof registry
 
+/** Onko nimelle ikoni (muuten TechIcon ei piirrä mitään) */
+export const hasTechIcon = (name: string) => name in registry
+
 export function TechIcon({
   name,
   className,

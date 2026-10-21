@@ -14,6 +14,8 @@ export type LoftZoneId =
   | 'meeting'
   | 'warroom'
   | 'workshop'
+/** Normaalin portfolion osiot (ankkurit) */
+export type PortfolioSection = 'about' | 'skills' | 'projects' | 'now' | 'havaida' | 'refs' | 'contact'
 export type Rarity = 'common' | 'rare' | 'epic' | 'legendary'
 export type QuestStatus = 'active' | 'done' | 'planned' | 'idea'
 
@@ -94,8 +96,24 @@ export interface Content {
   name: string
   role: string
 
-  start: { eyebrow: string; press: string; hint: string; loading: string }
-  nav: { menu: string; tabs: { id: TabId; label: string }[]; contact: string; sound: string; soundOff: string }
+  /** Aloitusruutu: tunnus, nimi ja valinta normaalin ja pelillistetyn portfolion välillä */
+  start: {
+    eyebrow: string
+    hint: string
+    loading: string
+    choose: string
+    modes: Record<'normal' | 'game', { title: string; desc: string }>
+    keys: string
+  }
+  nav: {
+    menu: string
+    tabs: { id: TabId; label: string }[]
+    contact: string
+    sound: string
+    soundOff: string
+    /** Siirtyminen normaaliin portfolioon pelivalikosta */
+    normalMode: string
+  }
 
   hud: {
     level: { value: string; label: string; caption: string }
@@ -249,7 +267,7 @@ export interface Content {
     tps: string
     /** Ohje hiirikatseelle (pointer lock) */
     mouseLook: string
-    controls: { move: string; run: string; look: string; interact: string; quick: string; view: string }
+    controls: { move: string; run: string; look: string; interact: string; quick: string; view: string; menu: string }
     /** Linkkikohteet (työkone, arcade, palvelimet): kortti ennen siirtymistä */
     link: { open: string; newTab: string }
     /** Työhuoneen näytöt (canvas-tekstuurit): TV-seinä, työkoneen ultrawide ja pystynäyttö */
@@ -266,6 +284,23 @@ export interface Content {
       /** Ulkoinen sivu – kohde avaa linkkikortin osion sijaan */
       link?: { label: string; href: string; desc: string }
     }[]
+  }
+
+  /** Normaali (perinteinen) portfoliosivu #portfolio – muut sisällöt luetaan samoista kentistä */
+  portfolio: {
+    skip: string
+    menu: string
+    gameMode: string
+    gameModeHint: string
+    nav: { id: PortfolioSection; label: string }[]
+    hero: { eyebrow: string; title: string; lead: string; contact: string; projects: string; available: string }
+    focus: { title: string; lead: string }
+    skills: { title: string; lead: string; stack: string }
+    projects: { title: string; lead: string; more: string }
+    now: { title: string; lead: string; main: string; side: string }
+    havaida: { kicker: string }
+    contact: { title: string; lead: string; direct: string }
+    footer: { built: string; top: string }
   }
 
   hints: { details: string; stats: string; select: string; back: string; prevTab: string; nextTab: string; mute: string; move: string }

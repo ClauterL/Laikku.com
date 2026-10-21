@@ -11,8 +11,10 @@ teknologiat. **Tavarat**-välilehti on Odyssey-tyylinen esineruudukko (työasema
 laitteet & työkalut, palvelut) resurssirivillä ja kelluvalla tietopaneelilla.
 Yläpalkin välilehdet: Taidot · Projektit · Tavarat · Kartta · Tehtävät · Havaida · Koodeksi.
 Sivu avautuu aloitusruutuun, jossa teräksinen riimutunnus paljastuu animoituna
-(Higgsfield image-to-video, mykkä mp4/webm-silmukka). Kaksikielinen (fi/en),
-näppäimistöllä navigoitava, ääniefektit.
+(Higgsfield image-to-video, mykkä mp4/webm-silmukka), ja kävijä valitsee **Normaali** tai
+**Pelillistetty**. Pelillistetty avaa 3D-loftin suoraan (Esc → pelivalikko), normaali on perinteinen
+yhden sivun portfolio (`#portfolio`, suora linkki ohittaa aloitusruudun) samasta sisällöstä.
+Kaksikielinen (fi/en), näppäimistöllä navigoitava, pelillistetyssä ääniefektit.
 
 ## Stack
 
@@ -45,15 +47,17 @@ Node ≥ 22.12.
 
 ```
 src/
-  App.tsx                    välilehdet, näppäimet (Q/E, M), hash-reititys (#inventory …)
+  App.tsx                    tilat: aloitus → normaali (#portfolio) tai pelillistetty (#loft, #inventory …)
   index.css                  teema-tokenit (nahka/messinki/pergamentti/hiillos/teal), utilityt
   lib/sfx.ts                 ääniefektit: tick, select, back, tab, open, close, boot, unlock, ambient
   content/
     types.ts                 sisältömalli (Item, Quest, Marker, …)
     fi.ts, en.ts             KAIKKI TEKSTIT – muokkaa näitä
     images.ts                kuvat, ikonit (icon-*), Tavarat-esineet (good-*), tunnus, taustat, linkit
+  components/portfolio/      normaali (perinteinen) portfoliosivu samasta sisällöstä: Portfolio, Sections, nav
   components/game/
-    StartScreen              tunnuksen paljastusvideo + "Paina mitä tahansa" – avaa äänen
+    StartScreen              tunnuksen paljastusvideo + valinta Normaali / Pelillistetty (pelillistetty avaa äänen)
+    GameShell                pelivalikon välilehdet, näppäimet (Q/E, M) ja 3D-loft (Esc loftissa → valikko)
     TopBar, BottomBar        valikko + välilehdet + ääni/kieli · näppäinvihjeet
     InventoryScreen          hahmo, slotit, kielipalkki, taso, HUD-slotit, reppu, tietokaista
     GoodsScreen              Tavarat: resurssirivi + XP, 3 ryhmää × 4 ruutua/rivi, kelluva tietopaneeli, nuolinavigointi
