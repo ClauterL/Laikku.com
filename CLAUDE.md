@@ -15,6 +15,9 @@ Claus Laikun portfoliosivusto pelivalikon muodossa (laikku.com). Rakenne ja kome
   uudet kentät myös `types.ts`:ään.
 - Tyylit: Tailwind v4 + `src/index.css`:n tokenit (`text-brass`, `bg-bg-2`, `border-line`, `text-ink` …).
   Yksi tumma teema – ei vaaleaa tilaa.
+  Normaali portfolio (`#portfolio`, `src/components/portfolio`) käyttää omaa auringonlaskupalettia
+  (`pf-*`-tokenit: persikkataivas → oranssi/punainen → munakoiso) ja Archivo-julistefonttia (`.poster`);
+  hero-maisema on oma koodilla piirretty SVG (`Landscape.tsx`), ei kopiota mistään pelistä.
 - UI-primitiivit shadcn/ui-tyyliin (`src/components/ui`), Radix UI:n päällä.
 - Äänet syntetisoidaan Web Audiolla (`src/lib/sfx.ts`) – ei äänitiedostoja repoon.
   Uusi efekti: lisää `Sfx`-unioniin ja `play()`-switchiin.

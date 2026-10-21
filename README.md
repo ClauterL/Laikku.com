@@ -54,7 +54,7 @@ src/
     types.ts                 sisältömalli (Item, Quest, Marker, …)
     fi.ts, en.ts             KAIKKI TEKSTIT – muokkaa näitä
     images.ts                kuvat, ikonit (icon-*), Tavarat-esineet (good-*), tunnus, taustat, linkit
-  components/portfolio/      normaali (perinteinen) portfoliosivu samasta sisällöstä: Portfolio, Sections, nav
+  components/portfolio/      normaali portfolio samasta sisällöstä: Portfolio, Sections, Landscape (parallaksimaisema), hooks, nav
   components/game/
     StartScreen              tunnuksen paljastusvideo + valinta Normaali / Pelillistetty (pelillistetty avaa äänen)
     GameShell                pelivalikon välilehdet, näppäimet (Q/E, M) ja 3D-loft (Esc loftissa → valikko)

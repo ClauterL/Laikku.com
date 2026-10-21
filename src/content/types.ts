@@ -293,14 +293,26 @@ export interface Content {
     gameMode: string
     gameModeHint: string
     nav: { id: PortfolioSection; label: string }[]
-    hero: { eyebrow: string; title: string; lead: string; contact: string; projects: string; available: string }
+    hero: {
+      eyebrow: string
+      title: string
+      lead: string
+      contact: string
+      projects: string
+      available: string
+      /** Vaihtuva otsikko: "Rakennan" + sanat */
+      build: string
+      words: string[]
+      scroll: string
+    }
     focus: { title: string; lead: string }
-    skills: { title: string; lead: string; stack: string }
-    projects: { title: string; lead: string; more: string }
+    skills: { title: string; lead: string; stack: string; matrix: string }
+    projects: { title: string; lead: string; more: string; all: string }
     now: { title: string; lead: string; main: string; side: string }
     havaida: { kicker: string }
-    contact: { title: string; lead: string; direct: string }
+    contact: { title: string; lead: string; direct: string; copy: string; copied: string }
     footer: { built: string; top: string }
+    carousel: { prev: string; next: string }
   }
 
   hints: { details: string; stats: string; select: string; back: string; prevTab: string; nextTab: string; mute: string; move: string }
