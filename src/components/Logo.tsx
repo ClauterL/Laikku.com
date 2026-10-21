@@ -3,9 +3,10 @@ import { useCallback, useEffect, useId, useRef, useState, type CSSProperties } f
 import { cn } from '@/lib/utils'
 
 /* Claus Laikun tunnus: kuvake ihmisestä läppärin takana (Higgsfieldillä piirretty, vektoroitu).
-   Näytöllä <#>. Pääsiäismuna: #:n perään kirjoittuu morsena · · ·  − −  · −  · − ·  − = SMART –
-   kirjaimia ei näytetä missään, vain pisteet ja viivat. Merkit on leikattu kuvakkeesta läpi (maski),
-   joten tausta näkyy niiden läpi kuten alkuperäisessä piktogrammissa.
+   Näytöllä <#>. Pääsiäismuna: #:n perään välähtää YKSI morsemerkki kerrallaan (piste tai viiva) kuin
+   vilkkuva kursori – peräkkäin ne ovat · · ·  − −  · −  · − ·  − = SMART. Kirjaimia ei näytetä, eikä
+   koko viestiä koskaan näy kerralla, joten morsetusta ei huomaa ellei sitä etsi. Merkit on leikattu
+   kuvakkeesta läpi (maski), joten tausta näkyy niiden läpi kuten alkuperäisessä piktogrammissa.
    play: 'loop' toistaa itsestään (aloitusruutu), 'hover' kerran osoittimella / fokuksella / napautuksella. */
 
 /** Kuvakkeen ääriviivat (viewBox 0 0 594 594) */
@@ -15,45 +16,32 @@ const PATH =
 const SCREEN = { x: 136, y: 337, w: 321, h: 194 }
 const CX = SCREEN.x + SCREEN.w / 2
 const CY = SCREEN.y + SCREEN.h / 2
-/** Perusfontti ja merkkien mitat ennen skaalausta näytön levyiseksi */
+/** Fontti ja merkkien mitat */
 const F = 86
 const CW = F * 0.6
-const DOT = 13
-const DASH = 32
-const BAR = 12
-const GAP = 9
-const LETTER_GAP = 19
+const DOT = 15
+const DASH = 34
+const BAR = 13
 const SP = 12
-const UNIT = 140
+/** Tila #:n ja >:n välissä, kun merkki välähtää */
+const SLOT = SP + DASH + SP
+const UNIT = 150
 
 /** SMART morsena */
 const MORSE = ['...', '--', '.-', '.-.', '-']
-const SYMS = (() => {
-  const out: { x: number; w: number; dash: boolean }[] = []
-  let x = 0
-  MORSE.forEach((letter, li) => {
-    ;[...letter].forEach((c, ci) => {
-      const w = c === '-' ? DASH : DOT
-      out.push({ x, w, dash: c === '-' })
-      x += w + (ci < letter.length - 1 ? GAP : 0)
-    })
-    if (li < MORSE.length - 1) x += LETTER_GAP
-  })
-  return out
-})()
+type Sym = '.' | '-' | null
 
-/** Kirjoitusrytmi: [näkyvien merkkien määrä, kesto yksikköinä] – piste 1, viiva 3, väli 1, kirjainväli 3 */
-const TYPE: [number, number][] = (() => {
-  const steps: [number, number][] = []
-  let n = 0
+/** Rytmi: [tila auki, näkyvä merkki, kesto yksikköinä] – piste 1, viiva 3, merkkien väli 1, kirjainväli 3 */
+const STEPS: [boolean, Sym, number][] = (() => {
+  const steps: [boolean, Sym, number][] = [[true, null, 2]]
   MORSE.forEach((letter) => {
     ;[...letter].forEach((c, ci) => {
-      n++
-      steps.push([n, (c === '-' ? 3 : 1) + (ci < letter.length - 1 ? 1 : 3)])
+      steps.push([true, c as Sym, c === '-' ? 3 : 1])
+      steps.push([true, null, ci < letter.length - 1 ? 1 : 3])
     })
   })
-  steps.push([n, 16]) // koko viesti näkyvissä
-  for (let k = n - 1; k >= 0; k--) steps.push([k, 0.35]) // pyyhitään pois
+  steps.push([true, null, 3])
+  steps.push([false, null, 0])
   return steps
 })()
 
@@ -82,7 +70,7 @@ export function Logo({
 }) {
   const id = `logo-${useId().replace(/[^a-zA-Z0-9]/g, '')}`
   const reduce = useReduced()
-  const [n, setN] = useState(0)
+  const [state, setState] = useState<{ open: boolean; sym: Sym }>({ open: false, sym: null })
   const timer = useRef(0)
   const running = useRef(false)
 
@@ -92,10 +80,10 @@ export function Logo({
       running.current = true
       let i = 0
       const tick = () => {
-        const [shown, dur] = TYPE[i]
-        setN(shown)
+        const [open, sym, dur] = STEPS[i]
+        setState({ open, sym })
         i++
-        if (i < TYPE.length) timer.current = window.setTimeout(tick, dur * UNIT)
+        if (i < STEPS.length) timer.current = window.setTimeout(tick, dur * UNIT)
         else if (loop) {
           i = 0
           timer.current = window.setTimeout(tick, 34 * UNIT) // tauko: pelkkä <#>
@@ -115,34 +103,28 @@ export function Logo({
   }, [play, reduce, run])
 
   const trigger = () => {
-    if (play !== 'hover') return
-    if (reduce) setN(SYMS.length)
-    else run(false)
-  }
-  const reset = () => {
-    if (play === 'hover' && reduce) setN(0)
+    if (play === 'hover' && !reduce) run(false)
   }
 
-  // asettelu: "<#" + morse (n merkkiä) + ">" keskitettynä, skaalattuna näytölle
-  const last = SYMS[n - 1]
-  const morseW = last ? last.x + last.w : 0
-  const W = CW * 2 + (n ? SP + morseW + SP : 0) + CW
-  const s = Math.min(1, (SCREEN.w - 40) / W)
+  // asettelu: "<#" [merkki] ">" keskitettynä; tila avautuu ja sulkeutuu pehmeästi
+  const W = CW * 3 + (state.open ? SLOT : 0)
+  const move = { transition: 'transform 0.25s ease-out' }
+  const font = { fontSize: F, fontWeight: 800, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace' }
+  const slotX = -W / 2 + CW * 2 + SLOT / 2
   const glyphs = (
-    <g style={{ transform: `translate(${CX}px, ${CY}px) scale(${s}) translate(${-W / 2}px, 0px)`, transition: 'transform 0.2s ease-out' }}>
-      <text x={CW * 2} y={F * 0.35} textAnchor="end" fontSize={F} fontWeight={800} fontFamily="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
-        {'<#'}
-      </text>
-      {SYMS.slice(0, n).map((m, i) =>
-        m.dash ? (
-          <rect key={i} x={CW * 2 + SP + m.x} y={-BAR / 2} width={m.w} height={BAR} rx={BAR / 2} />
-        ) : (
-          <circle key={i} cx={CW * 2 + SP + m.x + m.w / 2} cy={0} r={DOT / 2} />
-        ),
-      )}
-      <text x={W - CW} y={F * 0.35} textAnchor="start" fontSize={F} fontWeight={800} fontFamily="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
-        {'>'}
-      </text>
+    <g transform={`translate(${CX} ${CY})`}>
+      <g style={{ ...move, transform: `translateX(${-W / 2 + CW * 2}px)` }}>
+        <text y={F * 0.35} textAnchor="end" {...font}>
+          {'<#'}
+        </text>
+      </g>
+      {state.sym === '-' && <rect x={slotX - DASH / 2} y={-BAR / 2} width={DASH} height={BAR} rx={BAR / 2} />}
+      {state.sym === '.' && <circle cx={slotX} cy={0} r={DOT / 2} />}
+      <g style={{ ...move, transform: `translateX(${W / 2 - CW}px)` }}>
+        <text y={F * 0.35} textAnchor="start" {...font}>
+          {'>'}
+        </text>
+      </g>
     </g>
   )
 
@@ -155,7 +137,6 @@ export function Logo({
       aria-label={label}
       aria-hidden={label ? undefined : true}
       onPointerEnter={trigger}
-      onPointerLeave={reset}
       onClick={trigger}
     >
       <defs>

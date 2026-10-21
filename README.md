@@ -88,7 +88,7 @@ v2/                          edellinen (perinteinen) portfolio, itsenäinen proj
   pelitavaratyyli) ja viite `src/content/images.ts` → `icons`.
 - Tavarat: `goods.groups[].items` (kind `good`, `count`, `spec`) ja `goods.resources` (repos/commits
   GitHub-datasta, muut `value`). Uusi esine: `public/images/good-<nimi>.webp` (512×512) + `images.ts` → `goods`.
-- Tunnus: `src/components/Logo.tsx` (Higgsfieldin kuvake vektoroituna, `<#>` + morse-pääsiäismuna `play="loop" | "hover"`);
+- Tunnus: `src/components/Logo.tsx` (Higgsfieldin kuvake vektoroituna, `<#>` + morse-pääsiäismuna yksi merkki kerrallaan, `play="loop" | "hover"`);
   favikoni `favicon.png` renderöity samasta polusta.
 - Taso-numero ja HUD-slotit: `hud.level`, `hud.slots`. Reppu: `hud.bag.rows`
   (commits/repos tulevat GitHub-datasta, muut `value`-kentästä).

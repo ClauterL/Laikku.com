@@ -26,7 +26,8 @@ Claus Laikun portfoliosivusto pelivalikon muodossa (laikku.com). Rakenne ja kome
   tumma liuskekivitausta #1b2229, harvinaisuuden mukainen hehku (kulta/violetti/teräksensininen/harmaa),
   ei tekstiä, ei brändilogoja – ohjelmistot kuvataan esineinä (esim. Ollama = obsidiaanilaama).
 - Tunnus (`src/components/Logo.tsx`): Higgsfieldillä piirretty ja vektoroitu kuvake ihmisestä läppärin takana,
-  näytöllä `<#>`. Pääsiäismuna: #:n perään kirjoittuu SMART morsena (`... -- .- .-. -`) – kirjaimia ei näytetä;
+  näytöllä `<#>`. Pääsiäismuna: #:n perään välähtää yksi morsemerkki kerrallaan kuin kursori, peräkkäin
+  SMART (`... -- .- .-. -`) – kirjaimia eikä koko viestiä näytetä koskaan;
   nimi "Claus Laikku" on aina erillinen teksti. Favikoni `public/favicon.png` renderöidään samasta polusta.
 - `src/data/github.json` on generoitu (scripts/fetch-github.mjs) – älä muokkaa käsin.
 - Kartta on oikea maailmankartta omana SVG:nä (`src/data/world.json`, d3-geo + d3-zoom) AC-tyylillä:
