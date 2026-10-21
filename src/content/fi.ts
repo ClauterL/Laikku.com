@@ -798,7 +798,7 @@ export const fi: Content = {
           role: 'Yksikön päällikkö',
           org: '[Organisaatio]',
           quote: 'Laikku osasi [taidon] – [esimerkki siitä, miten se näkyi].',
-          photo: { ...images.refChristian, alt: 'Christian tummassa puvussa kädet ristissä toimiston iltavalossa' },
+          photo: { ...images.refChristian, alt: 'Christian hymyilee tummassa puvussa kädet ristissä toimiston iltavalossa' },
           draft: true,
         },
         {
