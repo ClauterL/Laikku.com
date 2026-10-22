@@ -107,8 +107,13 @@ export function Critter({ kind, className }: { kind: ClipKind; className?: strin
   return <div ref={ref} className={cn('critter', className)} style={{ aspectRatio: `${s.w} / ${s.h}` }} aria-hidden />
 }
 
-/** Karhu kävelee radan päästä päähän. Eteneminen lasketaan videosta mitatusta askelpituudesta, joten tassut eivät
-    liu'u: ruutu = kuljettu matka / askel ruutua kohden. Se pysähtyy aina seisovaan ruutuun (rest), päissä kääntyy. */
+/** Karhu: viisi Higgsfield-klippiä samassa koordinaatistossa – kävelysykli, pysähdys seisomaan, lähtö,
+    käännös ympäri. Jokaisen ruudun siirtymä (dx) on mitattu videosta maassa olevien tassujen liikkeestä, joten
+    tassut pysyvät paikallaan. Pysähdys alkaa aina samasta syklin ruudusta (stop.enter = pysähdysklipin 1. ruutu)
+    ja lähtö päättyy syklin ruutuun go.exit, joten liitokset ovat saumattomia. Peilaus (scaleX(-1)) kääntää suunnan:
+    ruudukko on rajattu videon keskilinjan suhteen symmetrisesti, joten käännösklipin loppu = seisova ruutu peilattuna. */
+type Mode = 'walk' | 'stop' | 'stand' | 'turn' | 'go'
+
 export function WalkingBear({ className }: { className?: string }) {
   const track = useRef<HTMLDivElement>(null)
   const bear = useRef<HTMLDivElement>(null)
@@ -119,76 +124,131 @@ export function WalkingBear({ className }: { className?: string }) {
     const tr = track.current
     const el = bear.current
     if (!tr || !el) return
-    const rest = new Set(s.rest)
+    const sum = (a: number[]) => a.reduce((p, v) => p + v, 0)
+    const cycleDist = s.walk.n * s.walk.dx // ruudun pikseleinä
+    const stopDist = sum(s.stop.dx)
+    const goDist = sum(s.go.dx)
+    const k = () => el.offsetHeight / s.h // ruudun pikseli → näytön pikseli
     const span = () => Math.max(0, tr.clientWidth - el.offsetWidth)
-    const strideD = () => (s.stride * el.offsetHeight) / s.h // näyttöpikseleinä ruutua kohden
-    let x = Math.random() * span()
-    let dir = Math.random() < 0.5 ? 1 : -1
-    let dist = s.rest[0] * strideD() // aloitus seisovasta ruudusta
-    let stopAt = dist // matka, jossa seuraava pysähdys on
-    let atEnd = false // pysähdys radan päässä → käänny tauon jälkeen
-    let wait = rand(600, 2500)
-    let ramp = 0
+    const room = () => (face > 0 ? span() - x : x) // tilaa kulkusuuntaan
+
+    let face = Math.random() < 0.5 ? 1 : -1 // 1 = oikealle (videon suunta), -1 = peilattu
+    let x = rand(0.15, 0.85) * span()
+    let mode: Mode = 'stand'
+    let i = 0
+    let left = rand(800, 3500) // ms seuraavaan ruutuun
+    let turnNext = false
+    let walked = 0 // kävelyruutuja lähdön jälkeen: satunnainen pysähdys vasta täyden syklin jälkeen
     let last = 0
     let raf = 0
-    const place = () => {
-      el.style.transform = `translate3d(${x.toFixed(2)}px,0,0) scaleX(${dir})`
-    }
-    show(el, s, s.rest[0])
-    place()
 
-    /** seuraava osuus: radan päähän tai satunnaiseen kohtaan; pysähdys siirretään lähimpään seisovaan ruutuun */
-    const plan = () => {
-      const sd = strideD()
-      const end = dir > 0 ? span() : 0
-      let target = end
-      atEnd = true
-      if (Math.random() < 0.4) {
-        const mid = rand(0.2, 0.8) * span()
-        if ((mid - x) * dir > 40) {
-          target = mid
-          atEnd = false
+    const draw = (f: number) => {
+      show(el, s, f)
+      el.style.transform = `translate3d(${x.toFixed(2)}px,0,0) scaleX(${face})`
+    }
+    const move = (dxCell: number) => {
+      x = Math.min(span(), Math.max(0, x + face * dxCell * k()))
+    }
+    draw(s.stand)
+    if (reduce) return watch(el, s, () => {}) // vain kuva, ei liikettä
+
+    /** pysähdytäänkö nyt (kutsutaan, kun sykli on tulossa pysähdyksen aloitusruutuun) */
+    const shouldStop = () => {
+      const need = (stopDist + cycleDist) * k() + 2
+      if (room() < need) {
+        turnNext = true // seuraava sykli ei mahtuisi -> pysähdy ja käänny
+        return true
+      }
+      if (walked >= s.walk.n && Math.random() < 0.22) {
+        turnNext = Math.random() < 0.25
+        return true
+      }
+      return false
+    }
+
+    /** etene yksi ruutu; palauttaa ruudun keston ms */
+    const step = (): number => {
+      switch (mode) {
+        case 'walk': {
+          const next = (i + 1) % s.walk.n
+          move(s.walk.dx)
+          walked++
+          if (next === s.stop.enter && shouldStop()) {
+            mode = 'stop'
+            i = 0
+            draw(s.stop.at)
+            return s.stop.ms[0]
+          }
+          i = next
+          draw(s.walk.at + i)
+          return 1000 / s.fps
+        }
+        case 'stop': {
+          move(s.stop.dx[i])
+          i++
+          if (i >= s.stop.n - 1) {
+            mode = 'stand'
+            draw(s.stand)
+            return rand(1400, 4200)
+          }
+          draw(s.stop.at + i)
+          return s.stop.ms[i]
+        }
+        case 'stand': {
+          const need = (goDist + cycleDist) * k()
+          if (turnNext || (room() < need && span() > need)) {
+            turnNext = false
+            mode = 'turn'
+            i = 0
+            draw(s.turn.at)
+            return s.turn.ms[0]
+          }
+          mode = 'go'
+          i = 0
+          draw(s.go.at)
+          return s.go.ms[0]
+        }
+        case 'turn': {
+          move(s.turn.dx[i])
+          i++
+          if (i >= s.turn.n) {
+            face = -face
+            mode = 'stand'
+            draw(s.stand)
+            return rand(500, 1500)
+          }
+          draw(s.turn.at + i)
+          return s.turn.ms[i]
+        }
+        case 'go': {
+          move(s.go.dx[i])
+          i++
+          if (i >= s.go.n) {
+            walked = 0
+            mode = 'walk'
+            i = s.go.exit
+            draw(s.walk.at + i)
+            return 1000 / s.fps
+          }
+          draw(s.go.at + i)
+          return s.go.ms[i]
         }
       }
-      const reach = dist + Math.max(0, (target - x) * dir)
-      let f = Math.floor(reach / sd)
-      while (f * sd > dist && !rest.has(f % s.frames)) f--
-      stopAt = Math.max(dist, (f + 0.5) * sd)
-      if (stopAt > reach) stopAt = reach
     }
 
     const frame = (t: number) => {
-      const dt = last ? Math.min(t - last, 64) : 0
+      const dt = last ? Math.min(t - last, 100) : 0
       last = t
-      const sd = strideD()
-      if (sd > 0) {
-        if (wait > 0) {
-          wait -= dt
-          if (wait <= 0) {
-            if (atEnd) dir = -dir
-            ramp = 0
-            plan()
-            place()
-          }
-        } else {
-          const left = stopAt - dist
-          ramp = Math.min(1, ramp + dt / 600)
-          // kiihdytys lähdössä ja jarrutus lopussa – jalat hidastuvat samassa tahdissa
-          const k = Math.max(0.15, Math.min(1, left / (sd * 10))) * (0.2 + 0.8 * ramp)
-          const move = Math.min(left, sd * s.fps * (dt / 1000) * k)
-          x = Math.min(span(), Math.max(0, x + dir * move))
-          dist += move
-          show(el, s, Math.floor(dist / sd) % s.frames)
-          place()
-          if (left - move <= 0.01) wait = atEnd ? rand(1800, 4500) : rand(1200, 3500)
-        }
+      if (el.offsetHeight > 0) {
+        left -= dt
+        for (let n = 0; left <= 0 && n < 6; n++) left += step()
       }
       raf = requestAnimationFrame(frame)
     }
 
     const stop = watch(el, s, (visible) => {
       cancelAnimationFrame(raf)
-      if (visible && !reduce) {
+      if (visible) {
         last = 0
         raf = requestAnimationFrame(frame)
       }

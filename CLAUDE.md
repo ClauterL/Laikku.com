@@ -26,9 +26,12 @@ Claus Laikun portfoliosivusto pelivalikon muodossa (laikku.com). Rakenne ja kome
   mustasta siluetista aloitus- ja lopetusruuduksi, paikallaan pysyvä kamera / karhulla seuraava kamera), joista ruudut
   irrotettu kynnystämällä → ruudukot `public/images/critter-{bear,deer,raccoon}.webp` (valkoinen + alfa) ja metatiedot
   `src/data/critters.json` (generoitu – älä muokkaa käsin; `images.ts` → `critterSprites`). Näytetään CSS-maskina
-  currentColor-värillä. Karhu (Taitomatriisin korttien yläreunalla) on yksi saumaton kävelysykli, joka etenee videosta
-  mitatun askelpituuden (`stride`) tahdissa, ettei tassu liu'u, ja pysähtyy seisovaan ruutuun (`rest`); peura (Muut
-  hankkeet) ja pesukarhu (Päivittäiset työkalut) toistavat videon omalla ajoituksella (`ms`) ja odottavat alkuasennossa.
+  currentColor-värillä. Karhu (Taitomatriisin korttien yläreunalla) koostuu viidestä toisiinsa liittyvästä klipistä:
+  saumaton kävelysykli (`walk`), pysähdys seisomaan (`stop`, alkaa syklin ruudusta `stop.enter`), lähtö (`go`, päättyy
+  syklin ruutuun `go.exit`) ja käännös ympäri (`turn`, loppu = seisova peilattuna; ruudukko rajattu symmetrisesti).
+  Jokaisen ruudun siirtymä `dx` on mitattu maassa olevista tassuista, joten tassut eivät liu'u; karhu ei koskaan
+  pysähdy kesken askeleen. Peura (Muut hankkeet) ja pesukarhu (Päivittäiset työkalut) toistavat videon omalla
+  ajoituksella (`ms`) ja odottavat alkuasennossa.
   Vain staattisille taustoille, ei `spot`-korteille; kuva ladataan lähellä näkymää, animaatio pyörii vain näkyvissä,
   vähennetty liike → paikallaan.
 - UI-primitiivit shadcn/ui-tyyliin (`src/components/ui`), Radix UI:n päällä.

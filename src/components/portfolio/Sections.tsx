@@ -390,9 +390,9 @@ export function Skills() {
       </div>
 
       <div className="relative mb-4 mt-16">
-        <h3 className="text-xs font-bold uppercase tracking-[0.22em] text-pf-orange">{p.skills.matrix}</h3>
-        {/* karhu kävelee korttien yläreunaa pitkin */}
-        <WalkingBear className="-bottom-4 left-[42%] right-2 h-[52px] text-pf-line-2" />
+        <h3 className="relative z-10 text-xs font-bold uppercase tracking-[0.22em] text-pf-orange">{p.skills.matrix}</h3>
+        {/* karhu kävelee korttien yläreunaa pitkin (mobiilissa koko leveydellä otsikon takana, jotta pysähdys mahtuu) */}
+        <WalkingBear className="-bottom-4 left-2 right-2 h-[52px] text-pf-line-2 md:left-[42%]" />
       </div>
       <div className="grid gap-4 md:grid-cols-3">
         {t.skills.branches.map((b, bi) => (
