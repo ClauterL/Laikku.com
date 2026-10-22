@@ -740,7 +740,7 @@ export const fi: Content = {
       'Olen Claus Laikku, kehittäjä ja yrittäjä Jyväskylästä. Perustin Havaida Oy:n kesällä 2026, työskentelen älyvalaistuksen parissa teknisenä asiantuntijana ja opiskelen tieto- ja viestintätekniikkaa JAMKissa.',
       'Vapaalla HEMA, sukellus, golf ja metsä. Vuonna 2027 suunta on Split.',
     ],
-    quote: 'Voittajat kirjoittavat historian. Rikkaat määräävät säännöt. Unelmoijat luovat.',
+    quote: 'Voittajat kirjoittavat historian. Rikkaat määräävät säännöt. Unelmoijat rakentavat, rikkovat, ratkaisevat & rakentavat uudelleen.',
     info: [
       { label: 'Nimi', value: 'Claus Laikku' },
       { label: 'Sähköposti', value: links.email, href: `mailto:${links.email}` },
