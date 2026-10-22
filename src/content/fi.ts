@@ -262,8 +262,8 @@ export const fi: Content = {
             desc: 'Tela-alustainen robotti, jota muunnetaan marjanpoimintaan ja talvella lumitöihin.',
           },
           {
-            id: 'boat', kind: 'good', name: 'Aurinkovene', tag: 'USV · suunnitteilla', icon: goods.boat, rarity: 'rare',
-            desc: 'Autonominen aurinkovene, jonka on tarkoitus seilata Suomen satamasta Houstoniin. Vielä piirustuspöydällä.',
+            id: 'boat', kind: 'good', name: 'Vesidrone', tag: 'USV · suunnitteilla', icon: goods.boat, rarity: 'rare',
+            desc: 'Autonominen aurinkokäyttöinen vesidrone, jonka on tarkoitus lähteä Oslosta ja kiertää Pohjanmeri. Vielä piirustuspöydällä.',
             spec: [{ label: 'Tila', value: 'suunnitteilla' }],
           },
           {
@@ -695,10 +695,10 @@ export const fi: Content = {
       {
         id: 'boat',
         type: 'side',
-        title: 'Robottivene Houstoniin',
+        title: 'Vesidrone Pohjanmeren ympäri',
         status: 'idea',
         progress: 5,
-        desc: 'Autonominen aurinkovene Suomen satamasta Atlantin yli Houstoniin.',
+        desc: 'Autonominen aurinkokäyttöinen vesidrone, joka lähtee Oslosta ja kiertää Pohjanmeren ympäri.',
         objectives: [
           { text: 'Konsepti ja reitti', done: true },
           { text: 'Prototyyppi järvellä', done: false },

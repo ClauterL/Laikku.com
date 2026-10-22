@@ -261,8 +261,8 @@ export const en: Content = {
             desc: 'A tracked robot being converted for berry picking and, in winter, snow clearing.',
           },
           {
-            id: 'boat', kind: 'good', name: 'Solar boat', tag: 'USV · planned', icon: goods.boat, rarity: 'rare',
-            desc: 'An autonomous solar boat meant to sail from a Finnish harbour to Houston. Still on the drawing board.',
+            id: 'boat', kind: 'good', name: 'Water drone', tag: 'USV · planned', icon: goods.boat, rarity: 'rare',
+            desc: 'An autonomous solar-powered water drone meant to set out from Oslo and circle the North Sea. Still on the drawing board.',
             spec: [{ label: 'Status', value: 'planned' }],
           },
           {
@@ -694,10 +694,10 @@ export const en: Content = {
       {
         id: 'boat',
         type: 'side',
-        title: 'Robot boat to Houston',
+        title: 'Water drone around the North Sea',
         status: 'idea',
         progress: 5,
-        desc: 'An autonomous solar boat from a Finnish harbour across the Atlantic to Houston.',
+        desc: 'An autonomous solar-powered water drone that sets out from Oslo and circles the North Sea.',
         objectives: [
           { text: 'Concept and route', done: true },
           { text: 'Prototype on a lake', done: false },
