@@ -6,15 +6,16 @@ import { useReducedMotion } from './hooks'
 
 /* Eläinvarjot alaosioissa kuin bannerin linnut: litteä siluetti, joka elää omaa elämäänsä.
    Ruudut on irrotettu Higgsfield-videoista (oikea, jatkuva liike), ruudukko on CSS-maski (väri = currentColor)
-   ja ruutu vaihdetaan siirtämällä maskia – ei React-renderöintejä. Kuva ladataan vasta lähellä näkymää,
-   animaatio pyörii vain näkyvissä; vähennetty liike → yksi ruutu paikallaan. */
+   ja ruutu vaihdetaan siirtämällä maskia – ei React-renderöintejä. Kuva ladataan heti sivun asetuttua ja
+   animaatio pyörii koko ajan (myös näkymän ulkopuolella), joten eläin on jo liikkeessä, kun sen kohdalle
+   vieritetään; vähennetty liike → yksi ruutu paikallaan. */
 
-type Sheet = { src: string; w: number; h: number; cols: number; rows: number; frames: number }
+export type Sheet = { src: string; w: number; h: number; cols: number; rows: number; frames: number }
 
 const rand = (a: number, b: number) => a + Math.random() * (b - a)
 
 /** näytä ruutu i (maskin sijainti ruudukossa 0…1 kumpaankin suuntaan) */
-function show(el: HTMLElement, s: Sheet, i: number) {
+export function show(el: HTMLElement, s: Sheet, i: number) {
   const col = i % s.cols
   const row = Math.floor(i / s.cols)
   el.style.setProperty('--cx', String(s.cols > 1 ? col / (s.cols - 1) : 0))
@@ -22,7 +23,7 @@ function show(el: HTMLElement, s: Sheet, i: number) {
 }
 
 /** maski ja väri vasta, kun eläin on lähellä näkymää (ennen sitä elementti on tyhjä) */
-function arm(el: HTMLElement, s: Sheet) {
+export function arm(el: HTMLElement, s: Sheet) {
   const img = `url(${s.src})`
   const size = `${s.cols * 100}% ${s.rows * 100}%`
   const pos = 'calc(var(--cx, 0) * 100%) calc(var(--cy, 0) * 100%)'
@@ -39,36 +40,21 @@ function arm(el: HTMLElement, s: Sheet) {
   st.backgroundColor = 'currentColor'
 }
 
-/** Kutsuu fn(true/false), kun elementti tulee näkyviin / poistuu; arm() jo 400 px ennen */
-function watch(el: HTMLElement, s: Sheet, fn: (visible: boolean) => void) {
-  let armed = false
-  let visible = false
-  const near = new IntersectionObserver(
-    ([e]) => {
-      if (e?.isIntersecting && !armed) {
-        armed = true
-        arm(el, s)
-        near.disconnect()
-      }
-    },
-    { rootMargin: '400px 0px' },
-  )
-  const io = new IntersectionObserver(([e]) => {
-    if (!e || e.isIntersecting === visible) return
-    visible = e.isIntersecting
-    fn(visible)
-  })
-  near.observe(el)
-  io.observe(el)
-  return () => {
-    near.disconnect()
-    io.disconnect()
+/** arm() heti, kun selain ehtii (ei kilpaile hero-kuvien kanssa); palauttaa peruutuksen */
+function armSoon(el: HTMLElement, s: Sheet) {
+  const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void }
+  if (w.requestIdleCallback) {
+    const id = w.requestIdleCallback(() => arm(el, s), { timeout: 1500 })
+    return () => w.cancelIdleCallback?.(id)
   }
+  const id = window.setTimeout(() => arm(el, s), 600)
+  return () => window.clearTimeout(id)
 }
 
 type ClipKind = 'deer' | 'raccoon'
 
-/** Peura ja pesukarhu: videon ruudut sen omalla ajoituksella, sitten tauko alkuasennossa (video alkaa ja päättyy samaan) */
+/** Peura ja pesukarhu: videon ruudut sen omalla ajoituksella, sitten lyhyt tauko alkuasennossa (video alkaa ja
+    päättyy samaan). Aloittaa satunnaisesta ruudusta heti, ettei eläimiä nähdä seisomassa odottamassa. */
 export function Critter({ kind, className }: { kind: ClipKind; className?: string }) {
   const ref = useRef<HTMLDivElement>(null)
   const reduce = useReducedMotion()
@@ -77,10 +63,12 @@ export function Critter({ kind, className }: { kind: ClipKind; className?: strin
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    show(el, s, 0)
-    let i = 0
+    let i = Math.floor(Math.random() * s.frames) // eläimet eivät ole samassa vaiheessa
+    show(el, s, reduce ? 0 : i)
+    const unarm = armSoon(el, s)
+    if (reduce) return unarm
     let timer = 0
-    let wait = rand(800, 5000) // eläimet eivät aloita yhtä aikaa
+    let wait = 0
     const tick = () => {
       if (wait > 0) {
         const w = wait
@@ -91,15 +79,12 @@ export function Critter({ kind, className }: { kind: ClipKind; className?: strin
       show(el, s, i)
       const ms = s.ms[i] ?? 42
       i = (i + 1) % s.frames
-      if (i === 0) wait = rand(2600, 7000)
+      if (i === 0) wait = rand(600, 2400)
       timer = window.setTimeout(tick, ms)
     }
-    const stop = watch(el, s, (visible) => {
-      window.clearTimeout(timer)
-      if (visible && !reduce) tick()
-    })
+    tick()
     return () => {
-      stop()
+      unarm()
       window.clearTimeout(timer)
     }
   }, [reduce, s])
@@ -134,9 +119,10 @@ export function WalkingBear({ className }: { className?: string }) {
 
     let face = Math.random() < 0.5 ? 1 : -1 // 1 = oikealle (videon suunta), -1 = peilattu
     let x = rand(0.15, 0.85) * span()
-    let mode: Mode = 'stand'
-    let i = 0
-    let left = rand(800, 3500) // ms seuraavaan ruutuun
+    // liikkeellä heti: kävelysyklin satunnaisesta ruudusta
+    let mode: Mode = reduce ? 'stand' : 'walk'
+    let i = Math.floor(Math.random() * s.walk.n)
+    let left = 1000 / s.fps // ms seuraavaan ruutuun
     let turnNext = false
     let walked = 0 // kävelyruutuja lähdön jälkeen: satunnainen pysähdys vasta täyden syklin jälkeen
     let last = 0
@@ -149,8 +135,9 @@ export function WalkingBear({ className }: { className?: string }) {
     const move = (dxCell: number) => {
       x = Math.min(span(), Math.max(0, x + face * dxCell * k()))
     }
-    draw(s.stand)
-    if (reduce) return watch(el, s, () => {}) // vain kuva, ei liikettä
+    const unarm = armSoon(el, s)
+    draw(reduce ? s.stand : s.walk.at + i)
+    if (reduce) return unarm // vain kuva, ei liikettä
 
     /** pysähdytäänkö nyt (kutsutaan, kun sykli on tulossa pysähdyksen aloitusruutuun) */
     const shouldStop = () => {
@@ -236,6 +223,7 @@ export function WalkingBear({ className }: { className?: string }) {
       }
     }
 
+    // pyörii koko ajan, myös näkymän ulkopuolella (selain hidastaa itse taustavälilehdellä)
     const frame = (t: number) => {
       const dt = last ? Math.min(t - last, 100) : 0
       last = t
@@ -245,16 +233,9 @@ export function WalkingBear({ className }: { className?: string }) {
       }
       raf = requestAnimationFrame(frame)
     }
-
-    const stop = watch(el, s, (visible) => {
-      cancelAnimationFrame(raf)
-      if (visible) {
-        last = 0
-        raf = requestAnimationFrame(frame)
-      }
-    })
+    raf = requestAnimationFrame(frame)
     return () => {
-      stop()
+      unarm()
       cancelAnimationFrame(raf)
     }
   }, [reduce, s])

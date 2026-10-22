@@ -522,3 +522,606 @@
   .pf .blink, .pf .blink-2 { opacity: 1; }
 }
 
+
+/* hero-maiseman yö (vain aloitusruudulla: HeroScene night → data-night). Yöpino häivytetään kokonaisena
+   päiväpinon päälle; päiväpino piilotetaan vasta, kun yö on kokonaan näkyvissä. Kesto --dusk. */
+.pf .hero-day-stack, .pf .hero-night-stack { transition: opacity var(--dusk, 1.2s) ease, visibility 0s linear 0s; }
+/* plus-lighter: (1 − t)·päivä + t·yö myös läpikuultavissa reunapikseleissä – aito ristihäivytys ilman reunaviivoja.
+   Vain siirtymän ajan (data-fading aloitusruudun juuressa), levossa näkyy vain toinen pino. */
+[data-fading] .pf .hero-day-stack, [data-fading] .pf .hero-night-stack, .pf[data-fading] .hero-day-stack, .pf[data-fading] .hero-night-stack { mix-blend-mode: plus-lighter; }
+.pf .hero-night-stack { opacity: 0; visibility: hidden; transition: opacity var(--dusk, 1.2s) ease, visibility 0s linear var(--dusk, 1.2s); }
+.pf .hero-scene[data-night] .hero-night-stack { opacity: 1; visibility: visible; transition: opacity var(--dusk, 1.2s) ease, visibility 0s linear 0s; }
+.pf .hero-scene[data-night] .hero-day-stack { opacity: 0; visibility: hidden; transition: opacity var(--dusk, 1.2s) ease, visibility 0s linear var(--dusk, 1.2s); }
+/* aurinko nousee nopeasti; yöllä se laskee ensin vaarojen taakse ja hiipuu vasta sitten */
+.pf .hero-sun { transition: transform var(--dusk, 1.2s) cubic-bezier(0.3, 0, 0.2, 1), opacity calc(var(--dusk, 1.2s) * 0.4) ease; }
+.pf .hero-scene[data-night] .hero-sun {
+  transform: translateY(26%);
+  opacity: 0;
+  transition: transform var(--dusk, 1.2s) cubic-bezier(0.5, 0, 0.6, 1), opacity calc(var(--dusk, 1.2s) * 0.45) ease calc(var(--dusk, 1.2s) * 0.55);
+}
+.pf .hero-clouds, .pf .hero-birds { transition: opacity var(--dusk, 1.2s) ease; }
+.pf .hero-scene[data-night] .hero-clouds { opacity: 0.12; }
+.pf .hero-scene[data-night] .hero-birds { opacity: 0; }
+.pf .hero-door, .pf .hero-fireflies { opacity: 0; transition: opacity var(--dusk, 1.2s) ease; }
+.pf .hero-scene[data-night] .hero-door, .pf .hero-scene[data-night] .hero-fireflies { opacity: 1; transition-delay: calc(var(--dusk, 1.2s) * 0.5); }
+@keyframes hero-flicker { 0%, 100% { opacity: 0.92; } 35% { opacity: 0.72; } 52% { opacity: 1; } 71% { opacity: 0.8; } }
+.pf .hero-door > * { animation: hero-flicker 3.4s ease-in-out infinite; }
+@keyframes hero-firefly {
+  0% { transform: translate(0, 0); opacity: 0; }
+  18% { opacity: 1; }
+  50% { transform: translate(var(--fx), var(--fy)); opacity: 0.3; }
+  68% { opacity: 1; }
+  100% { transform: translate(calc(var(--fx) * -0.5), calc(var(--fy) * 1.4)); opacity: 0; }
+}
+.pf .hero-firefly { opacity: 0; animation: hero-firefly var(--fd, 8s) ease-in-out var(--fdl, 0s) infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .pf .hero-door > * { animation: none; }
+  .pf .hero-firefly { animation: none; opacity: 0.7; }
+}
+
+/* ============================================================
+   ALOITUSRUUTU (.start) – valinta Normaali / Pelillistetty
+   Sama Järvi-Suomi-maisema kuin normaalin portfolion herossa: Normaali = kultainen auringonlasku,
+   Pelillistetty = revontuliyö (pelin teal). data-night vaihtaa värit, --dusk = siirtymän kesto.
+   ============================================================ */
+.start {
+  --dusk: 1.2s;
+  --st-ink: var(--pf-deep);
+  --st-ink-2: rgba(58, 21, 48, 0.72);
+  --st-line: rgba(58, 21, 48, 0.2);
+  --st-chip: rgba(255, 255, 255, 0.34);
+  --st-on: var(--pf-sky);
+  font-family: var(--font-body);
+  color: var(--st-ink);
+  color-scheme: light;
+}
+.start[data-night] {
+  --st-ink: #eaf3ff;
+  --st-ink-2: rgba(214, 229, 250, 0.74);
+  --st-line: rgba(200, 225, 255, 0.24);
+  --st-chip: rgba(8, 14, 34, 0.42);
+  --st-on: #07102d;
+  color-scheme: dark;
+}
+.start .st-ink, .start .st-ink-2, .start .st-chip { transition: color var(--dusk) ease, background-color var(--dusk) ease, border-color var(--dusk) ease; }
+.start .st-ink { color: var(--st-ink); }
+.start .st-ink-2 { color: var(--st-ink-2); }
+.start .st-chip { background: var(--st-chip); border: 1px solid var(--st-line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+
+/* taivas: päivä → yö ristihäivytyksenä, tähdet, kuu, revontulet, tähdenlento */
+.start .st-day { background: linear-gradient(180deg, #fde4cd 0%, #fdd6b5 42%, #fcc297 72%, #f9a874 100%); }
+.start .st-night-sky {
+  background:
+    radial-gradient(70% 34% at 62% 74%, rgba(70, 210, 180, 0.2), transparent 70%),
+    linear-gradient(180deg, #02051a 0%, #07102d 36%, #0f1d40 68%, #1b3253 100%);
+}
+.start .st-dusk {
+  opacity: 0;
+  background:
+    radial-gradient(80% 40% at 62% 78%, rgba(255, 150, 110, 0.55), transparent 70%),
+    linear-gradient(180deg, #24184a 0%, #4b2a66 38%, #93407a 66%, #e07a7a 86%, #f4a57a 100%);
+}
+@keyframes st-dusk-in { 0%, 100% { opacity: 0; } 45% { opacity: 0.82; } }
+@keyframes st-dusk-out { 0%, 100% { opacity: 0; } 55% { opacity: 0.7; } }
+.start[data-revealed][data-night] .st-dusk { animation: st-dusk-in var(--dusk) ease-in-out both; }
+.start[data-revealed]:not([data-night]) .st-dusk { animation: st-dusk-out var(--dusk) ease-in-out both; }
+/* päivällä yön kerrokset piiloon kokonaan (visibility), etteivät revontulien ja tähtien animaatiot kuormita turhaan */
+.start .st-night-sky, .start .st-stars, .start .st-moon, .start .st-aurora, .start .st-shoot {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--dusk) ease, visibility 0s linear var(--dusk);
+}
+.start[data-night] .st-night-sky, .start[data-night] .st-stars, .start[data-night] .st-moon {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity var(--dusk) ease, visibility 0s linear 0s;
+}
+.start[data-night] .st-shoot { opacity: 1; visibility: visible; transition: opacity var(--dusk) ease var(--dusk), visibility 0s linear 0s; }
+.start[data-night] .st-aurora { opacity: 0.95; visibility: visible; transition: opacity var(--dusk) ease calc(var(--dusk) * 0.45), visibility 0s linear 0s; }
+.start[data-night][data-phase='loading'] .st-aurora { opacity: 1; }
+.start .st-aurora { mix-blend-mode: screen; }
+
+/* tähdet tuikkivat neljänä ryhmänä (neljä animaatiota, ei 120 erillistä kerrosta) */
+@keyframes st-twinkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+.start .st-star-group { position: absolute; inset: 0; animation: st-twinkle var(--t, 4s) ease-in-out var(--dl, 0s) infinite; }
+.start .st-star { position: absolute; border-radius: 9999px; background: #f2f7ff; opacity: var(--o, 0.8); }
+
+@keyframes st-sway-a { from { transform: translateX(-4%) skewX(-7deg) scaleY(0.88); } to { transform: translateX(3%) skewX(5deg) scaleY(1.08); } }
+@keyframes st-sway-b { from { transform: translateX(5%) skewX(6deg) scaleY(1.06); } to { transform: translateX(-3%) skewX(-4deg) scaleY(0.86); } }
+@keyframes st-breathe { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+.start .st-curtain { position: absolute; inset: 0; transform-origin: 50% 85%; will-change: transform; animation: st-sway-a 19s ease-in-out infinite alternate; }
+.start .st-curtain-b { animation-name: st-sway-b; animation-duration: 25s; }
+.start .st-curtain > svg { animation: st-breathe 8s ease-in-out infinite; }
+.start .st-curtain-b > svg { animation-duration: 11s; animation-delay: -4s; }
+.start[data-phase='loading'] .st-curtain { animation-duration: 6s; }
+/* päivällä yön animaatiot tauolla */
+.start:not([data-night]) .st-curtain, .start:not([data-night]) .st-curtain > svg, .start:not([data-night]) .st-star-group, .start:not([data-night]) .st-meteor { animation-play-state: paused; }
+/* kun yö on kokonaan poissa (ei siirtymää), animaatiot ja kerrokset pois kokonaan: pysäytettykin suodatettu
+   revontulikerros maksaa joka ruudussa, vaikka se on piilossa */
+.start:not([data-night]):not([data-fading]) .st-curtain, .start:not([data-night]):not([data-fading]) .st-curtain > svg,
+.start:not([data-night]):not([data-fading]) .st-star-group, .start:not([data-night]):not([data-fading]) .st-meteor { animation: none; will-change: auto; }
+
+@keyframes st-shoot {
+  0%, 84% { opacity: 0; transform: rotate(155deg) translateX(0); }
+  85% { opacity: 1; }
+  91%, 100% { opacity: 0; transform: rotate(155deg) translateX(min(42vw, 520px)); }
+}
+.start .st-meteor { position: absolute; height: 1.5px; width: clamp(70px, 9vw, 140px); border-radius: 9999px; transform-origin: 100% 50%; background: linear-gradient(90deg, transparent, rgba(220, 255, 245, 0.95)); filter: drop-shadow(0 0 4px rgba(170, 255, 230, 0.9)); animation: st-shoot 14s linear infinite; }
+
+/* valintakortit: Normaali = persikkapaperi, Pelillistetty = yönsininen lasi + teal */
+.start .st-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-radius: 18px;
+  border: 1px solid transparent;
+  padding: clamp(0.85rem, 2.4vw, 1.15rem);
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+  backdrop-filter: blur(12px) saturate(1.25);
+  -webkit-backdrop-filter: blur(12px) saturate(1.25);
+  transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.35s ease, border-color 0.35s ease, opacity 0.3s ease;
+}
+/* kumpikin kortti on ikkuna omaan maailmaansa: Normaali = auringonlaskun taivas, Pelillistetty = tähtiyö revontulineen */
+.start .st-card[data-mode='normal'] {
+  background:
+    radial-gradient(120% 90% at 88% 118%, rgba(249, 150, 100, 0.5), transparent 62%),
+    linear-gradient(165deg, rgba(255, 245, 236, 0.92), rgba(253, 218, 190, 0.88));
+  border-color: rgba(58, 21, 48, 0.16);
+  color: var(--pf-deep);
+}
+.start .st-card[data-mode='game'] {
+  background:
+    radial-gradient(1.4px 1.4px at 14% 22%, #fff 45%, transparent 100%),
+    radial-gradient(1px 1px at 37% 12%, #fff 45%, transparent 100%),
+    radial-gradient(1.2px 1.2px at 58% 30%, #fff 45%, transparent 100%),
+    radial-gradient(1px 1px at 71% 9%, #fff 45%, transparent 100%),
+    radial-gradient(1.4px 1.4px at 88% 26%, #fff 45%, transparent 100%),
+    radial-gradient(1px 1px at 47% 52%, rgba(255, 255, 255, 0.7) 45%, transparent 100%),
+    radial-gradient(1px 1px at 93% 58%, rgba(255, 255, 255, 0.7) 45%, transparent 100%),
+    radial-gradient(90% 70% at 76% -12%, rgba(79, 209, 197, 0.3), transparent 66%),
+    linear-gradient(165deg, rgba(5, 9, 28, 0.9), rgba(14, 27, 60, 0.86));
+  border-color: rgba(127, 211, 204, 0.28);
+  color: #e8f2f6;
+}
+.start .st-card:not([data-active]) { opacity: 0.9; }
+.start .st-card:not([data-active]):hover { opacity: 1; }
+.start .st-card[data-active] { transform: translateY(-4px); }
+.start .st-card[data-mode='normal'][data-active] { box-shadow: 0 0 0 2px var(--pf-orange), 0 22px 46px -22px rgba(58, 21, 48, 0.75); }
+.start .st-card[data-mode='game'][data-active] { border-color: transparent; box-shadow: 0 0 0 2px var(--teal-2), 0 0 40px -6px rgba(127, 211, 204, 0.5), 0 22px 46px -22px rgba(0, 0, 0, 0.85); }
+.start .st-card:focus-visible { outline: 1.5px solid var(--st-line); outline-offset: 6px; }
+.start .st-icon { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 9999px; flex: none; }
+.start .st-card[data-mode='normal'] .st-icon { background: linear-gradient(135deg, var(--pf-amber), var(--pf-red)); color: #fff6ee; }
+.start .st-card[data-mode='game'] .st-icon { background: linear-gradient(135deg, var(--teal), var(--teal-2)); color: #04121a; }
+.start .st-num { display: inline-grid; place-items: center; min-width: 1.35rem; height: 1.35rem; padding-inline: 0.3rem; border-radius: 5px; border: 1px solid currentColor; border-bottom-width: 2px; font: 800 0.62rem/1 var(--font-body); opacity: 0.55; }
+.start .st-cta { display: inline-flex; align-items: center; gap: 0.35rem; font: 800 0.72rem/1 var(--font-body); letter-spacing: 0.16em; text-transform: uppercase; opacity: 0; transform: translateX(-6px); transition: opacity 0.3s ease, transform 0.3s ease; }
+.start .st-card[data-active] .st-cta { opacity: 1; transform: none; }
+.start .st-card[data-mode='normal'] .st-cta { color: var(--pf-red); }
+.start .st-card[data-mode='game'] .st-cta { color: var(--teal-2); }
+@keyframes st-nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(4px); } }
+.start .st-card[data-active] .st-cta svg { animation: st-nudge 1.4s ease-in-out infinite; }
+
+/* pesukarhu istuu valitun kortin yläreunalla ja hyppää toiselle */
+.start .st-raccoon { position: absolute; left: 0; top: 0; z-index: 2; height: clamp(44px, 7.2svh, 68px); aspect-ratio: 125 / 136; pointer-events: none; opacity: 0; transition: opacity 0.5s ease; will-change: transform; }
+.start .st-raccoon[data-on] { opacity: 1; }
+.start .st-raccoon-face { width: 100%; height: 100%; transition: transform 0.2s ease, filter var(--dusk) ease; }
+.start .st-raccoon-body { width: 100%; height: 100%; transform-origin: 50% 100%; color: var(--pf-deep); transition: color var(--dusk) ease; }
+.start[data-night] .st-raccoon-body { color: #070b1c; }
+.start[data-night] .st-raccoon-face { filter: drop-shadow(0 0 1px rgba(180, 245, 230, 0.95)) drop-shadow(0 0 8px rgba(127, 211, 204, 0.5)); }
+
+/* sisääntulo ja poistuminen */
+@keyframes st-rise { from { opacity: 0; transform: translateY(14px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+.start .st-rise { animation: st-rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: var(--d, 0ms); }
+.start .st-ui { transition: opacity 0.45s ease, transform 0.45s ease; }
+.start[data-phase='loading'] .st-ui, .start[data-phase='out'] .st-ui { opacity: 0; transform: translateY(-10px); pointer-events: none; }
+@keyframes st-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* vaakanäytöillä valinta laskeutuu järven päälle, jotta aurinko näkyy nimen ja korttien välissä;
+   puhelimella ja pystytableteilla kortit seuraavat suoraan nimeä */
+@media (min-width: 768px) and (min-aspect-ratio: 5/4) {
+  .start .st-choice { margin-top: auto; }
+  .start .st-main { padding-bottom: max(96px, 13svh); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .start .st-star-group, .start .st-curtain, .start .st-curtain > svg, .start .st-meteor, .start .st-cta svg { animation: none; }
+  .start .st-meteor, .start .st-dusk { display: none; }
+}
+
+/* ============================================================
+   DRONELENTO (.flight) – pelillistetty portfolio
+   Juuressa myös .start (taivas, st-ink-värit) ja .pf (fontit). Päivä/yö: data-night, kesto --dusk.
+   ============================================================ */
+.flight { --fl-shadow: 0 10px 30px -12px rgba(30, 10, 30, 0.55); touch-action: none; }
+/* päivä- ja yöpino: aito ristihäivytys (ks. hero-maisema) */
+.flight .fl-day, .flight .fl-night { transition: opacity var(--dusk) ease, visibility 0s linear 0s; }
+/* plus-lighter vain siirtymän ajan (data-fading): levossa näkyy vain toinen pino, eikä sekoitusta tarvita */
+.flight[data-fading] .fl-layer { isolation: isolate; }
+.flight[data-fading] .fl-day, .flight[data-fading] .fl-night { mix-blend-mode: plus-lighter; }
+.flight .fl-night { opacity: 0; visibility: hidden; transition: opacity var(--dusk) ease, visibility 0s linear var(--dusk); }
+.flight[data-night] .fl-night { opacity: 1; visibility: visible; transition: opacity var(--dusk) ease, visibility 0s linear 0s; }
+.flight[data-night] .fl-day { opacity: 0; visibility: hidden; transition: opacity var(--dusk) ease, visibility 0s linear var(--dusk); }
+.flight .fl-strip, .flight .fl-plane { will-change: transform; }
+/* HUD liikkuvan maiseman päällä ilman backdrop-filteriä (sumennus laskettaisiin joka ruudussa uudelleen) */
+.flight .st-chip { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(255, 246, 238, 0.78); }
+.flight[data-night] .st-chip { background: rgba(8, 14, 34, 0.72); }
+
+.flight .fl-sun { transition: transform var(--dusk) cubic-bezier(0.5, 0, 0.6, 1); }
+.flight[data-night] .fl-sun { transform: translateY(calc(var(--H) * 0.2px)); }
+.flight .fl-sun-glow { animation: hero-glow 7s ease-in-out infinite; }
+.flight .fl-glint { opacity: 0; animation: hero-glint 2.6s ease-in-out infinite; }
+
+/* kohteiden heijastukset ja valot */
+/* heijastus: raitamaski (vesi rikkoo kuvan juoviksi) ja huojunta vesirajan ympäri. Huojuu koko kerros maskeineen,
+   joten se rasteroidaan kerran ja vain siirretään (ei uudelleenpiirtoa joka ruudussa). */
+.flight .fl-reflect {
+  --rs: calc(var(--H) * 0.0075px);
+  opacity: 0.36;
+  pointer-events: none;
+  transform-origin: 50% 0;
+  animation: fl-wobble 5.6s ease-in-out infinite;
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.25) 35%, transparent 62%),
+    repeating-linear-gradient(to bottom, #000 0 var(--rs), rgba(0, 0, 0, 0.3) var(--rs) calc(var(--rs) * 1.4));
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.25) 35%, transparent 62%),
+    repeating-linear-gradient(to bottom, #000 0 var(--rs), rgba(0, 0, 0, 0.3) var(--rs) calc(var(--rs) * 1.4));
+  mask-composite: intersect;
+}
+@keyframes fl-wobble {
+  0%, 100% { transform: skewX(0deg) scaleX(1); }
+  30% { transform: skewX(-1.4deg) scaleX(1.012) scaleY(1.02); }
+  70% { transform: skewX(1.1deg) scaleX(0.992) scaleY(0.985); }
+}
+.flight .fl-reflect-flip { transform-origin: 50% 100%; transform: translateY(-100%) scaleY(-1); }
+.flight .fl-art img { transition: filter 0.25s ease; }
+.flight .fl-art:hover img { filter: brightness(1.08) drop-shadow(0 0 10px rgba(255, 220, 160, 0.45)); }
+@keyframes fl-flicker { 0%, 100% { opacity: 0.85; scale: 1; } 30% { opacity: 0.65; scale: 0.94; } 55% { opacity: 1; scale: 1.06; } 75% { opacity: 0.75; scale: 0.97; } }
+.flight .fl-fire { pointer-events: none; background: radial-gradient(circle, rgba(255, 196, 96, 0.55) 0%, rgba(255, 140, 60, 0.22) 35%, transparent 68%); mix-blend-mode: screen; animation: fl-flicker 1.9s ease-in-out infinite; }
+.flight .fl-lamp { pointer-events: none; background: radial-gradient(circle, rgba(255, 214, 140, 0.75) 0%, rgba(255, 180, 100, 0.25) 35%, transparent 70%); mix-blend-mode: screen; animation: fl-flicker 4.2s ease-in-out infinite; }
+.flight .fl-beam-pivot { width: 0; height: 0; }
+@keyframes fl-beam {
+  0% { transform: translateY(-50%) scaleX(1); opacity: 0.6; }
+  40% { transform: translateY(-50%) scaleX(0.04); opacity: 0.15; }
+  50% { transform: translateY(-50%) scaleX(-0.04); opacity: 0.15; }
+  90% { transform: translateY(-50%) scaleX(-1); opacity: 0.6; }
+  100% { transform: translateY(-50%) scaleX(-1); opacity: 0.6; }
+}
+.flight .fl-beam {
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, rgba(255, 240, 200, 0.75), rgba(255, 240, 200, 0.18) 55%, transparent);
+  clip-path: polygon(0 42%, 100% 0, 100% 100%, 0 58%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation: fl-beam 7s ease-in-out infinite alternate;
+}
+.flight .fl-fly { opacity: 0; animation: hero-firefly var(--fd, 8s) ease-in-out var(--fdl, 0s) infinite; }
+
+/* ---- elävä ympäristö (Scenery.tsx) ---- */
+/* piilossa olevan pinon animaatiot seis; siirtymän aikana molemmat liikkuvat */
+.flight:not([data-night]):not([data-fading]) .fl-night *, .flight[data-night]:not([data-fading]) .fl-day * { animation-play-state: paused !important; }
+
+/* aallonharjat syttyvät, venyvät ja sammuvat */
+@keyframes fl-wave {
+  0%, 100% { opacity: 0; transform: translateX(0) scaleX(0.35); }
+  45% { opacity: 0.9; transform: translateX(18%) scaleX(1); }
+  70% { opacity: 0.45; transform: translateX(30%) scaleX(1.15); }
+}
+.flight .fl-wave {
+  opacity: 0; background: linear-gradient(90deg, transparent, rgba(255, 246, 236, 0.98) 30%, rgba(255, 236, 220, 0.9) 70%, transparent);
+  box-shadow: 0 calc(var(--H) * 0.0035px) 0 rgba(120, 30, 50, 0.16); animation: fl-wave 5s ease-in-out infinite;
+}
+.flight .fl-night .fl-wave { background: linear-gradient(90deg, transparent, rgba(190, 250, 238, 0.85) 30%, rgba(160, 235, 225, 0.75) 70%, transparent); box-shadow: 0 calc(var(--H) * 0.0035px) 0 rgba(0, 0, 20, 0.35); }
+
+/* sataman vene keinuu laiturissa, siniristilippu liehuu (SMIL) */
+@keyframes fl-moor { 0%, 100% { transform: rotate(-0.9deg); } 50% { transform: rotate(0.9deg) translateY(0.35%); } }
+.flight .fl-moor { animation: fl-moor 4.8s ease-in-out infinite; }
+.flight .fl-flag-cloth { fill: #ffe4d2; }
+.flight .fl-flag-cross { fill: #3d4c92; }
+.flight .fl-night .fl-flag-cloth { fill: #93a7c6; }
+.flight .fl-night .fl-flag-cross { fill: #1c2656; }
+
+/* veneet järvellä: matka edestakaisin (käännös = peilaus), keinunta, heijastus ja vesidronen vana */
+@keyframes fl-voyage {
+  0% { transform: translateX(0) scaleX(1); }
+  47% { transform: translateX(calc(var(--H) * var(--d) * 1px)) scaleX(1); }
+  50% { transform: translateX(calc(var(--H) * var(--d) * 1px)) scaleX(-1); }
+  97% { transform: translateX(0) scaleX(-1); }
+  100% { transform: translateX(0) scaleX(1); }
+}
+.flight .fl-voyage { animation: fl-voyage 120s linear infinite; }
+@keyframes fl-rock { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg) translateY(2%); } }
+.flight .fl-rock { transform-origin: 50% 88%; animation: fl-rock 4s ease-in-out infinite; }
+.flight .fl-boat-echo {
+  transform: scaleY(-1); opacity: 0.3; filter: blur(1px); pointer-events: none;
+  -webkit-mask-image: linear-gradient(to top, #000, transparent 70%); mask-image: linear-gradient(to top, #000, transparent 70%);
+}
+.flight .fl-wake { right: 92%; bottom: 6%; width: 75%; height: 26%; overflow: visible; }
+.flight .fl-wake path { fill: none; stroke: rgba(255, 240, 225, 0.6); stroke-width: 1.5; vector-effect: non-scaling-stroke; stroke-dasharray: 6 5; animation: fl-dash 0.9s linear infinite; }
+.flight .fl-night .fl-wake path { stroke: rgba(160, 235, 220, 0.5); }
+@keyframes fl-dash { to { stroke-dashoffset: -11; } }
+
+/* renkaat vedessä (kalan hyppy, sorsat) */
+.flight .fl-ring {
+  position: absolute; left: 0; top: 0; width: calc(var(--H) * 0.05px); height: calc(var(--H) * 0.012px); border-radius: 50%;
+  border: 1.5px solid rgba(255, 236, 214, 0.75); opacity: 0; transform: translate(-50%, -50%) scale(0.2); pointer-events: none;
+}
+.flight .fl-night .fl-ring { border-color: rgba(160, 235, 220, 0.6); }
+@keyframes fl-ripple { 0% { opacity: 0.7; transform: translate(-50%, -50%) scale(0.3); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.4); } }
+
+/* kala hyppää kaaressa; renkaat hypyn alussa ja lopussa (sama kesto ja viive) */
+.flight .fl-fishspot { width: 0; height: 0; }
+.flight .fl-fish-arc { position: absolute; left: 0; top: 0; width: calc(var(--H) * 0.05px); opacity: 0; animation: fl-jump var(--fd, 10s) linear var(--fdl, 0s) infinite; }
+@keyframes fl-jump {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(calc(-60deg * var(--fs))); }
+  1% { opacity: 1; }
+  3% { transform: translate(calc(var(--H) * 0.02px * var(--fs) - 50%), calc(var(--H) * -0.045px - 50%)) rotate(calc(-25deg * var(--fs))); }
+  5.5% { transform: translate(calc(var(--H) * 0.045px * var(--fs) - 50%), calc(var(--H) * -0.06px - 50%)) rotate(calc(10deg * var(--fs))); }
+  8% { transform: translate(calc(var(--H) * 0.07px * var(--fs) - 50%), calc(var(--H) * -0.03px - 50%)) rotate(calc(45deg * var(--fs))); }
+  9.5% { opacity: 1; transform: translate(calc(var(--H) * 0.085px * var(--fs) - 50%), calc(var(--H) * 0.006px - 50%)) rotate(calc(70deg * var(--fs))); }
+  10%, 100% { opacity: 0; transform: translate(calc(var(--H) * 0.085px * var(--fs) - 50%), calc(var(--H) * 0.006px - 50%)) rotate(calc(70deg * var(--fs))); }
+}
+.flight .fl-fish { display: block; width: 100%; overflow: visible; transform: scaleX(calc(var(--fs) * -1)); }
+.flight .fl-fish path { fill: #5b1d3d; }
+.flight .fl-night .fl-fish path { fill: #0b1430; stroke: rgba(160, 240, 225, 0.7); stroke-width: 1; }
+@keyframes fl-ring-a { 0% { opacity: 0.9; transform: translate(-50%, -50%) scale(0.2); } 6% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); } 100% { opacity: 0; } }
+@keyframes fl-ring-b { 0%, 9.4% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); } 10% { opacity: 0.9; } 17% { opacity: 0; transform: translate(-50%, -50%) scale(1.8); } 100% { opacity: 0; } }
+.flight .fl-ring-a { animation: fl-ring-a var(--fd, 10s) ease-out var(--fdl, 0s) infinite; }
+.flight .fl-ring-b { left: calc(var(--H) * 0.085px * var(--fs)); animation: fl-ring-b var(--fd, 10s) ease-out var(--fdl, 0s) infinite; }
+
+/* sorsat */
+@keyframes fl-paddle { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-6%) rotate(2deg); } }
+.flight .fl-duck { transform-origin: 50% 100%; animation: fl-paddle 1.8s ease-in-out infinite; }
+.flight .fl-duck path { fill: #4d1834; }
+.flight .fl-night .fl-duck path { fill: #0a1129; stroke: rgba(160, 240, 225, 0.55); stroke-width: 1; }
+.flight .fl-ring-duck { left: 50%; top: 92%; width: 140%; height: 30%; animation: fl-ripple 2.8s ease-out infinite; }
+
+/* savu piipuista, kipinät nuotiosta */
+@keyframes fl-smoke { 0% { opacity: 0; transform: translate(-50%, 0) scale(0.6); } 15% { opacity: 0.7; } 100% { opacity: 0; transform: translate(120%, -620%) scale(2.6); } }
+.flight .fl-smoke { opacity: 0; background: #fff0e4; filter: blur(2px); animation: fl-smoke 6.9s ease-out infinite; }
+.flight .fl-night .fl-smoke { background: rgba(170, 195, 230, 0.7); }
+@keyframes fl-spark {
+  0% { opacity: 0; transform: translate(-50%, 0) scale(1); }
+  10% { opacity: 1; }
+  100% { opacity: 0; transform: translate(calc(var(--sx) - 50%), calc(var(--H) * -0.17px)) scale(0.4); }
+}
+.flight .fl-spark { opacity: 0; background: #ffd27a; box-shadow: 0 0 4px 1px rgba(255, 170, 80, 0.8); animation: fl-spark 2.4s ease-out infinite; }
+
+/* ---- keräyshaaste ---- */
+/* tuulijuovat: varoitus (data-g 1) → puhaltaa (2); suunta peilaamalla */
+.flight .fl-wind { z-index: 4; opacity: 0; transition: opacity 0.5s ease; }
+.flight .fl-wind[data-g='1'] { opacity: 0.4; }
+.flight .fl-wind[data-g='2'] { opacity: 0.9; }
+.flight .fl-wind[data-dir='l'] { transform: scaleX(-1); }
+.flight .fl-streak { left: 0; height: 2px; background: linear-gradient(90deg, transparent, rgba(255, 246, 236, 0.85), transparent); animation: fl-streak 1s linear infinite; }
+.flight[data-night] .fl-streak { background: linear-gradient(90deg, transparent, rgba(190, 240, 230, 0.7), transparent); }
+.flight .fl-wind:not([data-g]) .fl-streak { animation-play-state: paused; }
+@keyframes fl-streak { from { transform: translateX(-30vw); } to { transform: translateX(110vw); } }
+
+/* lokit (päivä) ja lepakot (yö): siivet SMILillä, paikka pelisilmukasta */
+.flight .fl-hazard { z-index: 2; will-change: transform; }
+.flight .fl-gull-body { fill: #fff3ea; stroke: #3a1530; stroke-width: 1.4; stroke-linejoin: round; }
+.flight .fl-gull-wing { fill: #f4d6c7; stroke: #3a1530; stroke-width: 1.4; stroke-linejoin: round; }
+.flight .fl-gull-far { fill: #c38f8e; }
+.flight .fl-gull-eye { fill: #3a1530; }
+.flight[data-night] .fl-gull-body, .flight[data-night] .fl-gull-wing { fill: #b9c7dd; stroke: #070b1c; }
+.flight .fl-bat-svg { fill: #2b0f26; }
+.flight[data-night] .fl-bat-svg { fill: #0a0d1f; filter: drop-shadow(0 0 1px rgba(180, 245, 230, 0.95)) drop-shadow(0 0 6px rgba(127, 211, 204, 0.4)); }
+
+/* osuma: drone vilkkuu suojan ajan; potkurivirta väreilee vedessä matalalla; roiske */
+@keyframes fl-hurt { 50% { opacity: 0.35; } }
+.flight .fl-drone[data-hit] { animation: fl-hurt 0.16s steps(2) infinite; }
+.flight .fl-wash { opacity: 0; will-change: transform, opacity; }
+.flight .fl-wash > span { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid rgba(255, 240, 225, 0.75); animation: fl-wash 1.2s ease-out infinite; }
+.flight .fl-wash > span:nth-child(2) { animation-delay: -0.4s; }
+.flight .fl-wash > span:nth-child(3) { animation-delay: -0.8s; }
+.flight[data-night] .fl-wash > span { border-color: rgba(160, 235, 220, 0.7); }
+@keyframes fl-wash { 0% { transform: scale(0.25); opacity: 0.9; } 100% { transform: scale(1.15); opacity: 0; } }
+.flight .fl-splash { z-index: 6; opacity: 0; }
+.flight .fl-splash.fl-go { opacity: 1; }
+.flight .fl-splash-ring { position: absolute; left: 50%; bottom: 0; width: 100%; height: 28%; border-radius: 50%; border: 2px solid rgba(255, 240, 225, 0.85); opacity: 0; transform: translate(-50%, 50%) scale(0.2); }
+.flight .fl-splash.fl-go .fl-splash-ring { animation: fl-splash-ring 0.9s ease-out both; }
+@keyframes fl-splash-ring { 0% { opacity: 1; transform: translate(-50%, 50%) scale(0.2); } 100% { opacity: 0; transform: translate(-50%, 50%) scale(1.3); } }
+.flight .fl-drop { position: absolute; left: 50%; bottom: 0; width: 6%; aspect-ratio: 1; border-radius: 50%; background: rgba(255, 244, 232, 0.95); opacity: 0; }
+.flight .fl-splash.fl-go .fl-drop { animation: fl-drop 0.8s cubic-bezier(0.2, 0.7, 0.4, 1) both; }
+@keyframes fl-drop {
+  0% { opacity: 1; transform: translate(-50%, 0) scale(0.6); }
+  55% { opacity: 1; transform: translate(calc(-50% + var(--dx) * 600%), calc(var(--dy) * -900%)) scale(1); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx) * 900%), -100%) scale(0.5); }
+}
+.flight[data-night] .fl-drop { background: rgba(170, 240, 225, 0.9); }
+.flight[data-night] .fl-splash-ring { border-color: rgba(170, 240, 225, 0.85); }
+
+/* HUD: kestävyys ja valmis kierros */
+.flight .fl-heart { opacity: 0.28; transition: opacity 0.3s ease, scale 0.3s ease; }
+.flight .fl-heart[data-on] { opacity: 1; color: var(--pf-red); fill: currentColor; }
+.flight[data-night] .fl-heart[data-on] { color: #ff8fa0; }
+.flight .fl-score[data-done] { box-shadow: 0 0 0 2px var(--pf-amber); }
+.flight[data-night] .fl-score[data-done] { box-shadow: 0 0 0 2px var(--teal-2); }
+
+/* löydöt: leijuvat teknologiapallot */
+@keyframes fl-bob { 0%, 100% { translate: 0 -6%; } 50% { translate: 0 6%; } }
+.flight .fl-orb { margin: calc(var(--H) * -0.0425px) 0 0 calc(var(--H) * -0.0425px); animation: fl-bob 3.4s ease-in-out infinite; transition: scale 0.45s cubic-bezier(0.2, 0.8, 0.3, 1.4), opacity 0.45s ease; }
+.flight .fl-orb[data-got] { scale: 1.8; opacity: 0; }
+.flight .fl-orb-core {
+  display: grid; place-items: center; width: 100%; height: 100%; border-radius: 9999px;
+  background: radial-gradient(circle at 35% 30%, #fffaf3, #fde4cd 70%);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.7), 0 0 22px 4px rgba(255, 214, 150, 0.6);
+  color: var(--pf-deep);
+  transition: background var(--dusk) ease, box-shadow var(--dusk) ease, color var(--dusk) ease;
+}
+.flight[data-night] .fl-orb-core {
+  background: radial-gradient(circle at 35% 30%, #1b2d55, #0a1430 72%);
+  box-shadow: 0 0 0 2px rgba(127, 211, 204, 0.75), 0 0 24px 5px rgba(79, 209, 197, 0.45);
+  color: #e8f2f6;
+}
+
+/* kohteen kehote */
+.flight .fl-prompt {
+  display: flex; align-items: center; gap: 0.55rem; padding: 0.4rem 0.8rem 0.4rem 0.45rem; border-radius: 9999px; cursor: pointer;
+  background: rgba(255, 245, 236, 0.92); color: var(--pf-deep); box-shadow: 0 0 0 2px var(--pf-orange), var(--fl-shadow);
+  animation: fl-pop 0.35s cubic-bezier(0.2, 0.8, 0.3, 1.3) both;
+}
+.flight[data-night] .fl-prompt { background: rgba(8, 13, 32, 0.9); color: #e8f2f6; box-shadow: 0 0 0 2px var(--teal-2), 0 0 24px -4px rgba(127, 211, 204, 0.6); }
+.flight .fl-prompt-key { display: grid; place-items: center; width: 1.8rem; height: 1.8rem; border-radius: 9999px; font: 800 0.95rem/1 var(--font-body); background: var(--pf-orange); color: #fff6ee; }
+.flight[data-night] .fl-prompt-key { background: var(--teal-2); color: #04121a; }
+@keyframes fl-pop { from { opacity: 0; scale: 0.8; } to { opacity: 1; scale: 1; } }
+
+/* drone + pesukarhu */
+.flight .fl-drone, .flight .fl-echo { will-change: transform; }
+.flight .fl-drone { z-index: 5; }
+.flight .fl-drone-day, .flight .fl-drone-night { transition: opacity var(--dusk) ease; }
+.flight[data-fading] .fl-drone-day, .flight[data-fading] .fl-drone-night { mix-blend-mode: plus-lighter; }
+.flight .fl-drone-night { opacity: 0; }
+.flight[data-night] .fl-drone-night { opacity: 1; }
+.flight[data-night] .fl-drone-day { opacity: 0; }
+.flight .fl-echo { filter: blur(1.5px); opacity: 0; }
+@keyframes fl-spin { 0% { opacity: 0.25; scale: 1 1; } 50% { opacity: 0.55; scale: 0.82 1; } 100% { opacity: 0.25; scale: 1 1; } }
+.flight .fl-rotor { position: absolute; top: -2%; width: 32%; height: 14%; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 235, 215, 0.55), transparent); animation: fl-spin 0.09s linear infinite; }
+.flight[data-night] .fl-rotor { background: radial-gradient(closest-side, rgba(190, 240, 230, 0.45), transparent); }
+.flight .fl-raccoon { transition: transform 0.18s ease, filter var(--dusk) ease; }
+.flight .fl-raccoon-body { color: var(--pf-deep); transition: color var(--dusk) ease; }
+.flight[data-night] .fl-raccoon-body { color: #070b1c; }
+.flight[data-night] .fl-raccoon { filter: drop-shadow(0 0 1px rgba(180, 245, 230, 0.95)) drop-shadow(0 0 7px rgba(127, 211, 204, 0.45)); }
+
+/* puhekupla */
+.flight .fl-bubble {
+  z-index: 15; max-width: min(300px, 78vw); padding: 0.55rem 0.8rem; border-radius: 14px;
+  font: 600 0.84rem/1.35 var(--font-body);
+  background: rgba(255, 246, 238, 0.95); color: var(--pf-deep); box-shadow: var(--fl-shadow);
+  animation: fl-pop 0.3s cubic-bezier(0.2, 0.8, 0.3, 1.3) both;
+  will-change: transform;
+}
+.flight .fl-bubble::after { content: ''; position: absolute; left: 50%; bottom: -7px; width: 14px; height: 14px; background: inherit; transform: translateX(-50%) rotate(45deg); border-radius: 0 0 4px 0; }
+.flight[data-night] .fl-bubble { background: rgba(10, 18, 42, 0.94); color: #e8f2f6; box-shadow: 0 0 0 1px rgba(127, 211, 204, 0.4), var(--fl-shadow); }
+
+/* reitti */
+.flight .fl-route-line { position: absolute; left: 0; right: 0; top: 50%; height: 2px; translate: 0 -50%; border-radius: 2px; background: linear-gradient(90deg, var(--pf-orange), var(--pf-red) 52%, var(--teal) 58%, var(--teal-2)); opacity: 0.75; }
+.flight .fl-dot {
+  position: absolute; top: 50%; translate: -50% -50%; display: grid; place-items: center; width: 1.45rem; height: 1.45rem; border-radius: 9999px; cursor: pointer;
+  font: 800 0.62rem/1 var(--font-body); color: var(--st-ink); background: rgba(255, 246, 238, 0.85); border: 1.5px solid var(--st-line);
+  transition: background-color 0.3s ease, border-color 0.3s ease, scale 0.2s ease;
+}
+.flight[data-night] .fl-dot { background: rgba(8, 14, 34, 0.85); }
+.flight .fl-dot:hover, .flight .fl-dot:focus-visible { scale: 1.15; outline: none; border-color: var(--st-ink); }
+.flight .fl-dot[data-visited] { background: var(--pf-orange); border-color: var(--pf-orange); color: #fff6ee; }
+.flight[data-night] .fl-dot[data-visited] { background: var(--teal-2); border-color: var(--teal-2); color: #04121a; }
+.flight .fl-dot[data-near] { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); }
+.flight .fl-marker { position: absolute; top: 50%; width: 0.6rem; height: 0.6rem; translate: -50% -170%; pointer-events: none; background: var(--st-ink); clip-path: polygon(50% 100%, 0 0, 100% 0); transition: background-color var(--dusk) ease; }
+
+/* kosketusnapit ja ilmoitus */
+.flight .fl-pad { display: grid; place-items: center; width: 3.4rem; height: 3.4rem; border-radius: 16px; color: #fff6ee; background: rgba(20, 8, 26, 0.55); border: 1px solid rgba(255, 255, 255, 0.25); touch-action: none; -webkit-touch-callout: none; user-select: none; }
+.flight .fl-pad:active { background: rgba(20, 8, 26, 0.7); scale: 0.95; }
+.flight .fl-toast { padding: 0.45rem 0.9rem; border-radius: 9999px; font: 700 0.8rem/1.2 var(--font-body); white-space: nowrap; background: rgba(255, 246, 238, 0.95); color: var(--pf-deep); box-shadow: 0 0 0 2px var(--pf-orange), var(--fl-shadow); animation: fl-pop 0.3s ease both; }
+.flight[data-night] .fl-toast { background: rgba(10, 18, 42, 0.94); color: #e8f2f6; box-shadow: 0 0 0 2px var(--teal-2), var(--fl-shadow); }
+
+/* kohteen paneeli: päivällä persikkapaperi, yöllä yönsininen lasi */
+.flight .fl-overlay { background: rgba(20, 8, 26, 0.35); backdrop-filter: blur(3px); }
+.flight .fl-panel {
+  --fp-ink: var(--pf-deep); --fp-muted: rgba(58, 21, 48, 0.68); --fp-line: rgba(58, 21, 48, 0.14); --fp-card: rgba(255, 255, 255, 0.55);
+  --fp-accent: var(--pf-red); --fp-chip: rgba(58, 21, 48, 0.08); --fp-bar: linear-gradient(90deg, var(--pf-amber), var(--pf-red));
+  display: flex; flex-direction: column; width: min(820px, calc(100vw - 24px)); max-height: min(86svh, 860px);
+  border-radius: 22px; overflow: hidden; color: var(--fp-ink); font-family: var(--font-body);
+  background: linear-gradient(170deg, rgba(255, 246, 238, 0.98), rgba(253, 226, 204, 0.97));
+  box-shadow: 0 0 0 1px rgba(58, 21, 48, 0.12), 0 30px 80px -20px rgba(30, 10, 30, 0.6);
+  touch-action: auto; user-select: text;
+}
+.flight .fl-panel-night {
+  --fp-ink: #e8f2f6; --fp-muted: rgba(200, 222, 240, 0.7); --fp-line: rgba(127, 211, 204, 0.2); --fp-card: rgba(255, 255, 255, 0.05);
+  --fp-accent: var(--teal-2); --fp-chip: rgba(127, 211, 204, 0.12); --fp-bar: linear-gradient(90deg, var(--teal), var(--teal-2));
+  background: linear-gradient(170deg, rgba(10, 18, 42, 0.97), rgba(6, 12, 30, 0.98));
+  box-shadow: 0 0 0 1px rgba(127, 211, 204, 0.3), 0 30px 80px -20px rgba(0, 0, 0, 0.8);
+}
+.flight .fl-panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1.1rem 1.25rem 0.9rem; border-bottom: 1px solid var(--fp-line); }
+.flight .fl-panel-body { padding: 1rem 1.25rem 1.4rem; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.flight .fp-close { display: grid; place-items: center; width: 2.2rem; height: 2.2rem; flex: none; border-radius: 9999px; cursor: pointer; border: 1px solid var(--fp-line); color: var(--fp-ink); }
+.flight .fp-close:hover { background: var(--fp-chip); }
+.flight .fp-kicker { font: 800 0.66rem/1.2 var(--font-body); letter-spacing: 0.18em; text-transform: uppercase; color: var(--fp-accent); }
+.flight .fp-lead { font-size: 0.95rem; line-height: 1.55; color: var(--fp-muted); }
+.flight .fp-muted { color: var(--fp-muted); }
+.flight .fp-ink { color: var(--fp-ink); }
+.flight .fp-accent { color: var(--fp-accent); }
+.flight .fp-card { border-radius: 14px; background: var(--fp-card); border: 1px solid var(--fp-line); }
+.flight .fp-hover { cursor: pointer; transition: border-color 0.2s ease, background-color 0.2s ease; }
+.flight .fp-hover:hover { border-color: var(--fp-accent); }
+.flight .fp-chip { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 9999px; font: 700 0.68rem/1.4 var(--font-body); background: var(--fp-chip); }
+.flight .fp-num { display: grid; place-items: center; width: 1.5rem; height: 1.5rem; flex: none; border-radius: 9999px; font: 800 0.7rem/1 var(--font-body); background: var(--fp-chip); color: var(--fp-accent); }
+.flight .fp-icon { display: grid; place-items: center; width: 1.6rem; height: 1.6rem; flex: none; border-radius: 8px; background: var(--fp-chip); }
+.flight .fp-bar { display: block; height: 6px; border-radius: 9999px; background: var(--fp-chip); overflow: hidden; }
+.flight .fp-bar > i { display: block; height: 100%; border-radius: inherit; background: var(--fp-bar); }
+.flight .fp-quote { padding-left: 0.9rem; border-left: 3px solid var(--fp-accent); font-style: italic; font-size: 1rem; line-height: 1.5; }
+.flight .fp-btn { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.85rem; border-radius: 9999px; font: 700 0.8rem/1.2 var(--font-body); border: 1px solid var(--fp-line); cursor: pointer; }
+.flight .fp-btn:hover { border-color: var(--fp-accent); }
+.flight .fp-btn-solid { background: var(--fp-accent); color: var(--pf-sky); border-color: transparent; }
+.flight .fl-panel-night .fp-btn-solid { color: #04121a; }
+
+/* aitan esineet: harvinaisuus = ruudun alareunan väri ja hehku esineen alla (päivä: kulta/luumu/teal, yö: kirkkaammat) */
+.flight .fl-panel [data-rarity] { --r: rgba(58, 21, 48, 0.26); }
+.flight .fl-panel [data-rarity='rare'] { --r: #2b8a97; }
+.flight .fl-panel [data-rarity='epic'] { --r: #b4427c; }
+.flight .fl-panel [data-rarity='legendary'] { --r: #e0962a; }
+.flight .fl-panel-night [data-rarity] { --r: rgba(200, 222, 240, 0.3); }
+.flight .fl-panel-night [data-rarity='rare'] { --r: #7fd3cc; }
+.flight .fl-panel-night [data-rarity='epic'] { --r: #e98bbd; }
+.flight .fl-panel-night [data-rarity='legendary'] { --r: #f4c765; }
+.flight .fp-slot {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 0.2rem; width: 100%;
+  padding: 0.4rem 0.2rem 0.5rem; border-radius: 14px; cursor: pointer; color: var(--fp-ink);
+  background: radial-gradient(80% 62% at 50% 60%, color-mix(in srgb, var(--r) 34%, transparent), transparent 72%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 224, 196, 0.6));
+  border: 1px solid var(--fp-line); box-shadow: inset 0 -3px 0 var(--r);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.flight .fp-slot img { width: 100%; max-width: 4rem; aspect-ratio: 1; object-fit: contain; filter: drop-shadow(0 4px 4px rgba(58, 21, 48, 0.22)); transition: transform 0.22s cubic-bezier(0.3, 1.4, 0.5, 1); }
+.flight .fp-slot:hover img, .flight .fp-slot[aria-pressed='true'] img { transform: translateY(-3px) scale(1.07); }
+.flight .fp-slot:hover { border-color: color-mix(in srgb, var(--fp-accent) 55%, transparent); }
+.flight .fp-slot[aria-pressed='true'] { border-color: var(--fp-accent); box-shadow: inset 0 -3px 0 var(--r), 0 0 0 1.5px var(--fp-accent); }
+.flight .fp-slot:focus-visible { outline: 2px solid var(--fp-accent); outline-offset: 2px; }
+.flight .fp-slot-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 0.64rem/1.2 var(--font-body); letter-spacing: -0.005em; }
+.flight .fp-slot-count { position: absolute; top: 0.3rem; right: 0.3rem; padding: 0.05rem 0.35rem; border-radius: 9999px; font: 800 0.58rem/1.35 var(--font-body); background: var(--fp-ink); color: var(--pf-sky); }
+.flight .fp-slot-big { width: 4.6rem; flex: none; padding: 0.35rem; cursor: default; }
+.flight .fp-slot-big img { max-width: none; }
+.flight .fp-rarity { font: 800 0.6rem/1.3 var(--font-body); letter-spacing: 0.16em; text-transform: uppercase; color: color-mix(in srgb, var(--r) 72%, var(--fp-ink)); }
+.flight .fp-res-icon { width: 2.25rem; height: 2.25rem; flex: none; object-fit: contain; filter: drop-shadow(0 2px 2px rgba(58, 21, 48, 0.2)); }
+.flight .fp-detail {
+  position: sticky; bottom: -1.4rem; z-index: 1; margin: 0 -0.25rem -1.4rem; padding: 0.8rem 0.9rem 1rem; border-radius: 16px 16px 0 0;
+  max-height: 46svh; overflow-y: auto; scrollbar-width: thin;
+  background: rgba(255, 241, 230, 0.97); border: 1px solid var(--fp-line); border-bottom: 0;
+  box-shadow: 0 -12px 24px -14px rgba(58, 21, 48, 0.35);
+}
+.flight .fp-detail-close { position: absolute; top: 0.6rem; right: 0.6rem; width: 1.9rem; height: 1.9rem; z-index: 1; }
+@media (max-width: 767.98px) {
+  .flight .fp-detail:not([data-picked]) { display: none; }
+  .flight .fp-detail { animation: fp-sheet 0.22s ease-out both; }
+}
+@keyframes fp-sheet { from { transform: translateY(18px); opacity: 0; } }
+@media (min-width: 768px) {
+  .flight .fp-detail-close { display: none; }
+  .flight .fp-detail { top: 0; bottom: auto; margin: 0; padding: 0.9rem; border-radius: 16px; border-bottom: 1px solid var(--fp-line); max-height: none; box-shadow: 0 10px 24px -16px rgba(58, 21, 48, 0.4); }
+  .flight .fp-slot-big { width: 8rem; padding: 0.5rem; }
+}
+.flight .fl-panel-night .fp-slot {
+  background: radial-gradient(80% 62% at 50% 60%, color-mix(in srgb, var(--r) 30%, transparent), transparent 72%),
+    linear-gradient(180deg, rgba(44, 62, 110, 0.5), rgba(14, 22, 52, 0.72));
+}
+.flight .fl-panel-night .fp-slot img, .flight .fl-panel-night .fp-res-icon { filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.55)); }
+.flight .fl-panel-night .fp-slot-count { background: var(--teal-2); color: #04121a; }
+.flight .fl-panel-night .fp-detail { background: rgba(12, 21, 48, 0.97); box-shadow: 0 -12px 24px -14px rgba(0, 0, 0, 0.7); }
+@media (min-width: 768px) {
+  .flight .fl-panel-night .fp-detail { box-shadow: 0 10px 24px -16px rgba(0, 0, 0, 0.7); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flight .fp-slot img { transition: none; }
+  .flight .fp-detail { animation: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flight .fl-sun-glow, .flight .fl-glint, .flight .fl-fire, .flight .fl-lamp, .flight .fl-orb, .flight .fl-rotor { animation: none; }
+  .flight .fl-glint { opacity: 0.6; }
+  .flight .fl-reflect, .flight .fl-moor, .flight .fl-voyage, .flight .fl-rock, .flight .fl-duck, .flight .fl-wake path, .flight .fl-wash > span { animation: none; }
+  .flight .fl-wave { animation: none; opacity: 0.35; }
+  .flight .fl-fish-arc, .flight .fl-ring, .flight .fl-smoke, .flight .fl-spark { display: none; }
+  .flight .fl-beam { animation: none; opacity: 0.4; }
+  .flight .fl-fly { animation: none; opacity: 0.7; }
+}

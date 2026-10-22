@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, type ReactNode } from 'react'
 
-import { heroScene } from '@/content'
+import { heroNight, heroScene } from '@/content'
 import { cn } from '@/lib/utils'
 import { useReducedMotion } from './hooks'
 
@@ -74,7 +74,9 @@ function Depth({ k, dx, className, children }: { k: number; dx: number; classNam
   )
 }
 
-function LayerImg({ layer, priority }: { layer: { src: string; srcSet: string }; priority?: boolean }) {
+type Layer = { src: string; srcSet: string }
+
+function LayerImg({ layer, priority }: { layer: Layer; priority?: 'high' | 'low' }) {
   return (
     <img
       src={layer.src}
@@ -86,9 +88,51 @@ function LayerImg({ layer, priority }: { layer: { src: string; srcSet: string };
       draggable={false}
       loading="eager"
       decoding="async"
-      fetchPriority={priority ? 'high' : undefined}
+      fetchPriority={priority}
       className="absolute inset-0 size-full select-none"
     />
+  )
+}
+
+/* ---------- Yö (vain aloitusruudulla, HeroScene night) ---------- */
+
+/** Saunan ovi hehkuu ja heijastuu järveen (ovi mitattu 3840-kuvasta: x 23,3 %, y 40–45 %) */
+function SaunaLight() {
+  return (
+    <div className="hero-door absolute inset-0">
+      <span className="absolute left-[23.3%] top-[42.4%] aspect-square w-[3.2%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,196,110,0.55)_0%,rgba(255,170,90,0.18)_38%,transparent_70%)]" />
+      <span className="absolute left-[23.3%] top-[46%] h-[7%] w-[0.55%] min-w-[2px] -translate-x-1/2 bg-[linear-gradient(180deg,rgba(255,196,110,0.55),rgba(255,196,110,0.12)_55%,transparent)] blur-[1px]" />
+    </div>
+  )
+}
+
+/** Tulikärpäset lähimetsän edessä: [x %, y %, liike x px, liike y px, kesto s, viive s] */
+const FIREFLIES: [number, number, number, number, number, number][] = [
+  [6, 74, 18, -14, 7.5, 0],
+  [11, 86, -12, -20, 9, -3.2],
+  [17, 69, 22, 10, 8.2, -1.4],
+  [24, 81, -16, -12, 6.8, -5],
+  [30, 90, 14, -18, 9.6, -2.2],
+  [36, 84, -20, 8, 7.2, -6.1],
+  [63, 88, 16, -16, 8.8, -0.8],
+  [70, 79, -14, -10, 7.9, -4.4],
+  [77, 72, 20, 12, 9.2, -2.9],
+  [84, 85, -18, -14, 6.9, -1.1],
+  [90, 70, 12, -20, 8.4, -5.6],
+  [95, 82, -10, 10, 7.6, -3.7],
+]
+
+function Fireflies() {
+  return (
+    <div className="hero-fireflies absolute inset-0">
+      {FIREFLIES.map(([x, y, fx, fy, d, dl], i) => (
+        <span
+          key={i}
+          className="hero-firefly absolute aspect-square w-[0.3%] min-w-[3px] rounded-full bg-[#eaffa6] shadow-[0_0_6px_2px_rgba(205,255,120,0.55)]"
+          style={{ left: `${x}%`, top: `${y}%`, ['--fx' as string]: `${fx}px`, ['--fy' as string]: `${fy}px`, ['--fd' as string]: `${d}s`, ['--fdl' as string]: `${dl}s` }}
+        />
+      ))}
+    </div>
   )
 }
 
@@ -153,7 +197,100 @@ function Bird({ x, y, s, d }: { x: number; y: number; s: number; d: number }) {
   )
 }
 
-export function HeroScene({ className }: { className?: string }) {
+/** Maiseman tasot alhaalta ylös. night = yöpino (yöversiot tasoista, yön valot); päivässä aurinko, pilvet ja linnut. */
+function Layers({ night }: { night?: boolean }) {
+  const L = night ? heroNight : heroScene
+  return (
+    <>
+      {!night && (
+        // aurinko, hehku ja pilvijuovat
+        <Depth k={0.34} dx={2}>
+          {/* aurinko laskee yöllä vaarojen taakse */}
+          <div className="hero-sun absolute inset-0">
+            <div className="hero-glow absolute left-[61.8%] top-[9%] aspect-square w-[46%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,232,170,0.7)_0%,rgba(255,210,140,0.42)_16%,rgba(255,190,120,0.16)_40%,rgba(255,190,120,0)_66%)]" />
+            <div className="absolute left-[61.8%] top-[9.1%] aspect-square w-[5.4%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_42%_38%,#fff2bf,#ffd977_58%,#ffc457)] shadow-[0_0_28px_6px_rgba(255,200,100,0.45)]" />
+          </div>
+          <div className="hero-clouds absolute inset-0">
+            {CLOUDS.map(([y, w, dur, delay], i) => (
+              <div
+                key={i}
+                className="hero-cloud absolute inset-x-0 min-h-[3px]"
+                style={{ top: `${y}%`, height: `${1.6 + (i % 2) * 0.8}%`, animationDuration: `${dur}s`, animationDelay: `${delay}s` }}
+              >
+                <div
+                  className="h-full rounded-full bg-[linear-gradient(90deg,transparent,rgba(255,244,228,0.6)_25%,rgba(255,236,214,0.5)_70%,transparent)] blur-[3px]"
+                  style={{ width: `${w}%` }}
+                />
+              </div>
+            ))}
+          </div>
+        </Depth>
+      )}
+
+      <Depth k={0.24} dx={4}>
+        <LayerImg layer={L.far} priority={night ? 'low' : 'high'} />
+      </Depth>
+
+      {/* järvi + niemi, sauna ja saari liikkuvat yhdessä (sama vedenpinta) */}
+      <Depth k={0.15} dx={7}>
+        <LayerImg layer={L.lake} priority={night ? 'low' : 'high'} />
+        {GLINTS.map(([x, y, w], i) => (
+          <span
+            key={i}
+            className={cn('hero-glint absolute h-[0.28%] min-h-[2px] -translate-x-1/2 rounded-full', night ? 'bg-[#c8fff0]' : 'bg-[#fff0c0]')}
+            style={{ left: `${x}%`, top: `${y}%`, width: `${w}%`, animationDelay: `${(i * 0.53) % 2.6}s` }}
+          />
+        ))}
+        <LayerImg layer={L.mid} priority={night ? 'low' : undefined} />
+        {night && <SaunaLight />}
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            className="hero-smoke absolute left-[21.35%] top-[35.2%] aspect-square w-[0.45%] min-w-[3px] -translate-x-1/2 -translate-y-full rounded-full bg-[#fde6d4] blur-[1.5px]"
+            style={{ animationDelay: `${i * 2.2}s` }}
+          />
+        ))}
+      </Depth>
+
+      {/* lintuparvi lentää hitaasti taivaan poikki */}
+      {!night && (
+        <Depth k={0.2} dx={-5}>
+          <div className="hero-birds absolute inset-0">
+            <div className="hero-flock absolute inset-0">
+              <Bird x={30} y={-16} s={1.1} d={0} />
+              <Bird x={31.6} y={-13.5} s={0.9} d={0.2} />
+              <Bird x={29.2} y={-11} s={0.8} d={0.35} />
+              <Bird x={33.2} y={-18.5} s={0.75} d={0.1} />
+              <Bird x={27.8} y={-14.2} s={0.7} d={0.45} />
+            </div>
+          </div>
+        </Depth>
+      )}
+
+      {/* drone kiertelee järven yllä (molemmissa pinoissa samalla ajoituksella) */}
+      <Depth k={0.12} dx={8}>
+        <div className="hero-fly absolute inset-0">
+          <div className="hero-tilt absolute left-[67%] top-[24%] w-[clamp(34px,3.4%,84px)]">
+            <Drone />
+          </div>
+        </div>
+      </Depth>
+
+      <Depth k={0.07} dx={12}>
+        <LayerImg layer={L.near} priority={night ? 'low' : undefined} />
+        {night && <Fireflies />}
+      </Depth>
+      <Depth k={0} dx={18}>
+        <LayerImg layer={L.front} priority={night ? 'low' : undefined} />
+      </Depth>
+    </>
+  )
+}
+
+/** night: aloitusruudun revontuliyö – undefined = pelkkä päivä (normaali portfolio, yökuvia ei ladata).
+    Vaihto data-night-attribuutilla; siirtymän kesto CSS-muuttujasta --dusk (index.css). */
+export function HeroScene({ className, night }: { className?: string; night?: boolean }) {
+  const dusk = night !== undefined
   const root = useRef<HTMLDivElement>(null)
   const reduce = useReducedMotion()
 
@@ -199,79 +336,27 @@ export function HeroScene({ className }: { className?: string }) {
     <div
       ref={root}
       aria-hidden
+      data-night={night ? '' : undefined}
       className={cn(
         'hero-scene pointer-events-none absolute bottom-0 left-1/2 aspect-[3840/1118] w-[max(104cqw,960px)] -translate-x-[58%] md:-translate-x-1/2',
+        dusk && 'isolate',
         className,
       )}
     >
-      {/* aurinko, hehku ja pilvijuovat */}
-      <Depth k={0.34} dx={2}>
-        <div className="hero-glow absolute left-[61.8%] top-[9%] aspect-square w-[46%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,232,170,0.7)_0%,rgba(255,210,140,0.42)_16%,rgba(255,190,120,0.16)_40%,rgba(255,190,120,0)_66%)]" />
-        <div className="absolute left-[61.8%] top-[9.1%] aspect-square w-[5.4%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_42%_38%,#fff2bf,#ffd977_58%,#ffc457)] shadow-[0_0_28px_6px_rgba(255,200,100,0.45)]" />
-        {CLOUDS.map(([y, w, dur, delay], i) => (
-          <div
-            key={i}
-            className="hero-cloud absolute inset-x-0 min-h-[3px]"
-            style={{ top: `${y}%`, height: `${1.6 + (i % 2) * 0.8}%`, animationDuration: `${dur}s`, animationDelay: `${delay}s` }}
-          >
-            <div
-              className="h-full rounded-full bg-[linear-gradient(90deg,transparent,rgba(255,244,228,0.6)_25%,rgba(255,236,214,0.5)_70%,transparent)] blur-[3px]"
-              style={{ width: `${w}%` }}
-            />
+      {dusk ? (
+        <>
+          {/* Päivä ja yö ovat kumpikin kokonainen tasopino; yötä häivytetään koko pinona, joten tasojen
+              reunat eivät koskaan sekoitu keskenään (ei punaisia reunaviivoja siirtymän aikana) */}
+          <div className="hero-day-stack absolute inset-0">
+            <Layers />
           </div>
-        ))}
-      </Depth>
-
-      <Depth k={0.24} dx={4}>
-        <LayerImg layer={heroScene.far} priority />
-      </Depth>
-
-      {/* järvi + niemi, sauna ja saari liikkuvat yhdessä (sama vedenpinta) */}
-      <Depth k={0.15} dx={7}>
-        <LayerImg layer={heroScene.lake} priority />
-        {GLINTS.map(([x, y, w], i) => (
-          <span
-            key={i}
-            className="hero-glint absolute h-[0.28%] min-h-[2px] -translate-x-1/2 rounded-full bg-[#fff0c0]"
-            style={{ left: `${x}%`, top: `${y}%`, width: `${w}%`, animationDelay: `${(i * 0.53) % 2.6}s` }}
-          />
-        ))}
-        <LayerImg layer={heroScene.mid} />
-        {[0, 1, 2].map((i) => (
-          <span
-            key={i}
-            className="hero-smoke absolute left-[21.35%] top-[35.2%] aspect-square w-[0.45%] min-w-[3px] -translate-x-1/2 -translate-y-full rounded-full bg-[#fde6d4] blur-[1.5px]"
-            style={{ animationDelay: `${i * 2.2}s` }}
-          />
-        ))}
-      </Depth>
-
-      {/* lintuparvi lentää hitaasti taivaan poikki */}
-      <Depth k={0.2} dx={-5}>
-        <div className="hero-flock absolute inset-0">
-          <Bird x={30} y={-16} s={1.1} d={0} />
-          <Bird x={31.6} y={-13.5} s={0.9} d={0.2} />
-          <Bird x={29.2} y={-11} s={0.8} d={0.35} />
-          <Bird x={33.2} y={-18.5} s={0.75} d={0.1} />
-          <Bird x={27.8} y={-14.2} s={0.7} d={0.45} />
-        </div>
-      </Depth>
-
-      {/* drone kiertelee järven yllä */}
-      <Depth k={0.12} dx={8}>
-        <div className="hero-fly absolute inset-0">
-          <div className="hero-tilt absolute left-[67%] top-[24%] w-[clamp(34px,3.4%,84px)]">
-            <Drone />
+          <div className="hero-night-stack absolute inset-0">
+            <Layers night />
           </div>
-        </div>
-      </Depth>
-
-      <Depth k={0.07} dx={12}>
-        <LayerImg layer={heroScene.near} />
-      </Depth>
-      <Depth k={0} dx={18}>
-        <LayerImg layer={heroScene.front} />
-      </Depth>
+        </>
+      ) : (
+        <Layers />
+      )}
     </div>
   )
 }

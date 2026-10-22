@@ -17,6 +17,8 @@ export type LoftZoneId =
 /** Normaalin portfolion osiot (ankkurit) */
 export type PortfolioSection = 'about' | 'skills' | 'projects' | 'now' | 'havaida' | 'refs' | 'contact'
 export type Rarity = 'common' | 'rare' | 'epic' | 'legendary'
+/** Dronelennon kohteet järven rannalla vasemmalta oikealle (pelillistetty portfolio) */
+export type FlightStation = 'dock' | 'sauna' | 'workshop' | 'island' | 'shed' | 'harbor' | 'campfire' | 'tower' | 'lighthouse'
 export type QuestStatus = 'active' | 'done' | 'planned' | 'idea'
 
 export interface Img {
@@ -102,7 +104,8 @@ export interface Content {
     hint: string
     loading: string
     choose: string
-    modes: Record<'normal' | 'game', { title: string; desc: string }>
+    /** cta = valitun kortin toimintasana, badge = pieni merkintä äänistä */
+    modes: Record<'normal' | 'game', { title: string; desc: string; cta: string; badge: string }>
     keys: string
   }
   nav: {
@@ -275,6 +278,61 @@ export interface Content {
         draft?: boolean
       }[]
     }
+  }
+
+  /** Pelillistetty portfolio: dronelento järven yli, pesukarhu kyydissä; rannan kohteet avaavat osiot */
+  flight: {
+    title: string
+    loading: string
+    /** Kohde kartalla: nimi (paikka), section (osion nimi) ja pesukarhun repliikki kohteen kohdalla */
+    stations: Record<FlightStation, { name: string; section: string; teaser: string }>
+    hud: {
+      stations: string
+      finds: string
+      route: string
+      open: string
+      close: string
+      normal: string
+      sound: string
+      soundOff: string
+      /** Näppäinohje (työpöytä) ja kosketusohje */
+      keys: string
+      touch: string
+      left: string
+      right: string
+      up: string
+      down: string
+      /** Keräyshaaste: kestävyys (sydämet), kierroksen aika, ennätys ja uusi yritys */
+      hearts: string
+      time: string
+      best: string
+      retry: string
+    }
+    /** Pesukarhun puhekuplat; {name} = löydön nimi, {time} = aika */
+    raccoon: {
+      intro: string
+      introTouch: string
+      night: string
+      found: string
+      allStations: string
+      allFinds: string
+      gull: string
+      bat: string
+      splash: string
+      crash: string
+      gust: string
+      record: string
+      autopilot: string
+    }
+    howto: { title: string; lead: string; steps: string[]; routeTitle: string }
+    /** Löydöt = ilmassa leijuvat teknologiat; {n}/{max} */
+    findToast: string
+    /** Kaikki löydöt kerätty; {max}, {time}, {best} */
+    finishToast: string
+    level: string
+    visited: string
+    /** Aitan esineruudukko: ohje valitsemiseen */
+    itemsHint: string
   }
 
   /** 3D-loft: kolmannen persoonan portfolio, esineet avaavat osiot */

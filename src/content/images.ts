@@ -1,4 +1,5 @@
 import critterData from '@/data/critters.json'
+import raccoonData from '@/data/game-raccoon.json'
 
 import type { Img } from './types'
 
@@ -191,10 +192,56 @@ export const heroScene = {
   front: heroLayer('front'),
 }
 
+/** Aloitusruudun revontuliyö: samat tasot yöväreissä (scripts/hero-night.py, luminanssin liukuväri tasoittain).
+    Ladataan vain aloitusruudulla, ja ne häivytetään päivätasojen päälle. */
+export const heroNight = {
+  far: heroLayer('far-night'),
+  lake: heroLayer('lake-night'),
+  mid: heroLayer('mid-night'),
+  near: heroLayer('near-night'),
+  front: heroLayer('front-night'),
+}
+
 /** Alaosioiden eläinvarjot: Higgsfield-videoista (Kling 3.0 / Seedance 2.5, aloitus = lopetusruutu) irrotetut siluetit
     ruudukkoina (valkoinen + alfa), käytetään CSS-maskina currentColor-värillä. Metatiedot src/data/critters.json:
     ruutu w×h, cols×rows, frames; peura/pesukarhu ms = kunkin ruudun kesto videon ajoituksella;
     karhu stride = kehon eteneminen ruutua kohden solun pikseleinä (tassut pysyvät maassa), rest = seisovat ruudut. */
+/** Dronelento (pelillistetty portfolio): Higgsfield-kuvat (GPT Image 2.5, tyyliviitteenä hero-maisema) →
+    scripts/game-assets.py (taustanpoisto + yöversio), liikkuvat osat → scripts/game-props.py ja pesukarhun eleet
+    Kling 3.0 -videoista → scripts/game-raccoon.py */
+const gameImg = (n: string) => ({ day: `/images/game/${n}.webp`, night: `/images/game/${n}-night.webp` })
+export const gameArt = {
+  dock: gameImg('dock'),
+  sauna: gameImg('sauna'),
+  workshop: gameImg('workshop'),
+  island: gameImg('island'),
+  shed: gameImg('shed'),
+  harbor: gameImg('harbor'),
+  campfire: gameImg('campfire'),
+  tower: gameImg('tower'),
+  lighthouse: gameImg('lighthouse'),
+  drone: gameImg('drone'),
+  shore: gameImg('shore'),
+  forest: gameImg('forest'),
+  /** sataman kerrokset (scripts/game-props.py): keinuva vene laiturin takana, laituri ilman maalattua viiriä */
+  harborBoat: gameImg('harbor-boat'),
+  harborPier: gameImg('harbor-pier'),
+  /** järvellä liikkuvat veneet (sivukuva) */
+  rowboat: { ...gameImg('rowboat'), ar: 560 / 134 },
+  sailboat: { ...gameImg('sailboat'), ar: 420 / 515 },
+  waterdrone: { ...gameImg('waterdrone'), ar: 620 / 200 },
+  raccoon: { src: '/images/game/raccoon.webp', ...raccoonData },
+}
+
+/** Dronelennon aitan esineet: Higgsfield GPT Image 2.5 samaan litteään auringonlaskutyyliin (yksi esine, ei tekstiä
+    eikä logoja – ohjelmistot esineinä) → scripts/game-items.py. Avain = goods-esineen id. */
+const GAME_ITEMS = [
+  'cpu', 'ram', 'gpu', 'nvme', 'ssd', 'pool', 'mobo', 'monitor',
+  'excavator', 'drone', 'robot', 'boat', 'streamdeck', 'tablet', 'esp32', 'nfctags', 'solder', 'meter', 'keyboard', 'mouse', 'headset',
+  'claude', 'claudecode', 'ollama', 'higgsfield', 'supabase', 'netlify', 'n8n', 'blender', 'vast', 'github', 'docker', 'tailscale', 'oskeys', 'obsidian',
+] as const
+export const gameItems: Record<string, string> = Object.fromEntries(GAME_ITEMS.map((id) => [id, `/images/game/items/${id}.webp`]))
+
 export const critterSprites = {
   bear: { src: '/images/critter-bear.webp', ...critterData.bear },
   deer: { src: '/images/critter-deer.webp', ...critterData.deer },

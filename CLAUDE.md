@@ -31,14 +31,51 @@ Claus Laikun portfoliosivusto pelivalikon muodossa (laikku.com). Rakenne ja kome
   syklin ruutuun `go.exit`) ja käännös ympäri (`turn`, loppu = seisova peilattuna; ruudukko rajattu symmetrisesti).
   Jokaisen ruudun siirtymä `dx` on mitattu maassa olevista tassuista, joten tassut eivät liu'u; karhu ei koskaan
   pysähdy kesken askeleen. Peura (Muut hankkeet) ja pesukarhu (Päivittäiset työkalut) toistavat videon omalla
-  ajoituksella (`ms`) ja odottavat alkuasennossa.
-  Vain staattisille taustoille, ei `spot`-korteille; kuva ladataan lähellä näkymää, animaatio pyörii vain näkyvissä,
-  vähennetty liike → paikallaan.
+  ajoituksella (`ms`) ja pitävät lyhyen tauon alkuasennossa.
+  Vain staattisille taustoille, ei `spot`-korteille; kuva ladataan heti sivun asetuttua (idle) ja animaatio pyörii
+  koko ajan myös näkymän ulkopuolella satunnaisesta vaiheesta alkaen, joten eläimet ovat jo liikkeessä, kun niiden
+  kohdalle vieritetään; vähennetty liike → paikallaan.
+- Aloitusruutu (`src/components/game/StartScreen.tsx`): taustana sama `HeroScene` (`night`-prop) kuin normaalin
+  portfolion herossa. Normaali-valinta = kultainen auringonlasku, Pelillistetty = revontuliyö: tasojen yöversiot
+  `public/images/hero-{taso}-night-{1280,2048,3840}.webp` generoidaan `scripts/hero-night.py`:llä (luminanssin
+  liukuväri tasoittain, saunan ovi valaistaan) – älä muokkaa käsin. Taivas (tähdet, kuu, revontulet, tähdenlento)
+  `StartSky.tsx`, pesukarhu valitun kortin päällä `StartRaccoon.tsx` (sama critter-raccoon-ruudukko, hyppy WAAPI:lla).
+  Värit `.start`-tokeneista (index.css, `data-night` + `--dusk`). Normaali-valinnassa portfolio piirtyy aloitusruudun
+  alle samaan maisemaan ja ruutu häivytetään sen päältä (App: `onDone` → `onExited`).
+- Pelillistetty portfolio = **Dronelento** (`src/components/flight`, osoite `#flight`): sivuttain vierivä Järvi-Suomi,
+  jossa lennetään dronella pesukarhu kyydissä auringonlaskusta revontuliyöhön (yö laskeutuu kohdassa `NIGHT_ON`).
+  Rannan yhdeksän kohdetta (`world.ts` → `STATIONS`) avaavat osiot (`Panels.tsx`, sisältö samoista fi/en-kentistä +
+  `flight`-osio); ilmassa leijuvat taitopuun teknologiat ovat löytöjä. Grafiikka: hero-maiseman vaarat ja järvi +
+  Higgsfield GPT Image 2.5 -kuvat (kohteet, drone, metsä- ja rantanauhat; tyyliviitteenä hero-maisema) →
+  `scripts/game-assets.py` (Higgsfieldin taustanpoisto + valkoisen avainnus, yöversio liukuvärillä, lämpimät valot
+  jätetään hehkumaan) → `public/images/game/*.webp`. Pesukarhun eleet (vilkutus, osoitus, tuuletus, katse taivaalle)
+  Kling 3.0 -videoista → `scripts/game-raccoon.py` → `public/images/game/raccoon.webp` + `src/data/game-raccoon.json`
+  (generoitu). Lähdekuvat ja -videot `assets-src/game/` (ei repossa). Päivä/yö-pinot ristihäivytetään
+  `mix-blend-mode: plus-lighter` vain siirtymän ajan (`data-fading`) – ei reunaviivoja. Liike yhdellä rAF-silmukalla,
+  joka kirjoittaa vain transformeja; HUD ilman backdrop-filteriä. Edistyminen localStoragessa (`laikku-flight`:
+  nähdyt kohteet + keräyshaasteen ennätysaika).
+  Keräyshaaste (`world.ts`): 12 löytöä liikkuu kahdeksikkoa (`findPath`), lokit (päivä) ja lepakot (yö) partioivat
+  (`HAZARDS`), vedenpinta kastelee (`SPLASH_Y`) ja puuskaiset alueet työntävät (`WIND`, `GUST`). Kolme osumaa (`HEARTS`)
+  → kierroksen löydöt putoavat ja yritys alkaa alusta; ajanotto alkaa ensimmäisestä liikkeestä, R = uusi yritys.
+  Autopilotti on suojattu mutta ei kerää löytöjä – kohteisiin pääsee aina ilman haastetta.
+  Elävä ympäristö (`Scenery.tsx`): aallonharjat syvyystasoittain, väreilevät heijastukset (raitamaski, huojuu
+  kokonaisena kerroksena), järvellä purjeveneet, soutuvene ja vesidrone (Higgsfield-sivukuvat), sataman vene keinuu ja
+  siniristilippu liehuu (SMIL-polkuinterpolointi), kalat hyppäävät, sorsat uivat, savu, kipinät ja lintuparvi.
+  Satama on jaettu kerroksiksi ja veneet leikattu `scripts/game-props.py`:llä (aja game-assets.py:n jälkeen).
+  Suorituskyky: kaikki liike transform/opacity- tai pieninä SVG-animaatioina; piilossa olevan päivä/yö-pinon animaatiot
+  pysäytetään; StartSky on eristetty (`isolate`), ettei revontulien screen-sekoitus pakota koko näkymää välipintaan,
+  ja päivällä revontulien animaatiot ja will-change ovat kokonaan pois.
+  Aitan (Tavarat) esineillä on omat kuvakkeensa `public/images/game/items/<id>.webp` (`images.ts` → `gameItems`,
+  avain = goods-esineen id): Higgsfield GPT Image 2.5 samaan litteään auringonlaskutyyliin valkoiselle taustalle
+  (yksi esine, ei tekstiä eikä logoja) → `scripts/game-items.py` (reunoilta täyttö + suljetut valkoiset aukot läpinäkyviksi).
+  Harvinaisuus näkyy ruudun alareunan värinä (`.fp-slot[data-rarity]`).
+- Vanha 3D-loft + pelivalikko on varmuuskopio: koodi ennallaan (`components/loft`, `components/game/GameShell` …),
+  avautuu vain osoitteilla `#loft` ja `#skills`, `#map` … (aloitusruudun kautta); lisäksi haara `loft-3d-backup`.
 - UI-primitiivit shadcn/ui-tyyliin (`src/components/ui`), Radix UI:n päällä.
 - Äänet syntetisoidaan Web Audiolla (`src/lib/sfx.ts`) – ei äänitiedostoja repoon.
   Uusi efekti: lisää `Sfx`-unioniin ja `play()`-switchiin.
 - Kuvat: WebP `public/images/`; henkilökuvat Higgsfieldillä Claus-referenssihahmolla,
-  esineikonit (icon-*, good-*) fotorealistisella AC Odyssey/Mirage -esinetyylillä: yksi esine,
+  vanhan pelivalikon/loftin esineikonit (icon-*, good-*) fotorealistisella AC Odyssey/Mirage -esinetyylillä: yksi esine,
   tumma liuskekivitausta #1b2229, harvinaisuuden mukainen hehku (kulta/violetti/teräksensininen/harmaa),
   ei tekstiä, ei brändilogoja – ohjelmistot kuvataan esineinä (esim. Ollama = obsidiaanilaama).
   Normaalin portfolion kuvakkeet (`pf-*.webp`, `images.ts` → `pfIcons` id:n mukaan) Higgsfieldillä sivun

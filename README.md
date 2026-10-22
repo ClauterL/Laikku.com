@@ -12,8 +12,13 @@ laitteet & työkalut, palvelut) resurssirivillä ja kelluvalla tietopaneelilla.
 Yläpalkin välilehdet: Taidot · Projektit · Tavarat · Kartta · Tehtävät · Havaida · Koodeksi.
 Sivu avautuu aloitusruutuun, jossa on tunnus – kuvake ihmisestä läppärin takana, näytöllä `<#>` ja
 pääsiäismunana SMART morsena – ja kävijä valitsee **Normaali** tai
-**Pelillistetty**. Pelillistetty avaa 3D-loftin suoraan (Esc → pelivalikko), normaali on perinteinen
-yhden sivun portfolio (`#portfolio`, suora linkki ohittaa aloitusruudun) samasta sisällöstä.
+**Pelillistetty**. Aloitusruudun taustana on sama Järvi-Suomen maisema kuin normaalin portfolion herossa:
+Normaali-valinta näyttää kultaisen auringonlaskun, Pelillistetty revontuliyön, ja valitun kortin päällä
+istuva pesukarhu hyppää kortilta toiselle. Pelillistetty on **dronelento** järven yli (`#flight`): ohjaat dronea
+pesukarhu kyydissä auringonlaskusta revontuliyöhön, rannan kohteet avaavat portfolion osiot ja ilmassa leijuu
+kerättäviä teknologioita. Normaali on perinteinen yhden sivun portfolio (`#portfolio`, suora linkki ohittaa
+aloitusruudun) samasta sisällöstä. Aiempi 3D-loft + pelivalikko on tallessa varmuuskopiona (osoite `#loft`,
+haara `loft-3d-backup`).
 Kaksikielinen (fi/en), näppäimistöllä navigoitava, pelillistetyssä ääniefektit.
 
 ## Stack
@@ -56,8 +61,10 @@ src/
     fi.ts, en.ts             KAIKKI TEKSTIT – muokkaa näitä
     images.ts                kuvat, ikonit (icon-*), Tavarat-esineet (good-*), tunnus, taustat, linkit
   components/portfolio/      normaali portfolio samasta sisällöstä: Portfolio, Sections, Landscape (HeroScene: Higgsfield-tasoista koottu elävä parallaksimaisema + alatunnisteen harjanne), hooks, nav
+  components/flight/          DRONELENTO (pelillistetty): FlightGame (maailma, drone + pesukarhu, ohjaus, HUD), world (kohteet, löydöt, mitat), Panels (kohteiden sisällöt)
   components/game/
-    StartScreen              tunnuksen paljastusvideo + valinta Normaali / Pelillistetty (pelillistetty avaa äänen)
+    StartScreen              aloitusruutu: maisema (HeroScene night), tunnus + nimi, valinta Normaali (auringonlasku) / Pelillistetty (revontuliyö, avaa äänen)
+    StartSky, StartRaccoon   aloitusruudun taivas (tähdet, kuu, revontuliverhot, tähdenlento) · kortilta toiselle hyppäävä pesukarhu
     GameShell                pelivalikon välilehdet, näppäimet (Q/E, M) ja 3D-loft (Esc loftissa → valikko)
     TopBar, BottomBar        valikko + välilehdet + ääni/kieli · näppäinvihjeet
     InventoryScreen          hahmo, slotit, kielipalkki, taso, HUD-slotit, reppu, tietokaista
