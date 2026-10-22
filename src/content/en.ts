@@ -377,6 +377,7 @@ export const en: Content = {
     lead: 'Algorithm, data and database problems as problem-solving practice. The numbers update daily from my LeetCode profile.',
     solved: 'problems solved',
     rank: 'Global ranking',
+    topBadge: 'Top {pct}%',
     rankTop: 'Top {pct}%',
     rankBasis: 'of the roughly {pool} million users who have solved at least {min} problems',
     rankFirst: 'Best',

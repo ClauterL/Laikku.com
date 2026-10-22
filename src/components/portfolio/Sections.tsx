@@ -492,13 +492,16 @@ function LcRank({ rank, run }: { rank: number; run: boolean }) {
   const pos = Math.max((rank / ACTIVE_POOL) * 100, 0.8)
   const vars = { pct: fmtNum(topPercent(rank), lang), pool: poolMillions(lang), min: String(ACTIVE_MIN), max: fmtNum(RANK_SCALE, lang) }
   return (
-    <div className="rounded-xl border border-pf-line bg-pf-bg/40 px-4 py-3.5">
+    <div className="rounded-xl border border-pf-sun/45 bg-[radial-gradient(130%_120%_at_0%_0%,rgba(249,178,51,0.2),transparent_60%)] px-4 py-4 shadow-[0_0_40px_-12px_rgba(249,178,51,0.45)]">
       <div className="flex items-baseline justify-between gap-3">
         <span className="text-[0.72rem] font-bold uppercase tracking-wider text-pf-muted">{l.rank}</span>
-        <span className="poster text-xl tabular-nums text-pf-sun">#{fmtNum(rank, lang)}</span>
+        <span className="poster text-lg tabular-nums text-pf-ink-2">#{fmtNum(rank, lang)}</span>
       </div>
-      <p className="mt-1 text-sm leading-snug text-pf-ink-2">
-        <strong className="text-base text-pf-ink">{fill(l.rankTop, vars)}</strong> {fill(l.rankBasis, vars)}
+      <p className="poster mt-1 bg-gradient-to-r from-pf-sun via-pf-amber to-pf-orange bg-clip-text text-[clamp(2.8rem,6vw,3.6rem)] leading-[0.95] text-transparent">
+        {fill(l.topBadge, vars)}
+      </p>
+      <p className="mt-2 text-sm leading-snug text-pf-ink-2">
+        <strong className="font-bold text-pf-ink">{fill(l.rankTop, vars)}</strong> {fill(l.rankBasis, vars)}
       </p>
       <div className="relative mt-3 h-1.5 rounded-full bg-[linear-gradient(90deg,var(--pf-sun),var(--pf-orange)_10%,var(--pf-line)_35%)]" aria-hidden>
         <span
@@ -527,6 +530,11 @@ function LeetCodeStats() {
       <h3 className="mb-4 mt-16 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.22em] text-pf-orange">
         <TechIcon name="leetcode" className="size-4" />
         {l.title}
+        {d.ranking && (
+          <span className="ml-1 rounded-full bg-gradient-to-r from-pf-sun to-pf-orange px-2.5 py-0.5 text-[0.7rem] font-extrabold tracking-[0.12em] text-pf-bg shadow-[0_0_16px_rgba(249,178,51,0.45)]">
+            {fill(l.topBadge, { pct: fmtNum(topPercent(d.ranking), lang) })}
+          </span>
+        )}
       </h3>
       <Reveal className={cn(card, 'p-6 lg:p-8')}>
         <p className="mb-6 max-w-[70ch] text-sm leading-relaxed text-pf-ink-2">{l.lead}</p>
@@ -542,6 +550,7 @@ function LeetCodeStats() {
                 </p>
               </div>
             </div>
+            {d.ranking && <LcRank rank={d.ranking} run={inView} />}
             <ul className="flex flex-col gap-3">
               {DIFFICULTIES.map((k) => (
                 <li key={k}>
@@ -557,7 +566,6 @@ function LeetCodeStats() {
                 </li>
               ))}
             </ul>
-            {d.ranking && <LcRank rank={d.ranking} run={inView} />}
           </div>
 
           {/* kielet */}

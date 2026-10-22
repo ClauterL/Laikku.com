@@ -89,6 +89,9 @@ function Arena() {
           <h3 className="font-display text-[0.8rem] uppercase tracking-[0.22em] text-ink">
             {l.arena} <span className="text-brass">·</span> {l.title}
           </h3>
+          {d.ranking && (
+            <span className="rounded-sm border border-gold/60 bg-gold/15 px-2 py-0.5 font-display text-[0.7rem] uppercase tracking-[0.16em] text-gold">{fill(l.topBadge, vars)}</span>
+          )}
         </div>
         <a href={d.url} target="_blank" rel="noreferrer noopener" className="label-caps inline-flex items-center gap-1.5 hover:text-brass-2">
           {l.profile}
@@ -106,10 +109,12 @@ function Arena() {
           </div>
           {d.ranking && (
             <div className="max-w-[16rem]" title={fill(l.rankNote, vars)}>
-              <p className="font-display text-2xl text-gold tabular-nums">#{fmtNum(d.ranking, lang)}</p>
-              <p className="label-caps">{l.rank}</p>
+              <p className="font-display text-4xl leading-none text-gold [text-shadow:0_0_18px_rgba(241,196,90,0.45)]">{fill(l.topBadge, vars)}</p>
+              <p className="label-caps mt-1.5">
+                {l.rank} <span className="tabular-nums text-brass-2">#{fmtNum(d.ranking, lang)}</span>
+              </p>
               <p className="mt-1.5 text-xs leading-snug text-muted-foreground">
-                <span className="font-display text-sm text-ink">{fill(l.rankTop, vars)}</span> {fill(l.rankBasis, vars)}
+                <span className="text-ink">{fill(l.rankTop, vars)}</span> {fill(l.rankBasis, vars)}
               </p>
             </div>
           )}

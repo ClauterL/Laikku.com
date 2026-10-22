@@ -378,6 +378,7 @@ export const fi: Content = {
     lead: 'Algoritmi-, data- ja tietokantatehtäviä ongelmanratkaisun treeninä. Luvut päivittyvät LeetCode-profiilista joka päivä.',
     solved: 'ratkaistua tehtävää',
     rank: 'Globaali sijoitus',
+    topBadge: 'Top {pct} %',
     rankTop: 'Parhaan {pct} %:n joukossa',
     rankBasis: 'niistä noin {pool} miljoonasta käyttäjästä, jotka ovat ratkaisseet vähintään {min} tehtävää',
     rankFirst: 'Paras',

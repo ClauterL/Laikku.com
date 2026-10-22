@@ -165,6 +165,8 @@ export interface Content {
     lead: string
     solved: string
     rank: string
+    /** Iso nosto, {pct} = prosentti (esim. "Top 1 %") */
+    topBadge: string
     /** Sanallinen sijoitus, {pct} = prosentti */
     rankTop: string
     /** Prosentin pohja: {pool} = miljoonaa käyttäjää, {min} = ratkaisuraja */
