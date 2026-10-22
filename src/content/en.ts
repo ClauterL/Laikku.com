@@ -728,7 +728,7 @@ export const en: Content = {
     lead: 'Who, where and how to reach me.',
     paragraphs: [
       'I’m Claus Laikku, a developer and entrepreneur from Jyväskylä, Finland. I founded Havaida Oy in summer 2026, work in smart lighting as a technical specialist and study ICT engineering at JAMK.',
-      'Off the clock: HEMA, diving, golf and the forest. In 2027 the compass points to Split, Croatia.',
+      'When the screen goes dark, the keyboard gives way to a longsword, a dive mask or a golf club – or a trail deep into the forest. Adventure doesn’t wait, and the compass already points to the next shore.',
     ],
     quote: 'Victors write history. The rich make the rules. Dreamers build, break, fix & rebuild.',
     info: [
