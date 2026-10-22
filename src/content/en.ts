@@ -744,7 +744,7 @@ export const en: Content = {
       { value: '6', label: 'browser games' },
     ],
     links: [
-      { label: 'Instagram', value: '@claus.laikku', href: links.instagram },
+      { label: 'Instagram', value: '@cl_laikku', href: links.instagram },
       { label: 'GitHub', value: 'ClauterL', href: links.github },
       { label: 'Havaida', value: 'havaida.com', href: links.havaida },
       { label: 'Email', value: links.email, href: `mailto:${links.email}` },

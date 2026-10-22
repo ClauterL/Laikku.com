@@ -163,14 +163,14 @@ export const backgrounds = {
 }
 
 export const links = {
-  instagram: 'https://www.instagram.com/claus.laikku',
+  instagram: 'https://www.instagram.com/cl_laikku/',
   github: 'https://github.com/ClauterL',
   havaida: 'https://havaida.com',
   demot: 'https://havaida.com/demot/',
   games: 'https://github.com/ClauterL/laikku-games',
   play: 'https://havaida-games.netlify.app',
   dev: 'https://laikku.dev',
-  email: 'claus@laikku.com',
+  email: 'claikku@gmail.com',
   repo: 'https://github.com/ClauterL/Laikku.com',
 }
 

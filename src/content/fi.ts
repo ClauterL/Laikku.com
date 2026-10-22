@@ -754,7 +754,7 @@ export const fi: Content = {
       { value: '6', label: 'selainpeliä' },
     ],
     links: [
-      { label: 'Instagram', value: '@claus.laikku', href: links.instagram },
+      { label: 'Instagram', value: '@cl_laikku', href: links.instagram },
       { label: 'GitHub', value: 'ClauterL', href: links.github },
       { label: 'Havaida', value: 'havaida.com', href: links.havaida },
       { label: 'Sähköposti', value: links.email, href: `mailto:${links.email}` },
