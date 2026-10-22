@@ -790,7 +790,7 @@ export const en: Content = {
           role: 'Unit Director',
           org: 'Sospro',
           quote:
-            'Claus is a rarely innovative problem solver. Where others see an obstacle, he sees a chance to automate, simplify or build an entirely new tool – and he takes the idea all the way into practice.',
+            'Claus is a highly innovative problem solver. Where others see an obstacle, he sees a chance to automate, simplify or build an entirely new tool. He also takes the idea all the way into practice.',
           photo: { ...images.refChristian, alt: 'Christian smiling in a dark suit with arms crossed in an office at dusk' },
           draft: true,
         },

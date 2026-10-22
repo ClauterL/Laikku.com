@@ -801,7 +801,7 @@ export const fi: Content = {
           role: 'Yksikönjohtaja',
           org: 'Sospro',
           quote:
-            'Claus on harvinaisen innovatiivinen ongelmanratkaisija. Siinä missä muut näkevät esteen, hän näkee mahdollisuuden automatisoida, yksinkertaistaa tai rakentaa kokonaan uuden työkalun – ja vie idean käytäntöön asti.',
+            'Claus on erittäin innovatiivinen ongelmanratkaisija. Siinä missä muut näkevät esteen, hän näkee mahdollisuuden automatisoida, yksinkertaistaa tai rakentaa kokonaan uuden työkalun. Hän myös vie idean käytäntöön asti.',
           photo: { ...images.refChristian, alt: 'Christian hymyilee tummassa puvussa kädet ristissä toimiston iltavalossa' },
           draft: true,
         },
