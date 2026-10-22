@@ -797,35 +797,55 @@ export const fi: Content = {
       profile: 'Profiili',
       items: [
         {
+          name: 'Christian',
+          role: 'Yksikönjohtaja',
+          org: 'Sospro',
+          quote:
+            'Claus on harvinaisen innovatiivinen ongelmanratkaisija. Siinä missä muut näkevät esteen, hän näkee mahdollisuuden automatisoida, yksinkertaistaa tai rakentaa kokonaan uuden työkalun – ja vie idean käytäntöön asti.',
+          photo: { ...images.refChristian, alt: 'Christian hymyilee tummassa puvussa kädet ristissä toimiston iltavalossa' },
+          draft: true,
+        },
+        {
+          name: 'Riku',
+          role: 'Head of Services',
+          org: 'C2 SmartLight',
+          quote:
+            'Claus hoiti valaistuksen ohjausjärjestelmien teknistä tukea ja käyttöönottoja vastuullisesti ja asiakaslähtöisesti. Hän selvitti vaativiakin vikatilanteita itsenäisesti ja etsi samalla tapoja automatisoida palvelutiimin rutiineja.',
+          photo: { ...images.refRiku, alt: 'Riku istuu turkoosissa pikeepaidassa' },
+          draft: true,
+        },
+        {
+          name: 'Teemu',
+          role: 'Lehtori',
+          org: 'JAMK',
+          quote:
+            'Claus on oma-aloitteinen ja utelias opiskelija, joka vie oppimansa nopeasti käytäntöön. Omat projektit ja yritystoiminta näkyvät hänen töissään kypsyytenä ja kykynä viedä asiat valmiiksi.',
+          photo: { ...images.refTeemu, alt: 'Teemu hymyilee tussi kädessä IT-luokan valkotaulun vieressä' },
+          draft: true,
+        },
+        {
           name: 'Netta',
-          role: '[Rooli]',
-          org: '[Organisaatio]',
+          role: 'Insinööriopiskelija',
+          org: 'SAMK',
           quote: 'Laikku on ollut reilu ja osaava opiskelukaveri, joka on aina auttanut, kun on kysynyt.',
           photo: { ...images.refNetta, alt: 'Netta hymyilee istuen opiskelutilan pöydän reunalla iltavalossa' },
           draft: true,
         },
         {
-          name: 'Riku',
-          role: '[Rooli]',
-          org: '[Organisaatio]',
-          quote: 'Laikku auttoi meitä [missä]. [Mitä siitä seurasi.]',
-          photo: { ...images.refRiku, alt: 'Riku istuu turkoosissa pikeepaidassa' },
-          draft: true,
-        },
-        {
-          name: 'Christian',
-          role: 'Yksikön päällikkö',
-          org: '[Organisaatio]',
-          quote: 'Laikku osasi [taidon] – [esimerkki siitä, miten se näkyi].',
-          photo: { ...images.refChristian, alt: 'Christian hymyilee tummassa puvussa kädet ristissä toimiston iltavalossa' },
-          draft: true,
-        },
-        {
           name: 'Mika',
-          role: '[Rooli]',
-          org: '[Organisaatio]',
-          quote: 'Laikku auttoi meitä [missä]. [Mitä siitä seurasi.]',
+          role: 'Service Manager',
+          org: 'Topteam IT Oy',
+          quote:
+            'Claus oli luotettava järjestelmäasiantuntija ja tiimipelaaja. Azure- ja Microsoft 365 -ympäristöt, tietoturvan valvonta ja varmuuskopiot olivat hyvissä käsissä, ja asiakkaat saivat häneltä aina selkeän ja nopean vastauksen.',
           photo: { ...images.refMika, alt: 'Mika nauraa puvussa syksyisen lehvästön edessä' },
+          draft: true,
+        },
+        {
+          name: 'Veli-Matti',
+          role: 'Senior Front-end Developer',
+          org: 'C2 SmartLight',
+          quote:
+            'Harjoittelussaan Claus teki palvelutyön rinnalla kehitystä tekniikkatiimissämme. Hän omaksui koodikannan ja työkalut nopeasti, kysyi oikeat kysymykset ja toi asiakastuen kokemuksen suoraan kehitykseen.',
           draft: true,
         },
         {
@@ -833,14 +853,6 @@ export const fi: Content = {
           role: 'Insinööriopiskelija',
           quote: 'Laikku auttoi minua [missä]. [Mitä siitä seurasi.]',
           photo: { ...images.refMiitri, alt: 'Miitri kädet ristissä elektroniikkalaboratoriossa' },
-          draft: true,
-        },
-        {
-          name: 'Teemu',
-          role: 'IT-tuutoropettaja',
-          org: 'JAMK',
-          quote: 'Laikku on [havainto tuutoropettajan näkökulmasta]. [Esimerkki siitä, miten se näkyi.]',
-          photo: { ...images.refTeemu, alt: 'Teemu hymyilee tussi kädessä IT-luokan valkotaulun vieressä' },
           draft: true,
         },
       ],

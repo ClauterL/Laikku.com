@@ -786,35 +786,55 @@ export const en: Content = {
       profile: 'Profile',
       items: [
         {
+          name: 'Christian',
+          role: 'Unit Director',
+          org: 'Sospro',
+          quote:
+            'Claus is a rarely innovative problem solver. Where others see an obstacle, he sees a chance to automate, simplify or build an entirely new tool – and he takes the idea all the way into practice.',
+          photo: { ...images.refChristian, alt: 'Christian smiling in a dark suit with arms crossed in an office at dusk' },
+          draft: true,
+        },
+        {
+          name: 'Riku',
+          role: 'Head of Services',
+          org: 'C2 SmartLight',
+          quote:
+            'Claus handled technical support and commissioning for our lighting control systems responsibly and with the customer in mind. He solved even demanding faults independently and kept looking for ways to automate the service team’s routines.',
+          photo: { ...images.refRiku, alt: 'Riku seated in a turquoise polo shirt' },
+          draft: true,
+        },
+        {
+          name: 'Teemu',
+          role: 'Lecturer',
+          org: 'JAMK',
+          quote:
+            'Claus is a self-driven and curious student who quickly puts what he learns into practice. His own projects and business show in his work as maturity and the ability to get things finished.',
+          photo: { ...images.refTeemu, alt: 'Teemu smiling with a marker in hand next to a whiteboard in an IT classroom' },
+          draft: true,
+        },
+        {
           name: 'Netta',
-          role: '[Role]',
-          org: '[Organisation]',
+          role: 'Engineering student',
+          org: 'SAMK',
           quote: 'Laikku has been a fair and capable study mate who always helped whenever we asked.',
           photo: { ...images.refNetta, alt: 'Netta smiling, seated on the edge of a study table at dusk' },
           draft: true,
         },
         {
-          name: 'Riku',
-          role: '[Role]',
-          org: '[Organisation]',
-          quote: 'Laikku helped us [with what]. [What came of it.]',
-          photo: { ...images.refRiku, alt: 'Riku seated in a turquoise polo shirt' },
-          draft: true,
-        },
-        {
-          name: 'Christian',
-          role: 'Head of Unit',
-          org: '[Organisation]',
-          quote: 'Laikku knew [the skill] – [an example of how it showed].',
-          photo: { ...images.refChristian, alt: 'Christian smiling in a dark suit with arms crossed in an office at dusk' },
-          draft: true,
-        },
-        {
           name: 'Mika',
-          role: '[Role]',
-          org: '[Organisation]',
-          quote: 'Laikku helped us [with what]. [What came of it.]',
+          role: 'Service Manager',
+          org: 'Topteam IT Oy',
+          quote:
+            'Claus was a reliable systems specialist and a team player. Our Azure and Microsoft 365 environments, security monitoring and backups were in good hands, and customers always got a clear and quick answer from him.',
           photo: { ...images.refMika, alt: 'Mika laughing in a suit in front of autumn leaves' },
+          draft: true,
+        },
+        {
+          name: 'Veli-Matti',
+          role: 'Senior Front-end Developer',
+          org: 'C2 SmartLight',
+          quote:
+            'During his internship Claus did development work in our tech team alongside his service duties. He picked up the codebase and tools quickly, asked the right questions and brought his customer-support experience straight into development.',
           draft: true,
         },
         {
@@ -822,14 +842,6 @@ export const en: Content = {
           role: 'Engineering student',
           quote: 'Laikku helped me [with what]. [What came of it.]',
           photo: { ...images.refMiitri, alt: 'Miitri with arms crossed in an electronics lab' },
-          draft: true,
-        },
-        {
-          name: 'Teemu',
-          role: 'IT tutor teacher',
-          org: 'JAMK',
-          quote: "Laikku is [an observation from a tutor's perspective]. [An example of how it showed.]",
-          photo: { ...images.refTeemu, alt: 'Teemu smiling with a marker in hand next to a whiteboard in an IT classroom' },
           draft: true,
         },
       ],
