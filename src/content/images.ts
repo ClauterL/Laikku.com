@@ -1,3 +1,5 @@
+import critterData from '@/data/critters.json'
+
 import type { Img } from './types'
 
 /* Kuvat public/images-kansiossa. Henkilökuvat on generoitu Higgsfieldillä
@@ -189,11 +191,12 @@ export const heroScene = {
   front: heroLayer('front'),
 }
 
-/** Alaosioiden eläinvarjot: ruutunauhat (valkoinen + alfa), käytetään CSS-maskina currentColor-värillä.
-    Ruutu w×h, ruudut vierekkäin vasemmalta. Higgsfield-siluetit animoitu nukkena (raajat/kaula/pää nivelistään).
-    stride = karhun kehon eteneminen ruutua kohden ruudun pikseleinä (tassut pysyvät maassa). */
+/** Alaosioiden eläinvarjot: Higgsfield-videoista (Kling 3.0 / Seedance 2.5, aloitus = lopetusruutu) irrotetut siluetit
+    ruudukkoina (valkoinen + alfa), käytetään CSS-maskina currentColor-värillä. Metatiedot src/data/critters.json:
+    ruutu w×h, cols×rows, frames; peura/pesukarhu ms = kunkin ruudun kesto videon ajoituksella;
+    karhu stride = kehon eteneminen ruutua kohden solun pikseleinä (tassut pysyvät maassa), rest = seisovat ruudut. */
 export const critterSprites = {
-  bear: { src: '/images/critter-bear.webp', w: 206, h: 138, frames: 24, stride: 1.7771 },
-  deer: { src: '/images/critter-deer.webp', w: 199, h: 168, frames: 28 },
-  raccoon: { src: '/images/critter-raccoon.webp', w: 108, h: 128, frames: 26 },
-} as const
+  bear: { src: '/images/critter-bear.webp', ...critterData.bear },
+  deer: { src: '/images/critter-deer.webp', ...critterData.deer },
+  raccoon: { src: '/images/critter-raccoon.webp', ...critterData.raccoon },
+}

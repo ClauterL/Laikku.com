@@ -22,13 +22,15 @@ Claus Laikun portfoliosivusto pelivalikon muodossa (laikku.com). Rakenne ja kome
   (3840×1118) ja elävöitetty koodilla (`Landscape.tsx` → `HeroScene`: aurinko, pilvet, linnut, välke, savu, drone,
   parallaksi). Näkymä skaalautuu yhtenä kappaleena (`w = max(104cqw, 960px)`), joten yksityiskohtien paikat
   annetaan prosentteina siitä. Ei kopiota mistään pelistä eikä pelien kuvia Higgsfield-referensseiksi.
-  Alaosioiden eläinsiluetit (`Critters.tsx`): ruutunauhat `public/images/critter-{bear,deer,raccoon}.webp`
-  (valkoinen + alfa, ≥ 16 ruutua, metatiedot `images.ts` → `critterSprites`) näytetään CSS-maskina currentColor-värillä.
-  Higgsfield-siluetit animoitu nukkena (karhun sääret polvesta, peuran kaula, pesukarhun tassut/pää/korva),
-  jotta ruudut ovat yhtenäisiä eivätkä "kiehu". Karhu (kävelee Taitomatriisin korttien yläreunaa) etenee
-  askelpituuden (`stride`) tahdissa, ettei tassu liu'u; peura (Muut hankkeet -rivin reunalla) ja pesukarhu
-  (Päivittäiset työkalut -kortti) toistavat satunnaistettua ohjelmaa. Vain staattisille taustoille, ei `spot`-korteille;
-  animaatio pyörii vain näkyvissä, vähennetty liike → ensimmäinen ruutu paikallaan.
+  Alaosioiden eläinsiluetit (`Critters.tsx`): Higgsfield-videot (karhu Seedance 2.5, peura ja pesukarhu Kling 3.0;
+  mustasta siluetista aloitus- ja lopetusruuduksi, paikallaan pysyvä kamera / karhulla seuraava kamera), joista ruudut
+  irrotettu kynnystämällä → ruudukot `public/images/critter-{bear,deer,raccoon}.webp` (valkoinen + alfa) ja metatiedot
+  `src/data/critters.json` (generoitu – älä muokkaa käsin; `images.ts` → `critterSprites`). Näytetään CSS-maskina
+  currentColor-värillä. Karhu (Taitomatriisin korttien yläreunalla) on yksi saumaton kävelysykli, joka etenee videosta
+  mitatun askelpituuden (`stride`) tahdissa, ettei tassu liu'u, ja pysähtyy seisovaan ruutuun (`rest`); peura (Muut
+  hankkeet) ja pesukarhu (Päivittäiset työkalut) toistavat videon omalla ajoituksella (`ms`) ja odottavat alkuasennossa.
+  Vain staattisille taustoille, ei `spot`-korteille; kuva ladataan lähellä näkymää, animaatio pyörii vain näkyvissä,
+  vähennetty liike → paikallaan.
 - UI-primitiivit shadcn/ui-tyyliin (`src/components/ui`), Radix UI:n päällä.
 - Äänet syntetisoidaan Web Audiolla (`src/lib/sfx.ts`) – ei äänitiedostoja repoon.
   Uusi efekti: lisää `Sfx`-unioniin ja `play()`-switchiin.
