@@ -165,6 +165,13 @@ export interface Content {
     lead: string
     solved: string
     rank: string
+    /** Sanallinen sijoitus, {pct} = prosentti */
+    rankTop: string
+    /** Asteikon päät */
+    rankFirst: string
+    rankLast: string
+    /** Selite: {max} = viimeinen sijoitettu */
+    rankNote: string
     difficulty: { easy: string; medium: string; hard: string }
     languages: string
     languagesNote: string

@@ -36,7 +36,21 @@ export const langIcon = (name: string) => ICONS[name]
 /** Näyttönimi: "Python3" → "Python" */
 export const langLabel = (name: string) => (name === 'Python3' ? 'Python' : name)
 
-export const fmtNum = (n: number, lang: string) => n.toLocaleString(lang === 'fi' ? 'fi-FI' : 'en-GB')
+/** LeetCode sijoittaa vain 5 miljoonaa parasta; kaikki muut saavat arvon 5 000 001 (tarkistettu 10/2026
+    profiileista, joilla 0–10 ratkaisua). Asteikko on siis #1 – #5 000 000. */
+export const RANK_SCALE = 5_000_000
+
+/** Kuinka monen prosentin parhaimmistoon sijoitus kuuluu – pyöristys aina ylöspäin (ei liioittele) */
+export function topPercent(rank: number) {
+  const pct = (rank / RANK_SCALE) * 100
+  if (pct < 0.1) return Math.max(Math.ceil(pct * 100) / 100, 0.01)
+  if (pct < 10) return Math.ceil(pct * 10) / 10
+  return Math.ceil(pct)
+}
+
+export const fmtNum = (n: number, lang: string) => n.toLocaleString(lang === 'fi' ? 'fi-FI' : 'en-GB', { maximumFractionDigits: 2 })
 export const fmtDate = (iso: string | null, lang: string) =>
   iso ? new Date(iso).toLocaleDateString(lang === 'fi' ? 'fi-FI' : 'en-GB', { day: 'numeric', month: 'numeric', year: 'numeric' }) : ''
 export const topicUrl = (slug: string) => `https://leetcode.com/problem-list/${slug}/`
+/** "{pct}"/"{max}"-paikkamerkit sisältötekstissä */
+export const fill = (text: string, vars: Record<string, string>) => text.replace(/\{(\w+)\}/g, (m, k: string) => vars[k] ?? m)

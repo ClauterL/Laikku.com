@@ -24,7 +24,7 @@ import { TechIcon, hasTechIcon } from '@/components/TechIcon'
 import { useLang } from '@/hooks/useLang'
 import { images, links, pfIcons, type PortfolioSection, type Quest } from '@/content'
 import { SHOW_DRAFTS } from '@/lib/env'
-import { DIFFICULTIES, fmtDate, fmtNum, hasLeetCode, langIcon, langLabel, leetcode, topicUrl } from '@/lib/leetcode'
+import { DIFFICULTIES, fill, fmtDate, fmtNum, hasLeetCode, langIcon, langLabel, leetcode, RANK_SCALE, topicUrl, topPercent } from '@/lib/leetcode'
 import { cn } from '@/lib/utils'
 import { Reveal, spotHandlers, useCountUp, useInView, useReducedMotion } from './hooks'
 import { HeroScene } from './Landscape'
@@ -470,6 +470,35 @@ function LcBar({ value, max, color, run, label }: { value: number; max: number; 
   )
 }
 
+/** Sijoitus sanallisesti + asteikko #1 → #5 000 000 (LeetCoden viimeinen sijoitettu) */
+function LcRank({ rank, run }: { rank: number; run: boolean }) {
+  const { t, lang } = useLang()
+  const l = t.leetcode
+  const pos = Math.max((rank / RANK_SCALE) * 100, 0.8)
+  return (
+    <div className="rounded-xl border border-pf-line bg-pf-bg/40 px-4 py-3.5">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-[0.72rem] font-bold uppercase tracking-wider text-pf-muted">{l.rank}</span>
+        <span className="poster text-xl tabular-nums text-pf-sun">#{fmtNum(rank, lang)}</span>
+      </div>
+      <p className="mt-1 text-sm font-bold text-pf-ink">{fill(l.rankTop, { pct: fmtNum(topPercent(rank), lang) })}</p>
+      <div className="relative mt-3 h-1.5 rounded-full bg-[linear-gradient(90deg,var(--pf-sun),var(--pf-orange)_10%,var(--pf-line)_35%)]" aria-hidden>
+        <span
+          className="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-pf-sun shadow-[0_0_10px_rgba(249,178,51,0.7)] ring-2 ring-pf-bg transition-[left] duration-1000 ease-out motion-reduce:transition-none"
+          style={{ left: run ? `${pos}%` : '50%' }}
+        />
+      </div>
+      <div className="mt-1.5 flex justify-between gap-2 text-[0.66rem] font-semibold tabular-nums text-pf-muted">
+        <span>#1 · {l.rankFirst}</span>
+        <span className="text-right">
+          #{fmtNum(RANK_SCALE, lang)} · {l.rankLast}
+        </span>
+      </div>
+      <p className="mt-2 text-[0.7rem] leading-snug text-pf-muted">{fill(l.rankNote, { max: fmtNum(RANK_SCALE, lang) })}</p>
+    </div>
+  )
+}
+
 function LeetCodeStats() {
   const { t, lang } = useLang()
   const l = t.leetcode
@@ -512,12 +541,7 @@ function LeetCodeStats() {
                 </li>
               ))}
             </ul>
-            {d.ranking && (
-              <div className="flex items-center justify-between gap-3 rounded-xl border border-pf-line bg-pf-bg/40 px-4 py-3">
-                <span className="text-[0.72rem] font-bold uppercase tracking-wider text-pf-muted">{l.rank}</span>
-                <span className="poster text-xl tabular-nums text-pf-sun">#{fmtNum(d.ranking, lang)}</span>
-              </div>
-            )}
+            {d.ranking && <LcRank rank={d.ranking} run={inView} />}
           </div>
 
           {/* kielet */}

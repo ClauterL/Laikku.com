@@ -4,7 +4,7 @@ import { ExternalLink } from 'lucide-react'
 import { TechIcon } from '@/components/TechIcon'
 import { useLang } from '@/hooks/useLang'
 import { useSound } from '@/hooks/useSound'
-import { DIFFICULTIES, fmtDate, fmtNum, hasLeetCode, langIcon, langLabel, leetcode, topicUrl } from '@/lib/leetcode'
+import { DIFFICULTIES, fill, fmtDate, fmtNum, hasLeetCode, langIcon, langLabel, leetcode, RANK_SCALE, topicUrl, topPercent } from '@/lib/leetcode'
 import { cn } from '@/lib/utils'
 
 /* Taitopuu: kolme haaraa, solmut pyöreinä ikoneina ja tasorenkaalla (SVG). */
@@ -99,9 +99,13 @@ function Arena() {
             </p>
           </div>
           {d.ranking && (
-            <div>
+            <div className="max-w-[16rem]" title={fill(l.rankNote, { max: fmtNum(RANK_SCALE, lang) })}>
               <p className="font-display text-2xl text-gold tabular-nums">#{fmtNum(d.ranking, lang)}</p>
               <p className="label-caps">{l.rank}</p>
+              <p className="mt-1.5 text-xs text-ink-2">{fill(l.rankTop, { pct: fmtNum(topPercent(d.ranking), lang) })}</p>
+              <p className="text-[0.7rem] tabular-nums text-muted-foreground">
+                {l.rankLast}: #{fmtNum(RANK_SCALE, lang)}
+              </p>
             </div>
           )}
         </div>
