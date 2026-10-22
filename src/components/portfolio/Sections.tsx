@@ -376,8 +376,8 @@ export function Skills() {
         {/* kielet ja työkalut logoina */}
         <Reveal delay={280} className={cn(card, 'relative flex flex-col gap-4 bg-gradient-to-br from-pf-bg-3 to-pf-bg-2 p-6 md:col-span-2 lg:col-span-1')}>
           {/* pesukarhu istuu kortin kulmassa ja pesee tassujaan */}
-          <Critter kind="raccoon" className="pointer-events-none absolute right-5 top-3 h-[52px] w-[40px] text-pf-line-2" />
-          <h4 className="poster pr-12 text-lg text-pf-ink">{p.skills.stack}</h4>
+          <Critter kind="raccoon" className="pointer-events-none absolute right-5 top-3 h-[60px] text-pf-line-2" />
+          <h4 className="poster pr-16 text-lg text-pf-ink">{p.skills.stack}</h4>
           <ul className="grid grid-cols-3 gap-2">
             {inv.languages.map((l) => (
               <li key={l.id} className="flex flex-col items-center gap-1.5 rounded-xl border border-pf-line bg-pf-bg/50 px-2 py-3 text-center" title={l.desc}>
@@ -392,7 +392,7 @@ export function Skills() {
       <div className="relative mb-4 mt-16">
         <h3 className="text-xs font-bold uppercase tracking-[0.22em] text-pf-orange">{p.skills.matrix}</h3>
         {/* karhu kävelee korttien yläreunaa pitkin */}
-        <WalkingBear className="-bottom-4 left-[42%] right-2 h-[46px] text-pf-line-2 [--bear-w:73px]" />
+        <WalkingBear className="-bottom-4 left-[42%] right-2 h-[52px] text-pf-line-2" />
       </div>
       <div className="grid gap-4 md:grid-cols-3">
         {t.skills.branches.map((b, bi) => (
@@ -842,7 +842,7 @@ export function Now() {
       <div className="relative mb-4 mt-12">
         <h3 className="text-xs font-bold uppercase tracking-[0.22em] text-pf-orange">{p.now.side}</h3>
         {/* peura laiduntaa korttien reunalla */}
-        <Critter kind="deer" className="pointer-events-none absolute -bottom-4 right-8 h-[66px] w-[62px] text-pf-line-2" />
+        <Critter kind="deer" className="pointer-events-none absolute -bottom-4 right-8 h-[68px] text-pf-line-2" />
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {q.side.map((s, i) => (

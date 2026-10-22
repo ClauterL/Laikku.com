@@ -188,3 +188,12 @@ export const heroScene = {
   near: heroLayer('near'),
   front: heroLayer('front'),
 }
+
+/** Alaosioiden eläinvarjot: ruutunauhat (valkoinen + alfa), käytetään CSS-maskina currentColor-värillä.
+    Ruutu w×h, ruudut vierekkäin vasemmalta. Higgsfield-siluetit animoitu nukkena (raajat/kaula/pää nivelistään).
+    stride = karhun kehon eteneminen ruutua kohden ruudun pikseleinä (tassut pysyvät maassa). */
+export const critterSprites = {
+  bear: { src: '/images/critter-bear.webp', w: 206, h: 138, frames: 24, stride: 1.7771 },
+  deer: { src: '/images/critter-deer.webp', w: 199, h: 168, frames: 28 },
+  raccoon: { src: '/images/critter-raccoon.webp', w: 108, h: 128, frames: 26 },
+} as const

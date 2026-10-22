@@ -513,15 +513,8 @@
 @keyframes hero-prop { 50% { opacity: 0.25; } }
 .pf .hero-prop { animation: hero-prop 0.12s steps(2) infinite; }
 
-/* eläinsiluetit: karhu kävelee radan päähän ja kääntyy */
-@keyframes critter-walk { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(100%); } }
-.pf .critter-walk { animation: critter-walk 36s linear infinite; }
-@keyframes critter-turn { 0% { scale: 1 1; } 50%, 100% { scale: -1 1; } }
-.pf .critter-turn { animation: critter-turn 36s step-end infinite; }
-
 @media (prefers-reduced-motion: reduce) {
   .pf [data-reveal] { opacity: 1; transform: none; transition: none; }
-  .pf .critter-walk, .pf .critter-turn { animation: none; }
   .pf .hero-glow, .pf .hero-cloud, .pf .hero-flock, .pf .hero-wing, .pf .hero-fly, .pf .hero-tilt, .pf .hero-prop { animation: none; }
   .pf .hero-glint { animation: none; opacity: 0.6; }
   .pf .hero-smoke { display: none; }
