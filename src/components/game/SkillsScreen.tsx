@@ -4,7 +4,7 @@ import { ExternalLink } from 'lucide-react'
 import { TechIcon } from '@/components/TechIcon'
 import { useLang } from '@/hooks/useLang'
 import { useSound } from '@/hooks/useSound'
-import { DIFFICULTIES, fill, fmtDate, fmtNum, hasLeetCode, langIcon, langLabel, leetcode, RANK_SCALE, topicUrl, topPercent } from '@/lib/leetcode'
+import { ACTIVE_MIN, DIFFICULTIES, fill, fmtDate, fmtNum, hasLeetCode, langIcon, langLabel, leetcode, poolMillions, RANK_SCALE, topicUrl, topPercent } from '@/lib/leetcode'
 import { cn } from '@/lib/utils'
 
 /* Taitopuu: kolme haaraa, solmut pyöreinä ikoneina ja tasorenkaalla (SVG). */
@@ -73,6 +73,12 @@ function Arena() {
   const l = t.leetcode
   const d = leetcode
   const maxLang = d.languages[0]?.solved ?? 1
+  const vars = {
+    pct: d.ranking ? fmtNum(topPercent(d.ranking), lang) : '',
+    pool: poolMillions(lang),
+    min: String(ACTIVE_MIN),
+    max: fmtNum(RANK_SCALE, lang),
+  }
   return (
     <section className="panel corners mt-5 rounded-sm p-4 sm:p-5">
       <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -99,12 +105,11 @@ function Arena() {
             </p>
           </div>
           {d.ranking && (
-            <div className="max-w-[16rem]" title={fill(l.rankNote, { max: fmtNum(RANK_SCALE, lang) })}>
+            <div className="max-w-[16rem]" title={fill(l.rankNote, vars)}>
               <p className="font-display text-2xl text-gold tabular-nums">#{fmtNum(d.ranking, lang)}</p>
               <p className="label-caps">{l.rank}</p>
-              <p className="mt-1.5 text-xs text-ink-2">{fill(l.rankTop, { pct: fmtNum(topPercent(d.ranking), lang) })}</p>
-              <p className="text-[0.7rem] tabular-nums text-muted-foreground">
-                {l.rankLast}: #{fmtNum(RANK_SCALE, lang)}
+              <p className="mt-1.5 text-xs leading-snug text-muted-foreground">
+                <span className="font-display text-sm text-ink">{fill(l.rankTop, vars)}</span> {fill(l.rankBasis, vars)}
               </p>
             </div>
           )}

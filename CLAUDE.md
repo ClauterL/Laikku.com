@@ -38,7 +38,9 @@ Claus Laikun portfoliosivusto pelivalikon muodossa (laikku.com). Rakenne ja kome
 - `src/data/github.json` ja `src/data/leetcode.json` ovat generoituja (scripts/fetch-github.mjs,
   scripts/fetch-leetcode.mjs; molemmat ajetaan `prebuild`issa ja päivittyvät päivittäisessä buildissa) – älä muokkaa käsin.
   LeetCodesta näytetään sijoitus, ratkaistut vaikeustasoittain, kielet ja aihealueet (normaali: Osaaminen, peli: taitopuun
-  Harjoitusareena); aktiivisuuskalenteria ja yksittäisiä lähetyksiä ei tallenneta.
+  Harjoitusareena); aktiivisuuskalenteria ja yksittäisiä lähetyksiä ei tallenneta. Sijoitusprosentti lasketaan
+  aktiivisista ratkaisijoista (≥ 50 ratkaisua ≈ 2,725 milj. käyttäjää, otos 1 175 käyttäjästä 10/2026;
+  `ACTIVE_POOL` src/lib/leetcode.ts) ja pyöristetään ylöspäin; LeetCoden oma asteikko päättyy sijaan 5 000 000.
 - Kartta on oikea maailmankartta omana SVG:nä (`src/data/world.json`, d3-geo + d3-zoom) AC-tyylillä:
   pergamenttimaa, teal-meri (`bg-map.webp`), fog of war merkkien ympärillä. Ei Leafletia, ei tiilipalvelimia.
 - Pidä sivu staattisena: ei backendia, ei evästeitä, ei kolmannen osapuolen skriptejä

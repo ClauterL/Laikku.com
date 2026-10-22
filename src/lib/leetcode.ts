@@ -40,9 +40,16 @@ export const langLabel = (name: string) => (name === 'Python3' ? 'Python' : name
     profiileista, joilla 0–10 ratkaisua). Asteikko on siis #1 – #5 000 000. */
 export const RANK_SCALE = 5_000_000
 
-/** Kuinka monen prosentin parhaimmistoon sijoitus kuuluu – pyöristys aina ylöspäin (ei liioittele) */
+/** Prosentin pohja: aktiiviset ratkaisijat eli vähintään ACTIVE_MIN tehtävää ratkaisseet. Raja osuu noin sijalle
+    2,725 milj. (otos 1 175 käyttäjästä 10/2026: sijoitus määräytyy ratkaisumäärästä, ei poikkeuksia järjestyksessä). */
+export const ACTIVE_MIN = 50
+export const ACTIVE_POOL = 2_725_000
+/** Pohja miljoonina yhdellä desimaalilla (tekstiin) */
+export const poolMillions = (lang: string) => fmtNum(Math.round(ACTIVE_POOL / 100_000) / 10, lang)
+
+/** Kuinka monen prosentin parhaimmistoon sijoitus kuuluu aktiivisista – pyöristys aina ylöspäin (ei liioittele) */
 export function topPercent(rank: number) {
-  const pct = (rank / RANK_SCALE) * 100
+  const pct = (rank / ACTIVE_POOL) * 100
   if (pct < 0.1) return Math.max(Math.ceil(pct * 100) / 100, 0.01)
   if (pct < 10) return Math.ceil(pct * 10) / 10
   return Math.ceil(pct)

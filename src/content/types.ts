@@ -167,10 +167,12 @@ export interface Content {
     rank: string
     /** Sanallinen sijoitus, {pct} = prosentti */
     rankTop: string
+    /** Prosentin pohja: {pool} = miljoonaa käyttäjää, {min} = ratkaisuraja */
+    rankBasis: string
     /** Asteikon päät */
     rankFirst: string
     rankLast: string
-    /** Selite: {max} = viimeinen sijoitettu */
+    /** Selite: {max} = LeetCoden viimeinen sijoitettu */
     rankNote: string
     difficulty: { easy: string; medium: string; hard: string }
     languages: string
