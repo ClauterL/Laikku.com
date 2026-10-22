@@ -843,7 +843,7 @@ export const en: Content = {
           role: 'Engineering student',
           org: 'JAMK',
           quote:
-            'Claus is a genuinely approachable person – our class voted him our student representative almost unanimously. He has helped me solve coding problems and always comes up with new ways to approach them, just like Gyro Gearloose.',
+            'Claus is a very approachable person – our class voted him our student representative almost unanimously. He is easy to talk with even about complex matters, which has helped me grasp new things and find new approaches to different problems and ideas.',
           photo: { ...images.refMiitri, alt: 'Miitri with arms crossed in an electronics lab' },
           draft: true,
         },

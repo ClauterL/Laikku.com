@@ -854,7 +854,7 @@ export const fi: Content = {
           role: 'Insinööriopiskelija',
           org: 'JAMK',
           quote:
-            'Claus on todella lähestyttävä ihminen – äänestimme hänet luokkamme edunvalvojaksi lähes yksimielisesti. Hän on auttanut minua koodiongelmien ratkaisemisessa ja keksii aina uusia tapoja lähestyä niitä, ihan kuin Pelle Peloton.',
+            'Claus on helposti lähestyttävä ihminen – äänestimme hänet luokkamme edunvalvojaksi lähes yksimielisesti. Hänen kanssaan on helppo keskustella myös monimutkaisista asioista, mikä on auttanut minua oivaltamaan uusia asioita ja lähestymistapoja eri ongelmiin tai ideoihin.',
           photo: { ...images.refMiitri, alt: 'Miitri kädet ristissä elektroniikkalaboratoriossa' },
           draft: true,
         },
