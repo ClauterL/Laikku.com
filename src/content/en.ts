@@ -730,7 +730,7 @@ export const en: Content = {
       'I’m Claus Laikku, a developer and entrepreneur from Jyväskylä, Finland. I founded Havaida Oy in summer 2026, work in smart lighting as a technical specialist and study ICT engineering at JAMK.',
       'Off the clock: HEMA, diving, golf and the forest. In 2027 the compass points to Split, Croatia.',
     ],
-    quote: 'Claus does not wait a year. Claus builds in a weekend.',
+    quote: 'Invent, Build, Automate & Ship',
     info: [
       { label: 'Name', value: 'Claus Laikku' },
       { label: 'Email', value: links.email, href: `mailto:${links.email}` },
