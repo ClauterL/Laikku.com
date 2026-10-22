@@ -851,7 +851,9 @@ export const fi: Content = {
         {
           name: 'Miitri',
           role: 'Insinööriopiskelija',
-          quote: 'Laikku auttoi minua [missä]. [Mitä siitä seurasi.]',
+          org: 'JAMK',
+          quote:
+            'Claus on todella lähestyttävä ihminen – äänestimme hänet luokkamme edunvalvojaksi lähes yksimielisesti. Hän on auttanut minua koodiongelmien ratkaisemisessa ja keksii aina uusia tapoja lähestyä niitä, ihan kuin Pelle Peloton.',
           photo: { ...images.refMiitri, alt: 'Miitri kädet ristissä elektroniikkalaboratoriossa' },
           draft: true,
         },

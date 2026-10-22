@@ -840,7 +840,9 @@ export const en: Content = {
         {
           name: 'Miitri',
           role: 'Engineering student',
-          quote: 'Laikku helped me [with what]. [What came of it.]',
+          org: 'JAMK',
+          quote:
+            'Claus is a genuinely approachable person – our class voted him our student representative almost unanimously. He has helped me solve coding problems and always comes up with new ways to approach them, just like Gyro Gearloose.',
           photo: { ...images.refMiitri, alt: 'Miitri with arms crossed in an electronics lab' },
           draft: true,
         },
