@@ -793,7 +793,6 @@ export const en: Content = {
           quote:
             'Claus is a highly innovative problem solver. Where others see an obstacle, he sees a chance to automate, simplify or build an entirely new tool. He also takes the idea all the way into practice.',
           photo: { ...images.refChristian, alt: 'Christian smiling in a dark suit with arms crossed in an office at dusk' },
-          draft: true,
         },
         {
           name: 'Riku',
@@ -802,7 +801,6 @@ export const en: Content = {
           quote:
             'Claus handled technical support and commissioning for our lighting control systems responsibly and with the customer in mind. He solved even demanding faults independently and kept looking for ways to automate the service team’s routines.',
           photo: { ...images.refRiku, alt: 'Riku seated in a turquoise polo shirt' },
-          draft: true,
         },
         {
           name: 'Teemu',
@@ -811,7 +809,6 @@ export const en: Content = {
           quote:
             'Claus is a self-driven and curious student who quickly puts what he learns into practice. His own projects and business show in his work as maturity and the ability to get things finished.',
           photo: { ...images.refTeemu, alt: 'Teemu smiling with a marker in hand next to a whiteboard in an IT classroom' },
-          draft: true,
         },
         {
           name: 'Netta',
@@ -819,7 +816,6 @@ export const en: Content = {
           org: 'SAMK',
           quote: 'Laikku has been a fair and capable study mate who always helped whenever we asked.',
           photo: { ...images.refNetta, alt: 'Netta smiling, seated on the edge of a study table at dusk' },
-          draft: true,
         },
         {
           name: 'Mika',
@@ -828,7 +824,6 @@ export const en: Content = {
           quote:
             'Claus was a reliable systems specialist and a team player. Our Azure and Microsoft 365 environments, security monitoring and backups were in good hands, and customers always got a clear and quick answer from him.',
           photo: { ...images.refMika, alt: 'Mika laughing in a suit in front of autumn leaves' },
-          draft: true,
         },
         {
           name: 'Veli-Matti',
@@ -836,7 +831,6 @@ export const en: Content = {
           org: 'C2 SmartLight',
           quote:
             'During his internship Claus did development work in our tech team alongside his service duties. He picked up the codebase and tools quickly, asked the right questions and brought his customer-support experience straight into development. I would rate his skills at the level of a mid-level developer.',
-          draft: true,
         },
         {
           name: 'Miitri',
@@ -845,7 +839,6 @@ export const en: Content = {
           quote:
             'Claus is a very approachable person – our class voted him our student representative almost unanimously. He is easy to talk with even about complex matters, which has helped me grasp new things and find new approaches to different problems and ideas.',
           photo: { ...images.refMiitri, alt: 'Miitri with arms crossed in an electronics lab' },
-          draft: true,
         },
       ],
     },
