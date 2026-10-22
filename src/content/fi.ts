@@ -263,7 +263,7 @@ export const fi: Content = {
           },
           {
             id: 'boat', kind: 'good', name: 'Vesidrone', tag: 'USV · suunnitteilla', icon: goods.boat, rarity: 'rare',
-            desc: 'Autonominen aurinkokäyttöinen vesidrone, jonka on tarkoitus lähteä Oslosta ja kiertää Pohjanmeri. Vielä piirustuspöydällä.',
+            desc: 'Autonominen aurinkokäyttöinen vesidrone, jonka on tarkoitus lähteä Oslosta ja kiertää Itämeri. Vielä piirustuspöydällä.',
             spec: [{ label: 'Tila', value: 'suunnitteilla' }],
           },
           {
@@ -695,10 +695,10 @@ export const fi: Content = {
       {
         id: 'boat',
         type: 'side',
-        title: 'Vesidrone Pohjanmeren ympäri',
+        title: 'Vesidrone Itämeren ympäri',
         status: 'idea',
         progress: 5,
-        desc: 'Autonominen aurinkokäyttöinen vesidrone, joka lähtee Oslosta ja kiertää Pohjanmeren ympäri.',
+        desc: 'Autonominen aurinkokäyttöinen vesidrone, joka lähtee Oslosta ja kiertää Itämeren ympäri.',
         objectives: [
           { text: 'Konsepti ja reitti', done: true },
           { text: 'Prototyyppi järvellä', done: false },
@@ -740,7 +740,7 @@ export const fi: Content = {
       'Olen Claus Laikku, kehittäjä ja yrittäjä Jyväskylästä. Perustin Havaida Oy:n kesällä 2026, työskentelen älyvalaistuksen parissa teknisenä asiantuntijana ja opiskelen tieto- ja viestintätekniikkaa JAMKissa.',
       'Vapaalla HEMA, sukellus, golf ja metsä. Vuonna 2027 suunta on Split.',
     ],
-    quote: 'Odotin vuoden, että joku julkaisisi työkalun. Sitten tein sen viikonloppuna.',
+    quote: 'Claus ei odota vuotta. Claus rakentaa viikonlopussa.',
     info: [
       { label: 'Nimi', value: 'Claus Laikku' },
       { label: 'Sähköposti', value: links.email, href: `mailto:${links.email}` },

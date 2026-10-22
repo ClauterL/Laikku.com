@@ -262,7 +262,7 @@ export const en: Content = {
           },
           {
             id: 'boat', kind: 'good', name: 'Water drone', tag: 'USV · planned', icon: goods.boat, rarity: 'rare',
-            desc: 'An autonomous solar-powered water drone meant to set out from Oslo and circle the North Sea. Still on the drawing board.',
+            desc: 'An autonomous solar-powered water drone meant to set out from Oslo and circle the Baltic Sea. Still on the drawing board.',
             spec: [{ label: 'Status', value: 'planned' }],
           },
           {
@@ -694,10 +694,10 @@ export const en: Content = {
       {
         id: 'boat',
         type: 'side',
-        title: 'Water drone around the North Sea',
+        title: 'Water drone around the Baltic Sea',
         status: 'idea',
         progress: 5,
-        desc: 'An autonomous solar-powered water drone that sets out from Oslo and circles the North Sea.',
+        desc: 'An autonomous solar-powered water drone that sets out from Oslo and circles the Baltic Sea.',
         objectives: [
           { text: 'Concept and route', done: true },
           { text: 'Prototype on a lake', done: false },
@@ -730,7 +730,7 @@ export const en: Content = {
       'I’m Claus Laikku, a developer and entrepreneur from Jyväskylä, Finland. I founded Havaida Oy in summer 2026, work in smart lighting as a technical specialist and study ICT engineering at JAMK.',
       'Off the clock: HEMA, diving, golf and the forest. In 2027 the compass points to Split, Croatia.',
     ],
-    quote: 'I waited a year for someone to release the tool. Then I built it in a weekend.',
+    quote: 'Claus does not wait a year. Claus builds in a weekend.',
     info: [
       { label: 'Name', value: 'Claus Laikku' },
       { label: 'Email', value: links.email, href: `mailto:${links.email}` },
