@@ -845,7 +845,7 @@ export const fi: Content = {
           role: 'Senior Front-end Developer',
           org: 'C2 SmartLight',
           quote:
-            'Harjoittelussaan Claus teki palvelutyön rinnalla kehitystä tekniikkatiimissämme. Hän omaksui koodikannan ja työkalut nopeasti, kysyi oikeat kysymykset ja toi asiakastuen kokemuksen suoraan kehitykseen.',
+            'Harjoittelussaan Claus teki palvelutyön rinnalla kehitystä tekniikkatiimissämme. Hän omaksui koodikannan ja työkalut nopeasti, kysyi oikeat kysymykset ja toi asiakastuen kokemuksen suoraan kehitykseen. Arvioin hänen taitonsa mid-tason kehittäjän tasolle.',
           draft: true,
         },
         {

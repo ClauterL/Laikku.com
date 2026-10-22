@@ -834,7 +834,7 @@ export const en: Content = {
           role: 'Senior Front-end Developer',
           org: 'C2 SmartLight',
           quote:
-            'During his internship Claus did development work in our tech team alongside his service duties. He picked up the codebase and tools quickly, asked the right questions and brought his customer-support experience straight into development.',
+            'During his internship Claus did development work in our tech team alongside his service duties. He picked up the codebase and tools quickly, asked the right questions and brought his customer-support experience straight into development. I would rate his skills at the level of a mid-level developer.',
           draft: true,
         },
         {
