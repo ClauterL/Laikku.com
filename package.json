@@ -15,7 +15,8 @@
   "scripts": {
     "dev": "vite",
     "fetch:github": "node scripts/fetch-github.mjs",
-    "prebuild": "node scripts/fetch-github.mjs",
+    "fetch:leetcode": "node scripts/fetch-leetcode.mjs",
+    "prebuild": "node scripts/fetch-github.mjs && node scripts/fetch-leetcode.mjs",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview --port 5180",

@@ -1,0 +1,314 @@
+{
+  "user": "clauterl",
+  "url": "https://leetcode.com/u/clauterl/",
+  "fetchedAt": "2026-10-22T10:33:09.643Z",
+  "ranking": 27023,
+  "solved": {
+    "all": 1083,
+    "easy": 518,
+    "medium": 424,
+    "hard": 141
+  },
+  "total": {
+    "all": 4087,
+    "easy": 972,
+    "medium": 2131,
+    "hard": 984
+  },
+  "languages": [
+    {
+      "name": "Python3",
+      "solved": 446
+    },
+    {
+      "name": "TypeScript",
+      "solved": 235
+    },
+    {
+      "name": "Pandas",
+      "solved": 222
+    },
+    {
+      "name": "PHP",
+      "solved": 100
+    },
+    {
+      "name": "MySQL",
+      "solved": 85
+    },
+    {
+      "name": "JavaScript",
+      "solved": 75
+    },
+    {
+      "name": "Bash",
+      "solved": 4
+    }
+  ],
+  "topics": [
+    {
+      "name": "Array",
+      "slug": "array",
+      "solved": 464,
+      "level": "fundamental"
+    },
+    {
+      "name": "String",
+      "slug": "string",
+      "solved": 252,
+      "level": "fundamental"
+    },
+    {
+      "name": "Database",
+      "slug": "database",
+      "solved": 197,
+      "level": "intermediate"
+    },
+    {
+      "name": "Hash Table",
+      "slug": "hash-table",
+      "solved": 165,
+      "level": "intermediate"
+    },
+    {
+      "name": "Math",
+      "slug": "math",
+      "solved": 163,
+      "level": "intermediate"
+    },
+    {
+      "name": "Dynamic Programming",
+      "slug": "dynamic-programming",
+      "solved": 137,
+      "level": "advanced"
+    },
+    {
+      "name": "Sorting",
+      "slug": "sorting",
+      "solved": 121,
+      "level": "fundamental"
+    },
+    {
+      "name": "Greedy",
+      "slug": "greedy",
+      "solved": 78,
+      "level": "intermediate"
+    },
+    {
+      "name": "Two Pointers",
+      "slug": "two-pointers",
+      "solved": 76,
+      "level": "fundamental"
+    },
+    {
+      "name": "Depth-First Search",
+      "slug": "depth-first-search",
+      "solved": 70,
+      "level": "intermediate"
+    },
+    {
+      "name": "Binary Search",
+      "slug": "binary-search",
+      "solved": 63,
+      "level": "intermediate"
+    },
+    {
+      "name": "Matrix",
+      "slug": "matrix",
+      "solved": 62,
+      "level": "fundamental"
+    },
+    {
+      "name": "Breadth-First Search",
+      "slug": "breadth-first-search",
+      "solved": 60,
+      "level": "intermediate"
+    },
+    {
+      "name": "Bit Manipulation",
+      "slug": "bit-manipulation",
+      "solved": 60,
+      "level": "intermediate"
+    },
+    {
+      "name": "Simulation",
+      "slug": "simulation",
+      "solved": 46,
+      "level": "fundamental"
+    },
+    {
+      "name": "Stack",
+      "slug": "stack",
+      "solved": 46,
+      "level": "fundamental"
+    },
+    {
+      "name": "Tree",
+      "slug": "tree",
+      "solved": 42,
+      "level": "intermediate"
+    },
+    {
+      "name": "Binary Tree",
+      "slug": "binary-tree",
+      "solved": 38,
+      "level": "intermediate"
+    },
+    {
+      "name": "Backtracking",
+      "slug": "backtracking",
+      "solved": 38,
+      "level": "advanced"
+    },
+    {
+      "name": "Sliding Window",
+      "slug": "sliding-window",
+      "solved": 32,
+      "level": "intermediate"
+    },
+    {
+      "name": "Graph Theory",
+      "slug": "graph",
+      "solved": 24,
+      "level": "intermediate"
+    },
+    {
+      "name": "Recursion",
+      "slug": "recursion",
+      "solved": 21,
+      "level": "intermediate"
+    },
+    {
+      "name": "Divide and Conquer",
+      "slug": "divide-and-conquer",
+      "solved": 16,
+      "level": "advanced"
+    },
+    {
+      "name": "Enumeration",
+      "slug": "enumeration",
+      "solved": 15,
+      "level": "fundamental"
+    },
+    {
+      "name": "Trie",
+      "slug": "trie",
+      "solved": 15,
+      "level": "advanced"
+    },
+    {
+      "name": "Union-Find",
+      "slug": "union-find",
+      "solved": 14,
+      "level": "advanced"
+    },
+    {
+      "name": "Monotonic Stack",
+      "slug": "monotonic-stack",
+      "solved": 14,
+      "level": "advanced"
+    },
+    {
+      "name": "Linked List",
+      "slug": "linked-list",
+      "solved": 11,
+      "level": "fundamental"
+    },
+    {
+      "name": "Queue",
+      "slug": "queue",
+      "solved": 10,
+      "level": "fundamental"
+    },
+    {
+      "name": "Design",
+      "slug": "design",
+      "solved": 10,
+      "level": "intermediate"
+    },
+    {
+      "name": "Ordered Set",
+      "slug": "ordered-set",
+      "solved": 7,
+      "level": "intermediate"
+    },
+    {
+      "name": "Game Theory",
+      "slug": "game-theory",
+      "solved": 7,
+      "level": "advanced"
+    },
+    {
+      "name": "Bitmask",
+      "slug": "bitmask",
+      "solved": 7,
+      "level": "advanced"
+    },
+    {
+      "name": "Segment Tree",
+      "slug": "segment-tree",
+      "solved": 7,
+      "level": "advanced"
+    },
+    {
+      "name": "Binary Indexed Tree",
+      "slug": "binary-indexed-tree",
+      "solved": 6,
+      "level": "advanced"
+    },
+    {
+      "name": "Topological Sort",
+      "slug": "topological-sort",
+      "solved": 6,
+      "level": "advanced"
+    },
+    {
+      "name": "Rolling Hash",
+      "slug": "rolling-hash",
+      "solved": 4,
+      "level": "advanced"
+    },
+    {
+      "name": "Shortest Path",
+      "slug": "shortest-path",
+      "solved": 4,
+      "level": "advanced"
+    },
+    {
+      "name": "Brainteaser",
+      "slug": "brainteaser",
+      "solved": 3,
+      "level": "intermediate"
+    },
+    {
+      "name": "Data Stream",
+      "slug": "data-stream",
+      "solved": 3,
+      "level": "advanced"
+    },
+    {
+      "name": "Quickselect",
+      "slug": "quickselect",
+      "solved": 3,
+      "level": "advanced"
+    },
+    {
+      "name": "Monotonic Queue",
+      "slug": "monotonic-queue",
+      "solved": 2,
+      "level": "advanced"
+    },
+    {
+      "name": "Sweep Line",
+      "slug": "sweep-line",
+      "solved": 1,
+      "level": "advanced"
+    },
+    {
+      "name": "Suffix Array",
+      "slug": "suffix-array",
+      "solved": 1,
+      "level": "advanced"
+    }
+  ]
+}

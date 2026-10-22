@@ -157,6 +157,22 @@ export interface Content {
     mastery: string
   }
 
+  /** LeetCode-tilastot – luvut tulevat generoidusta src/data/leetcode.json:sta */
+  leetcode: {
+    title: string
+    /** Pelin puolella paneelin otsikko */
+    arena: string
+    lead: string
+    solved: string
+    rank: string
+    difficulty: { easy: string; medium: string; hard: string }
+    languages: string
+    languagesNote: string
+    topics: string
+    profile: string
+    updated: string
+  }
+
   map: {
     title: string
     lead: string

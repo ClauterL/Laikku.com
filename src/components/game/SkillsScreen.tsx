@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { ExternalLink } from 'lucide-react'
 
 import { TechIcon } from '@/components/TechIcon'
 import { useLang } from '@/hooks/useLang'
 import { useSound } from '@/hooks/useSound'
+import { DIFFICULTIES, fmtDate, fmtNum, hasLeetCode, langIcon, langLabel, leetcode, topicUrl } from '@/lib/leetcode'
 import { cn } from '@/lib/utils'
 
 /* Taitopuu: kolme haaraa, solmut pyöreinä ikoneina ja tasorenkaalla (SVG). */
@@ -63,6 +65,116 @@ function Node({
   )
 }
 
+/* Harjoitusareena: LeetCode-tilastot pelin tyylillä (helppo = teal, keskitaso = kulta, vaikea = hiillos). */
+const ARENA_COLOR = { easy: 'var(--teal)', medium: 'var(--gold)', hard: 'var(--ember-2)' } as const
+
+function Arena() {
+  const { t, lang } = useLang()
+  const l = t.leetcode
+  const d = leetcode
+  const maxLang = d.languages[0]?.solved ?? 1
+  return (
+    <section className="panel corners mt-5 rounded-sm p-4 sm:p-5">
+      <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <span className="grid size-7 place-items-center rounded-full border border-brass/60 text-brass-2">
+            <TechIcon name="leetcode" className="size-3.5" brandColor={false} />
+          </span>
+          <h3 className="font-display text-[0.8rem] uppercase tracking-[0.22em] text-ink">
+            {l.arena} <span className="text-brass">·</span> {l.title}
+          </h3>
+        </div>
+        <a href={d.url} target="_blank" rel="noreferrer noopener" className="label-caps inline-flex items-center gap-1.5 hover:text-brass-2">
+          {l.profile}
+          <ExternalLink className="size-3" aria-hidden />
+        </a>
+      </header>
+
+      <div className="grid gap-5 lg:grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)] lg:gap-8">
+        <div className="flex flex-wrap gap-x-8 gap-y-3 lg:flex-col lg:border-r lg:border-line/70 lg:pr-8">
+          <div>
+            <p className="font-display text-4xl text-brass-2 tabular-nums">{fmtNum(d.solved.all, lang)}</p>
+            <p className="label-caps">
+              {l.solved} <span className="text-muted-foreground">/ {fmtNum(d.total.all, lang)}</span>
+            </p>
+          </div>
+          {d.ranking && (
+            <div>
+              <p className="font-display text-2xl text-gold tabular-nums">#{fmtNum(d.ranking, lang)}</p>
+              <p className="label-caps">{l.rank}</p>
+            </div>
+          )}
+        </div>
+
+        <ul className="flex flex-col justify-center gap-3">
+          {DIFFICULTIES.map((k) => (
+            <li key={k}>
+              <div className="mb-1 flex items-baseline justify-between">
+                <span className="font-display text-[0.72rem] uppercase tracking-[0.18em]" style={{ color: ARENA_COLOR[k] }}>
+                  {l.difficulty[k]}
+                </span>
+                <span className="text-sm tabular-nums text-ink">
+                  {fmtNum(d.solved[k], lang)} <span className="text-muted-foreground">/ {fmtNum(d.total[k], lang)}</span>
+                </span>
+              </div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-line/70" role="progressbar" aria-label={l.difficulty[k]} aria-valuenow={d.solved[k]} aria-valuemin={0} aria-valuemax={d.total[k]}>
+                <div className="h-full rounded-full" style={{ width: `${(d.solved[k] / (d.total[k] || 1)) * 100}%`, background: ARENA_COLOR[k] }} />
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <div>
+          <p className="label-caps mb-2">{l.languages}</p>
+          <ul className="grid grid-cols-2 gap-x-4 gap-y-2">
+            {d.languages.map((x) => {
+              const icon = langIcon(x.name)
+              return (
+                <li key={x.name} className="flex items-center gap-2" title={`${langLabel(x.name)}: ${x.solved}`}>
+                  <span className="grid size-5 shrink-0 place-items-center text-ink-2">{icon && <TechIcon name={icon} className="size-4" brandColor={false} />}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-baseline justify-between text-xs">
+                      <span className="truncate text-ink">{langLabel(x.name)}</span>
+                      <span className="tabular-nums text-brass-2">{x.solved}</span>
+                    </span>
+                    <span className="mt-0.5 block h-0.5 overflow-hidden rounded-full bg-line/70">
+                      <span className="block h-full bg-brass" style={{ width: `${(x.solved / maxLang) * 100}%` }} />
+                    </span>
+                  </span>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      </div>
+
+      <div className="mt-5 border-t border-line/70 pt-4">
+        <p className="label-caps mb-2">{l.topics}</p>
+        <ul className="flex flex-wrap gap-1.5">
+          {d.topics.slice(0, 12).map((tp) => (
+            <li key={tp.slug}>
+              <a
+                href={topicUrl(tp.slug)}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="inline-flex items-center gap-1.5 rounded-sm border border-line/80 bg-bg-2/50 px-2 py-0.5 text-xs text-ink-2 transition-colors hover:border-brass hover:text-ink"
+              >
+                {tp.name}
+                <span className="tabular-nums text-brass-2">{tp.solved}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        {d.fetchedAt && (
+          <p className="mt-3 text-[0.7rem] text-muted-foreground">
+            {l.updated} {fmtDate(d.fetchedAt, lang)}
+          </p>
+        )}
+      </div>
+    </section>
+  )
+}
+
 export function SkillsScreen() {
   const { t } = useLang()
   const { play } = useSound()
@@ -118,6 +230,8 @@ export function SkillsScreen() {
           </section>
         ))}
       </div>
+
+      {hasLeetCode && <Arena />}
     </div>
   )
 }

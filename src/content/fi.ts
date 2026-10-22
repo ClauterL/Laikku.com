@@ -372,6 +372,20 @@ export const fi: Content = {
     ],
   },
 
+  leetcode: {
+    title: 'LeetCode',
+    arena: 'Harjoitusareena',
+    lead: 'Algoritmi-, data- ja tietokantatehtäviä ongelmanratkaisun treeninä. Luvut päivittyvät LeetCode-profiilista joka päivä.',
+    solved: 'ratkaistua tehtävää',
+    rank: 'Globaali sijoitus',
+    difficulty: { easy: 'Helppo', medium: 'Keskitaso', hard: 'Vaikea' },
+    languages: 'Ratkaisukielet',
+    languagesNote: 'Osa tehtävistä on ratkaistu useammalla kielellä.',
+    topics: 'Eniten ratkaistut aihealueet',
+    profile: 'Avaa LeetCode-profiili',
+    updated: 'Päivitetty',
+  },
+
   skills: {
     title: 'Taidot',
     lead: 'Avatut taidot kolmessa haarassa. Prosentti kertoo, kuinka kotonaan olen työkalun kanssa.',
@@ -728,7 +742,7 @@ export const fi: Content = {
       { label: 'Saatavuus', value: 'Vapaana uusiin projekteihin' },
     ],
     stats: [
-      { value: '2+', label: 'vuotta älytekniikan parissa' },
+      { value: '6+', label: 'vuotta IT-alalla' },
       { value: '9', label: 'demosivustoa' },
       { value: '4', label: 'palvelulinjaa' },
       { value: '6', label: 'selainpeliä' },

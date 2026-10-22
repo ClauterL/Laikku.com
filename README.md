@@ -26,7 +26,7 @@ Kaksikielinen (fi/en), näppäimistöllä navigoitava, pelillistetyssä äänief
 | Ikonit        | lucide-react (UI) · simple-icons (teknologialogot taitopuussa)                         |
 | Äänet         | Web Audio API, syntetisoidut efektit (`src/lib/sfx.ts`) – ei äänitiedostoja            |
 | Kuvat         | Higgsfield: hahmo Claus-referenssihahmolla + taustanpoisto, 18 ympyräikonia + 35 Tavarat-esinettä fotorealistisella AC Odyssey -esinetyylillä (tumma liuskekivitausta, harvinaisuushehku), tunnuksen paljastusvideo, 2 taustaa (`public/images`) |
-| Data          | `scripts/fetch-github.mjs` hakee julkiset GitHub-tiedot build-aikana → `src/data/github.json` · `scripts/build-world.mjs` → `src/data/world.json` (maailmankartta) |
+| Data          | `scripts/fetch-github.mjs` hakee julkiset GitHub-tiedot build-aikana → `src/data/github.json` · `scripts/fetch-leetcode.mjs` → `src/data/leetcode.json` (LeetCode-tilastot) · `scripts/build-world.mjs` → `src/data/world.json` (maailmankartta) |
 | Kartta        | d3-geo (Natural Earth -projektio) · d3-zoom · topojson-client; ei karttapalvelimia tai ulkoisia tiilejä |
 | 3D-loft       | three · @react-three/fiber · drei · @react-three/rapier (fysiikka) · ecctrl (kolmannen persoonan hahmo-ohjain, joystick) – ladataan laiskasti vasta `#loft`-näkymässä |
 | Julkaisu      | GitHub Actions → GitHub Pages (custom domain `laikku.com`, `public/CNAME`)             |
@@ -39,6 +39,7 @@ npm run dev          # http://localhost:5173
 npm run build        # prebuild hakee GitHub-datan + tsc + vite build → dist/
 npm run preview      # http://localhost:5180
 npm run fetch:github # päivitä vain src/data/github.json
+npm run fetch:leetcode # päivitä vain src/data/leetcode.json
 ```
 
 Node ≥ 22.12.

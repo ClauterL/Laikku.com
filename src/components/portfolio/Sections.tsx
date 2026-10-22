@@ -24,6 +24,7 @@ import { TechIcon, hasTechIcon } from '@/components/TechIcon'
 import { useLang } from '@/hooks/useLang'
 import { images, links, pfIcons, type PortfolioSection, type Quest } from '@/content'
 import { SHOW_DRAFTS } from '@/lib/env'
+import { DIFFICULTIES, fmtDate, fmtNum, hasLeetCode, langIcon, langLabel, leetcode, topicUrl } from '@/lib/leetcode'
 import { cn } from '@/lib/utils'
 import { Reveal, spotHandlers, useCountUp, useInView, useReducedMotion } from './hooks'
 import { HeroScene } from './Landscape'
@@ -395,6 +396,8 @@ export function Skills() {
         ))}
       </div>
 
+      {hasLeetCode && <LeetCodeStats />}
+
       {/* liukuva työkalunauha */}
       <div className="marquee relative mt-14 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
         <ul className="marquee-track flex w-max gap-3 py-1 pr-3 motion-reduce:w-auto motion-reduce:flex-wrap">
@@ -411,6 +414,166 @@ export function Skills() {
         </ul>
       </div>
     </Section>
+  )
+}
+
+/* ---------- LeetCode (osa osaamista) ----------
+   Luvut generoidusta datasta (scripts/fetch-leetcode.mjs): sijoitus, ratkaistut vaikeustasoittain,
+   ratkaisukielet ja aihealueet. Rengas näyttää ratkaistujen jakauman vaikeustasoittain. */
+const LC_COLOR = { easy: 'var(--pf-sun)', medium: 'var(--pf-orange)', hard: 'var(--pf-red)' } as const
+
+function LcRing({ run }: { run: boolean }) {
+  const r = 40
+  const c = 2 * Math.PI * r
+  const all = leetcode.solved.all || 1
+  const gap = 3
+  // segmentit peräkkäin: [vaikeustaso, pituus, alkukohta]
+  const segs = DIFFICULTIES.map((k, i) => {
+    const start = DIFFICULTIES.slice(0, i).reduce((sum, p) => sum + (leetcode.solved[p] / all) * c, 0)
+    return [k, (leetcode.solved[k] / all) * c, start] as const
+  })
+  return (
+    <div className="relative grid size-28 shrink-0 place-items-center sm:size-32">
+      <svg viewBox="0 0 100 100" className="absolute inset-0 size-full -rotate-90" aria-hidden>
+        <circle cx="50" cy="50" r={r} fill="none" stroke="var(--pf-line)" strokeWidth="8" />
+        {segs.map(([k, len, start]) => (
+          <circle
+            key={k}
+            cx="50"
+            cy="50"
+            r={r}
+            fill="none"
+            stroke={LC_COLOR[k]}
+            strokeWidth="8"
+            strokeDasharray={`${run ? Math.max(len - gap, 0) : 0} ${c}`}
+            strokeDashoffset={-start}
+            className="transition-[stroke-dasharray] duration-1000 ease-out motion-reduce:transition-none"
+          />
+        ))}
+      </svg>
+      <span className="grid size-12 place-items-center rounded-full bg-pf-bg/70 ring-1 ring-pf-line-2 sm:size-14">
+        <TechIcon name="leetcode" className="size-6 sm:size-7" />
+      </span>
+    </div>
+  )
+}
+
+function LcBar({ value, max, color, run, label }: { value: number; max: number; color: string; run: boolean; label: string }) {
+  const pct = Math.round((value / (max || 1)) * 100)
+  return (
+    <div role="progressbar" aria-label={label} aria-valuenow={value} aria-valuemin={0} aria-valuemax={max} className="h-1.5 flex-1 overflow-hidden rounded-full bg-pf-line/80">
+      <div
+        className="h-full rounded-full transition-[width] duration-1000 ease-out motion-reduce:transition-none"
+        style={{ width: run ? `${pct}%` : '0%', background: color }}
+      />
+    </div>
+  )
+}
+
+function LeetCodeStats() {
+  const { t, lang } = useLang()
+  const l = t.leetcode
+  const d = leetcode
+  const [ref, inView] = useInView<HTMLDivElement>()
+  const shown = useCountUp(String(d.solved.all), inView)
+  const maxLang = d.languages[0]?.solved ?? 1
+  return (
+    <>
+      <h3 className="mb-4 mt-16 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.22em] text-pf-orange">
+        <TechIcon name="leetcode" className="size-4" />
+        {l.title}
+      </h3>
+      <Reveal className={cn(card, 'p-6 lg:p-8')}>
+        <p className="mb-6 max-w-[70ch] text-sm leading-relaxed text-pf-ink-2">{l.lead}</p>
+        <div ref={ref} className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,1fr)] lg:gap-10">
+          {/* määrä, jakauma ja sijoitus */}
+          <div className="flex flex-col gap-5">
+            <div className="flex items-center gap-5">
+              <LcRing run={inView} />
+              <div className="min-w-0">
+                <p className="poster whitespace-nowrap text-[clamp(2.4rem,5vw,3.2rem)] leading-none tabular-nums text-pf-ink">{fmtNum(Number(shown), lang)}</p>
+                <p className="mt-2 text-[0.72rem] font-bold uppercase tracking-wider text-pf-muted">
+                  {l.solved} <span className="whitespace-nowrap tabular-nums text-pf-ink-2">/ {fmtNum(d.total.all, lang)}</span>
+                </p>
+              </div>
+            </div>
+            <ul className="flex flex-col gap-3">
+              {DIFFICULTIES.map((k) => (
+                <li key={k}>
+                  <div className="mb-1.5 flex items-baseline justify-between text-sm">
+                    <span className="font-bold" style={{ color: LC_COLOR[k] }}>
+                      {l.difficulty[k]}
+                    </span>
+                    <span className="tabular-nums font-bold text-pf-ink">
+                      {fmtNum(d.solved[k], lang)} <span className="font-semibold text-pf-muted">/ {fmtNum(d.total[k], lang)}</span>
+                    </span>
+                  </div>
+                  <LcBar value={d.solved[k]} max={d.total[k]} color={LC_COLOR[k]} run={inView} label={l.difficulty[k]} />
+                </li>
+              ))}
+            </ul>
+            {d.ranking && (
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-pf-line bg-pf-bg/40 px-4 py-3">
+                <span className="text-[0.72rem] font-bold uppercase tracking-wider text-pf-muted">{l.rank}</span>
+                <span className="poster text-xl tabular-nums text-pf-sun">#{fmtNum(d.ranking, lang)}</span>
+              </div>
+            )}
+          </div>
+
+          {/* kielet */}
+          <div>
+            <h4 className="poster text-base text-pf-ink">{l.languages}</h4>
+            <ul className="mt-4 flex flex-col gap-3">
+              {d.languages.map((x) => {
+                const icon = langIcon(x.name)
+                return (
+                  <li key={x.name} className="flex items-center gap-3">
+                    <span className="grid size-5 shrink-0 place-items-center text-pf-ink-2">
+                      {icon ? <TechIcon name={icon} className="size-4" /> : <Circle className="size-2 fill-pf-orange text-pf-orange" />}
+                    </span>
+                    <span className="w-24 shrink-0 text-sm font-bold text-pf-ink">{langLabel(x.name)}</span>
+                    <LcBar value={x.solved} max={maxLang} color="linear-gradient(90deg,var(--pf-crimson),var(--pf-orange),var(--pf-sun))" run={inView} label={langLabel(x.name)} />
+                    <span className="w-10 shrink-0 text-right text-sm font-bold tabular-nums text-pf-ink-2">{x.solved}</span>
+                  </li>
+                )
+              })}
+            </ul>
+            <p className="mt-4 text-xs text-pf-muted">{l.languagesNote}</p>
+          </div>
+
+          {/* aihealueet */}
+          <div className="flex flex-col">
+            <h4 className="poster text-base text-pf-ink">{l.topics}</h4>
+            <ul className="mt-4 flex flex-wrap gap-2">
+              {d.topics.slice(0, 12).map((tp) => (
+                <li key={tp.slug}>
+                  <a
+                    href={topicUrl(tp.slug)}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className={cn(chip, 'inline-flex items-center gap-1.5 py-1 transition-colors hover:border-pf-orange hover:text-pf-ink')}
+                  >
+                    {tp.name}
+                    <span className="tabular-nums text-pf-orange">{tp.solved}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-6">
+              <a href={d.url} target="_blank" rel="noreferrer noopener" className={cn(btnGhost, 'px-5 py-2.5')}>
+                {l.profile}
+                <ArrowUpRight />
+              </a>
+              {d.fetchedAt && (
+                <span className="text-xs text-pf-muted">
+                  {l.updated} {fmtDate(d.fetchedAt, lang)}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </Reveal>
+    </>
   )
 }
 

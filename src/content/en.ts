@@ -371,6 +371,20 @@ export const en: Content = {
     ],
   },
 
+  leetcode: {
+    title: 'LeetCode',
+    arena: 'Training arena',
+    lead: 'Algorithm, data and database problems as problem-solving practice. The numbers update daily from my LeetCode profile.',
+    solved: 'problems solved',
+    rank: 'Global ranking',
+    difficulty: { easy: 'Easy', medium: 'Medium', hard: 'Hard' },
+    languages: 'Languages used',
+    languagesNote: 'Some problems are solved in more than one language.',
+    topics: 'Most solved topics',
+    profile: 'Open LeetCode profile',
+    updated: 'Updated',
+  },
+
   skills: {
     title: 'Skills',
     lead: 'Unlocked skills in three branches. The percentage says how at home I am with the tool.',
@@ -718,7 +732,7 @@ export const en: Content = {
       { label: 'Availability', value: 'Open to new projects' },
     ],
     stats: [
-      { value: '2+', label: 'years in smart technology' },
+      { value: '6+', label: 'years in IT' },
       { value: '9', label: 'demo sites' },
       { value: '4', label: 'service lines' },
       { value: '6', label: 'browser games' },

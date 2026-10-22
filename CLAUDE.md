@@ -35,7 +35,10 @@ Claus Laikun portfoliosivusto pelivalikon muodossa (laikku.com). Rakenne ja kome
   näytöllä `<#>`. Pääsiäismuna: #:n perään välähtää yksi morsemerkki kerrallaan kuin kursori, peräkkäin
   SMART (`... -- .- .-. -`) – kirjaimia eikä koko viestiä näytetä koskaan;
   nimi "Claus Laikku" on aina erillinen teksti. Favikoni `public/favicon.png` renderöidään samasta polusta.
-- `src/data/github.json` on generoitu (scripts/fetch-github.mjs) – älä muokkaa käsin.
+- `src/data/github.json` ja `src/data/leetcode.json` ovat generoituja (scripts/fetch-github.mjs,
+  scripts/fetch-leetcode.mjs; molemmat ajetaan `prebuild`issa ja päivittyvät päivittäisessä buildissa) – älä muokkaa käsin.
+  LeetCodesta näytetään sijoitus, ratkaistut vaikeustasoittain, kielet ja aihealueet (normaali: Osaaminen, peli: taitopuun
+  Harjoitusareena); aktiivisuuskalenteria ja yksittäisiä lähetyksiä ei tallenneta.
 - Kartta on oikea maailmankartta omana SVG:nä (`src/data/world.json`, d3-geo + d3-zoom) AC-tyylillä:
   pergamenttimaa, teal-meri (`bg-map.webp`), fog of war merkkien ympärillä. Ei Leafletia, ei tiilipalvelimia.
 - Pidä sivu staattisena: ei backendia, ei evästeitä, ei kolmannen osapuolen skriptejä
