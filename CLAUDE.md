@@ -42,7 +42,20 @@ Claus Laikun portfoliosivusto pelivalikon muodossa (laikku.com). Rakenne ja kome
   `StartSky.tsx`, pesukarhu valitun kortin päällä `StartRaccoon.tsx` (sama critter-raccoon-ruudukko, hyppy WAAPI:lla).
   Värit `.start`-tokeneista (index.css, `data-night` + `--dusk`). Normaali-valinnassa portfolio piirtyy aloitusruudun
   alle samaan maisemaan ja ruutu häivytetään sen päältä (App: `onDone` → `onExited`).
-- Pelillistetty portfolio = **Dronelento** (`src/components/flight`, osoite `#flight`): sivuttain vierivä Järvi-Suomi,
+- Pelillistetty portfolio = **Kahvijahti** (`src/components/quest`, osoite `#quest`): avoin low-poly-Järvi-Suomi
+  React Three Fiberillä, isometrinen ortokamera (`Scene.tsx` → `YAW`/`PITCH`, näkymä vähintään `VIEW_H` × `VIEW_W`).
+  Pesukarhu (oma hahmo: lämmin harmaa turkki, luumu naamio, oranssit lentäjänlasit, tabletti tassuissa – ei kopio
+  mistään pelistä) kulkee saarella; yhdeksän paikkaa (`world.ts` → `PLACES`, samat id:t kuin Dronelennon kohteilla)
+  avaavat osiot tabletissa (`flight/Panels.tsx`, laiturilla oma ohje + pikamatka). 18 herkkua (`TREATS`: kahvi, donitsi,
+  burrito); `drone: true` -herkut (katot, vesi) vain dronella (Q, kantama `DRONE_RANGE`). Kumiankka seuraa, vitsailee ja
+  antaa vihjeen (H → nuoli maassa + valopylväs + kartan piste). Kaikki mallit koodilla (`models.tsx`, `kit.bake` →
+  verteksivärit, litteä varjostus, auringonlaskun `PAL`), maasto ja puut ruutuina (frustum culling), vesi omalla
+  varjostimella (syvyys maastosta leivotusta tekstuurista → matalikko, vaahto, välke). Pelisilmukka yhdessä `useFrame`issa,
+  React päivittyy vain tapahtumista. Ohjaus WASD/nuolet, klikkaus/napautus maastoon, kosketussauva; heikolla laitteella
+  (`PerformanceMonitor`) varjot pois ja pikselitiheys 1. HUD-kuvat (herkut, ankka, pesukarhu) Higgsfield GPT Image 2.5
+  → `scripts/game-items.py assets-src/quest public/images/quest` (`images.ts` → `questArt`). Edistyminen
+  localStoragessa (`laikku-quest`: löydetyt herkut + nähdyt paikat).
+- Varmuuskopio: **Dronelento** (`src/components/flight`, avautuu vain osoitteella `#flight`): sivuttain vierivä Järvi-Suomi,
   jossa lennetään dronella pesukarhu kyydissä auringonlaskusta revontuliyöhön (yö laskeutuu kohdassa `NIGHT_ON`).
   Rannan yhdeksän kohdetta (`world.ts` → `STATIONS`) avaavat osiot (`Panels.tsx`, sisältö samoista fi/en-kentistä +
   `flight`-osio); ilmassa leijuvat taitopuun teknologiat ovat löytöjä. Grafiikka: hero-maiseman vaarat ja järvi +

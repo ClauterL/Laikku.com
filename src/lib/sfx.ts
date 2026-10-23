@@ -8,7 +8,7 @@
  * Selaimet sallivat äänen vasta käyttäjän eleen jälkeen → init() kutsutaan
  * aloitusruudun klikkauksesta.
  */
-export type Sfx = 'tick' | 'select' | 'back' | 'tab' | 'open' | 'close' | 'boot' | 'error' | 'unlock' | 'glitch'
+export type Sfx = 'tick' | 'select' | 'back' | 'tab' | 'open' | 'close' | 'boot' | 'error' | 'unlock' | 'glitch' | 'pickup' | 'quack' | 'drone'
 
 const STORAGE_KEY = 'laikku-sound'
 
@@ -215,6 +215,23 @@ export function play(name: Sfx) {
       ;[880, 1175, 1760].forEach((f, i) => tink(t + i * 0.09, f, 0.09, 0.4))
       noise(t + 0.2, 0.6, 0.04, 2000, 9000, 1, 0.9)
       boom(t + 0.25, 0.14, 0.5)
+      break
+    case 'pickup':
+      // Kahvijahdin herkku: pomppiva nouseva arpeggio
+      ;[784, 988, 1319, 1568].forEach((f, i) => tone('triangle', f, f * 1.01, t + i * 0.055, 0.12, 0.07, 0.003, 0.5))
+      tink(t + 0.22, 2093, 0.05, 0.25)
+      break
+    case 'quack':
+      // kumiankan vinkaisu: kaksi lyhyttä, alaspäin liukuvaa piipitystä
+      tone('square', 1150, 820, t, 0.07, 0.035, 0.004, 0.25)
+      tone('sine', 2300, 1640, t, 0.07, 0.03, 0.004, 0.25)
+      tone('square', 1050, 700, t + 0.1, 0.1, 0.035, 0.004, 0.3)
+      tone('sine', 2100, 1400, t + 0.1, 0.1, 0.03, 0.004, 0.3)
+      break
+    case 'drone':
+      // roottorit kiihtyvät
+      tone('sawtooth', 70, 190, t, 0.45, 0.03, 0.05, 0.2)
+      noise(t, 0.5, 0.05, 300, 2400, 2, 0.4, 0.08)
       break
     case 'boot': {
       // pitkä riser: kohina nousee, matala drone paisuu, lopussa jysähdys ja kirkas tink

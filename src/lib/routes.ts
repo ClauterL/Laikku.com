@@ -5,7 +5,9 @@ export const TAB_IDS: TabId[] = ['skills', 'inventory', 'items', 'map', 'quests'
 
 /** Normaalin portfolion osoite */
 export const PORTFOLIO_HASH = '#portfolio'
-/** Pelillistetty portfolio (dronelento) */
+/** Pelillistetty portfolio: Kahvijahti (avoin maailma) */
+export const QUEST_HASH = '#quest'
+/** Edellinen pelillistetty portfolio (Dronelento) – varmuuskopio, avautuu tällä osoitteella */
 export const FLIGHT_HASH = '#flight'
 
 export const isLoftHash = (hash = window.location.hash) => hash === '#loft'

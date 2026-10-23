@@ -4,28 +4,34 @@ import { StartScreen, type Mode } from '@/components/game/StartScreen'
 import { LangContext, useLangState } from '@/hooks/useLang'
 import { SoundContext, useSoundState } from '@/hooks/useSound'
 import { backgrounds, type TabId } from '@/content'
-import { FLIGHT_HASH, PORTFOLIO_HASH, TAB_IDS, isGameHash, setHash } from '@/lib/routes'
+import { FLIGHT_HASH, PORTFOLIO_HASH, QUEST_HASH, TAB_IDS, isGameHash, setHash } from '@/lib/routes'
 
 // Kumpikin portfolio on oma pakettinsa: normaalin valitsija ei lataa pelivalikkoa eikä 3D:tä, ja päinvastoin
 const loadPortfolio = () => import('@/components/portfolio/Portfolio')
+const loadQuest = () => import('@/components/quest/QuestGame')
 const loadFlight = () => import('@/components/flight/FlightGame')
 const loadGame = () => import('@/components/game/GameShell')
 const loadLoft = () => import('@/components/loft/LoftView')
 const Portfolio = lazy(loadPortfolio)
+const QuestGame = lazy(loadQuest)
 const FlightGame = lazy(loadFlight)
 const GameShell = lazy(loadGame)
 
-/** game = dronelento (pelillistetty), loft = vanha 3D-loft + pelivalikko (varmuuskopio, vain piilo-osoitteista) */
-type View = 'start' | Mode | 'loft'
+/** game = Kahvijahti (pelillistetty), flight = Dronelento ja loft = vanha 3D-loft + pelivalikko (varmuuskopioita,
+    vain piilo-osoitteista) */
+type View = 'start' | Mode | 'flight' | 'loft'
 
-/** Vanha 3D-loft avautuu vain, jos sivulle tullaan sen osoitteella (#loft, #map …) – muuten pelillistetty = dronelento */
+/** Vanha 3D-loft avautuu vain, jos sivulle tullaan sen osoitteella (#loft, #map …) – muuten pelillistetty = Kahvijahti */
 const LEGACY = isGameHash(window.location.hash)
+/** Dronelento avautuu vain osoitteella #flight */
+const FLIGHT = window.location.hash === FLIGHT_HASH
 
 /* Kaksi portfoliota samassa sivustossa: aloitusruutu kysyy, kumpi avataan.
    - Normaali (#portfolio): perinteinen yhden sivun portfolio, ei ääniä eikä 3D:tä.
-   - Pelillistetty (#flight): dronelento järven yli, pesukarhu kyydissä (components/flight).
-   - Varmuuskopio: vanha 3D-loft + pelivalikko avautuu yhä osoitteilla #loft ja #skills, #map … (aloitusruudun kautta);
-     koodi myös haarassa loft-3d-backup.
+   - Pelillistetty (#quest): Kahvijahti, avoin low-poly-maailma, jossa pesukarhu etsii kahvia, donitseja ja burritoja
+     dronen ja tabletin kanssa, kumiankka neuvoo (components/quest).
+   - Varmuuskopiot: Dronelento (#flight, components/flight) sekä vanha 3D-loft + pelivalikko osoitteilla #loft ja
+     #skills, #map … (aloitusruudun kautta); loftin koodi myös haarassa loft-3d-backup.
    Suora linkki #portfolio ohittaa aloitusruudun. */
 export default function App() {
   const lang = useLangState()
@@ -43,12 +49,21 @@ export default function App() {
     window.scrollTo(0, 0)
   }, [sound])
 
-  /** Pelillistetty: dronelento */
+  /** Pelillistetty: Kahvijahti */
   const toGame = useCallback(() => {
     sound.start()
     sound.setAmbient(false)
-    setHash(FLIGHT_HASH)
+    setHash(QUEST_HASH)
     setView('game')
+    window.scrollTo(0, 0)
+  }, [sound])
+
+  /** Varmuuskopio: Dronelento */
+  const toFlight = useCallback(() => {
+    sound.start()
+    sound.setAmbient(false)
+    setHash(FLIGHT_HASH)
+    setView('flight')
     window.scrollTo(0, 0)
   }, [sound])
 
@@ -64,7 +79,7 @@ export default function App() {
 
   /** Ennakkolataus heti valinnasta; aloitusruutu odottaa normaalin paketin ennen kuin vaihtaa näkymää */
   const onPick = useCallback(
-    (mode: Mode) => (mode === 'normal' ? loadPortfolio() : LEGACY ? Promise.all([loadGame(), loadLoft()]) : loadFlight()),
+    (mode: Mode) => (mode === 'normal' ? loadPortfolio() : LEGACY ? Promise.all([loadGame(), loadLoft()]) : FLIGHT ? loadFlight() : loadQuest()),
     [],
   )
   const onStartExited = useCallback(() => setStartOpen(false), [])
@@ -73,9 +88,10 @@ export default function App() {
     (mode: Mode) => {
       if (mode === 'normal') toNormal()
       else if (LEGACY) toLoft()
+      else if (FLIGHT) toFlight()
       else toGame()
     },
-    [toNormal, toGame, toLoft],
+    [toNormal, toGame, toFlight, toLoft],
   )
 
   // Selaimen osoiterivi / takaisin-nappi vaihtaa portfoliota
@@ -83,7 +99,8 @@ export default function App() {
     const onHash = () => {
       const h = window.location.hash
       if (h === PORTFOLIO_HASH) setView((v) => (v === 'start' ? v : 'normal'))
-      else if (h === FLIGHT_HASH) setView((v) => (v === 'normal' ? 'game' : v))
+      else if (h === QUEST_HASH) setView((v) => (v === 'normal' || v === 'flight' ? 'game' : v))
+      else if (h === FLIGHT_HASH) setView((v) => (v === 'normal' || v === 'game' ? 'flight' : v))
       else if (isGameHash(h)) setView((v) => (v === 'normal' ? 'loft' : v))
     }
     window.addEventListener('hashchange', onHash)
@@ -101,6 +118,11 @@ export default function App() {
         )}
         {startOpen && <StartScreen onPick={onPick} onDone={onStartDone} onExited={onStartExited} />}
         {view === 'game' && (
+          <Suspense fallback={null}>
+            <QuestGame onNormal={toNormal} />
+          </Suspense>
+        )}
+        {view === 'flight' && (
           <Suspense fallback={null}>
             <FlightGame onNormal={toNormal} />
           </Suspense>

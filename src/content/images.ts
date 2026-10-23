@@ -242,6 +242,16 @@ const GAME_ITEMS = [
 ] as const
 export const gameItems: Record<string, string> = Object.fromEntries(GAME_ITEMS.map((id) => [id, `/images/game/items/${id}.webp`]))
 
+/** Kahvijahdin herkut ja muotokuvat (pesukarhu, kumiankka): Higgsfield GPT Image 2.5 samaan litteään
+    auringonlaskutyyliin valkoiselle taustalle → scripts/game-items.py assets-src/quest public/images/quest */
+export const questArt = {
+  coffee: '/images/quest/coffee.webp',
+  donut: '/images/quest/donut.webp',
+  burrito: '/images/quest/burrito.webp',
+  duck: '/images/quest/duck.webp',
+  raccoon: '/images/quest/raccoon.webp',
+} as const
+
 export const critterSprites = {
   bear: { src: '/images/critter-bear.webp', ...critterData.bear },
   deer: { src: '/images/critter-deer.webp', ...critterData.deer },

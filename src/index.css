@@ -1125,3 +1125,65 @@
   .flight .fl-beam { animation: none; opacity: 0.4; }
   .flight .fl-fly { animation: none; opacity: 0.7; }
 }
+
+/* ============================================================
+   KAHVIJAHTI (.quest) – avoimen maailman pelillistetty portfolio (components/quest)
+   Käyttää Dronelennon (.flight) päiväpaletin siruja, kehotetta, ilmoitusta ja paneelia; tässä vain omat osat.
+   ============================================================ */
+.quest { background: #f7c9a3; }
+.quest .qs-canvas { position: absolute !important; inset: 0; opacity: 0; transition: opacity 0.6s ease; }
+.quest[data-ready] .qs-canvas { opacity: 1; }
+.quest .st-chip { background: rgba(255, 246, 238, 0.86); }
+
+/* laskurit: täysi sarja hehkuu */
+.quest .qs-count img { filter: drop-shadow(0 2px 2px rgba(58, 21, 48, 0.25)); }
+.quest .qs-count[data-full] { color: var(--pf-red); }
+.quest .qs-count[data-full] img { filter: drop-shadow(0 0 6px rgba(255, 200, 90, 0.9)); }
+
+/* kumiankan puhekupla: paikka tulee pelisilmukasta (transform) */
+.quest .qs-bubble-wrap { will-change: transform; visibility: hidden; }
+.quest .qs-bubble-wrap[data-on] { visibility: visible; }
+.quest .qs-bubble { position: relative; display: flex; align-items: flex-start; gap: 0.55rem; width: max-content; max-width: min(340px, 82vw); padding: 0.55rem 0.85rem 0.6rem 0.55rem; margin-bottom: 10px; }
+.quest .qs-bubble-face { width: 2.4rem; height: 2.4rem; flex: none; object-fit: contain; margin-top: -0.2rem; }
+.quest .qs-bubble-name { display: block; font: 800 0.6rem/1.3 var(--font-body); letter-spacing: 0.16em; text-transform: uppercase; color: var(--pf-red); }
+
+.quest .qs-toast { white-space: normal; max-width: min(92vw, 460px); text-align: left; }
+
+/* paikan kehote alhaalla keskellä */
+.quest .qs-prompt { bottom: calc(max(12px, env(safe-area-inset-bottom)) + 44px); }
+@media (pointer: coarse) { .quest .qs-prompt { bottom: calc(max(16px, env(safe-area-inset-bottom)) + 128px); } }
+
+/* toimintonapit: drone ja ankan vihje */
+.quest .qs-act {
+  position: relative; display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0.75rem 0.25rem 0.3rem; border-radius: 9999px; cursor: pointer;
+  font: 800 0.74rem/1 var(--font-body); color: var(--pf-deep); background: rgba(255, 246, 238, 0.9); box-shadow: 0 0 0 1px rgba(58, 21, 48, 0.16), var(--fl-shadow);
+  transition: box-shadow 0.2s ease, background-color 0.2s ease, scale 0.15s ease;
+}
+.quest .qs-act:hover { box-shadow: 0 0 0 2px var(--pf-orange), var(--fl-shadow); }
+.quest .qs-act:active { scale: 0.96; }
+.quest .qs-act img { width: 2rem; height: 2rem; object-fit: contain; }
+.quest .qs-act kbd { display: grid; place-items: center; min-width: 1.2rem; height: 1.2rem; padding-inline: 0.25rem; border-radius: 5px; border: 1px solid rgba(58, 21, 48, 0.35); border-bottom-width: 2px; font: 800 0.6rem/1 var(--font-body); opacity: 0.6; }
+.quest .qs-act[data-on] { background: #14313a; color: #e8f2f6; box-shadow: 0 0 0 2px var(--teal-2), 0 0 22px -4px rgba(127, 211, 204, 0.7); }
+.quest .qs-act[data-on] kbd { border-color: rgba(232, 242, 246, 0.5); }
+.quest .qs-act-big { flex-direction: column; gap: 0.15rem; width: 4.6rem; padding: 0.45rem 0.3rem 0.5rem; border-radius: 20px; font-size: 0.64rem; text-align: center; }
+.quest .qs-act-big img { width: 2.5rem; height: 2.5rem; }
+
+/* kosketussauva */
+.quest .qs-stick { display: grid; place-items: center; width: 7.5rem; height: 7.5rem; border-radius: 9999px; background: rgba(20, 8, 26, 0.32); border: 1.5px solid rgba(255, 246, 238, 0.45); touch-action: none; -webkit-touch-callout: none; }
+.quest .qs-knob { width: 3.2rem; height: 3.2rem; border-radius: 9999px; background: rgba(255, 246, 238, 0.92); box-shadow: 0 6px 16px -6px rgba(30, 10, 30, 0.6); pointer-events: none; }
+
+/* pienoiskartta */
+.quest .qs-map { display: block; width: 6.5rem; height: 6.5rem; border-radius: 9999px; box-shadow: 0 0 0 2px rgba(255, 246, 238, 0.85), var(--fl-shadow); }
+@media (min-width: 640px) { .quest .qs-map { width: 8.5rem; height: 8.5rem; } }
+.quest .qs-map-hint { animation: qs-blink 1s ease-in-out infinite; }
+@keyframes qs-blink { 50% { opacity: 0.25; } }
+
+/* tabletti: paneeli tummalla tablettikehyksellä */
+.quest .qs-tablet { border: 10px solid #2b1626; border-radius: 30px; box-shadow: 0 0 0 1px rgba(255, 246, 238, 0.12), 0 0 0 3px #1a0b14, 0 30px 80px -20px rgba(30, 10, 30, 0.7); }
+.quest .qs-tablet-face { width: 2.8rem; height: 2.8rem; flex: none; object-fit: contain; }
+@media (max-width: 639px) { .quest .qs-tablet { border-width: 6px; border-radius: 24px; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .quest .qs-canvas { transition: none; }
+  .quest .qs-map-hint { animation: none; }
+}

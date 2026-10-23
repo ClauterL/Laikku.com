@@ -6,6 +6,7 @@ Tausta = reunaan yhteydessä oleva lähes valkoinen alue (täyttö reunoilta) se
 puhtaanvalkoiset aukot (kuulokkeiden kaari, avainrengas …); esineen omat vaaleat, lämpimät kohdat pysyvät kiinteinä. Reunoilta poistetaan valkoinen sekoitus, esine rajataan ja keskitetään neliöön.
 
 Ajo:  python scripts/game-items.py assets-src/game/items   (vaatii Pillow, numpy, scipy)
+Kahvijahdin herkut ja muotokuvat samalla leikkauksella:  python scripts/game-items.py assets-src/quest public/images/quest
 """
 
 import sys
@@ -53,10 +54,11 @@ def cut(path: Path) -> Image.Image:
 
 def main() -> None:
     src = Path(sys.argv[1] if len(sys.argv) > 1 else ROOT / "assets-src" / "game" / "items")
-    OUT.mkdir(parents=True, exist_ok=True)
+    out = ROOT / sys.argv[2] if len(sys.argv) > 2 else OUT
+    out.mkdir(parents=True, exist_ok=True)
     for p in sorted(src.glob("*.png")):
         img = cut(p)
-        dst = OUT / f"{p.stem}.webp"
+        dst = out / f"{p.stem}.webp"
         img.save(dst, "WEBP", quality=88, method=6, alpha_quality=95)
         print(f"{dst.relative_to(ROOT)}  {dst.stat().st_size // 1024} kt")
 

@@ -19,6 +19,9 @@ export type PortfolioSection = 'about' | 'skills' | 'projects' | 'now' | 'havaid
 export type Rarity = 'common' | 'rare' | 'epic' | 'legendary'
 /** Dronelennon kohteet järven rannalla vasemmalta oikealle (pelillistetty portfolio) */
 export type FlightStation = 'dock' | 'sauna' | 'workshop' | 'island' | 'shed' | 'harbor' | 'campfire' | 'tower' | 'lighthouse'
+/** Kahvijahti: kerättävät herkut ja paikat/alueet, joihin kumiankan vihjeet viittaavat */
+export type QuestTreat = 'coffee' | 'donut' | 'burrito'
+export type QuestWhere = FlightStation | 'kiosk' | 'north' | 'west' | 'south' | 'lake' | 'islet' | 'sea' | 'pond'
 export type QuestStatus = 'active' | 'done' | 'planned' | 'idea'
 
 export interface Img {
@@ -333,6 +336,49 @@ export interface Content {
     visited: string
     /** Aitan esineruudukko: ohje valitsemiseen */
     itemsHint: string
+  }
+
+  /** Kahvijahti: avoimen maailman pelillistetty portfolio. Pesukarhu (drone + tabletti) etsii kahvia, donitseja ja
+      burritoja; kumiankka neuvoo. Paikkojen nimet ja osiot tulevat flight.stations-kentistä. */
+  quest: {
+    title: string
+    loading: string
+    /** Ankan repliikki paikan luona */
+    places: Record<FlightStation, string>
+    /** Vihjeen paikka-ilmaus ("saunan katolla") */
+    where: Record<QuestWhere, string>
+    treats: Record<QuestTreat, { one: string; many: string; found: string }>
+    hud: {
+      treats: string
+      places: string
+      open: string
+      drone: string
+      droneBack: string
+      hint: string
+      keys: string
+      move: string
+      normal: string
+      close: string
+      tablet: string
+    }
+    duck: {
+      name: string
+      intro: string
+      introTouch: string
+      jokes: string[]
+      /** {treat}, {where} */
+      hint: string
+      hintDrone: string
+      hintNone: string
+      droneOn: string
+      droneRange: string
+      droneBack: string
+      allPlaces: string
+      allDone: string
+    }
+    howto: { title: string; lead: string; steps: string[]; travelTitle: string }
+    /** {n} */
+    finish: string
   }
 
   /** 3D-loft: kolmannen persoonan portfolio, esineet avaavat osiot */

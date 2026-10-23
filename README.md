@@ -14,11 +14,12 @@ Sivu avautuu aloitusruutuun, jossa on tunnus – kuvake ihmisestä läppärin ta
 pääsiäismunana SMART morsena – ja kävijä valitsee **Normaali** tai
 **Pelillistetty**. Aloitusruudun taustana on sama Järvi-Suomen maisema kuin normaalin portfolion herossa:
 Normaali-valinta näyttää kultaisen auringonlaskun, Pelillistetty revontuliyön, ja valitun kortin päällä
-istuva pesukarhu hyppää kortilta toiselle. Pelillistetty on **dronelento** järven yli (`#flight`): ohjaat dronea
-pesukarhu kyydissä auringonlaskusta revontuliyöhön, rannan kohteet avaavat portfolion osiot ja ilmassa leijuu
-kerättäviä teknologioita. Normaali on perinteinen yhden sivun portfolio (`#portfolio`, suora linkki ohittaa
-aloitusruudun) samasta sisällöstä. Aiempi 3D-loft + pelivalikko on tallessa varmuuskopiona (osoite `#loft`,
-haara `loft-3d-backup`).
+istuva pesukarhu hyppää kortilta toiselle. Pelillistetty on **Kahvijahti** (`#quest`): avoin low-poly-Järvi-Suomi
+isometrisessä 3D:ssä (React Three Fiber), jossa pesukarhu kiertää saarta tabletti tassuissa – yhdeksän paikkaa avaa
+portfolion osiot tabletissa – ja etsii kahvia, donitseja ja burritoja; katoilta ja vedestä ne haetaan dronella, ja
+kumiankka neuvoo (rubber duck debugging). Normaali on perinteinen yhden sivun portfolio (`#portfolio`, suora linkki
+ohittaa aloitusruudun) samasta sisällöstä. Aiemmat pelillistetyt versiot ovat tallessa varmuuskopioina: dronelento
+järven yli (`#flight`) sekä 3D-loft + pelivalikko (osoite `#loft`, haara `loft-3d-backup`).
 Kaksikielinen (fi/en), näppäimistöllä navigoitava, pelillistetyssä ääniefektit.
 
 ## Stack
@@ -53,15 +54,16 @@ Node ≥ 22.12.
 
 ```
 src/
-  App.tsx                    tilat: aloitus → normaali (#portfolio) tai pelillistetty (#loft, #inventory …)
+  App.tsx                    tilat: aloitus → normaali (#portfolio) tai pelillistetty (#quest; varmuuskopiot #flight, #loft, #inventory …)
   index.css                  teema-tokenit (nahka/messinki/pergamentti/hiillos/teal), utilityt
-  lib/sfx.ts                 ääniefektit: tick, select, back, tab, open, close, boot, unlock, ambient
+  lib/sfx.ts                 ääniefektit: tick, select, back, tab, open, close, boot, unlock, pickup, quack, drone, ambient
   content/
     types.ts                 sisältömalli (Item, Quest, Marker, …)
     fi.ts, en.ts             KAIKKI TEKSTIT – muokkaa näitä
     images.ts                kuvat, ikonit (icon-*), Tavarat-esineet (good-*), tunnus, taustat, linkit
   components/portfolio/      normaali portfolio samasta sisällöstä: Portfolio, Sections, Landscape (HeroScene: Higgsfield-tasoista koottu elävä parallaksimaisema + alatunnisteen harjanne), hooks, nav
-  components/flight/          DRONELENTO (pelillistetty): FlightGame (maailma, drone + pesukarhu, ohjaus, HUD), world (kohteet, löydöt, mitat), Panels (kohteiden sisällöt)
+  components/quest/           KAHVIJAHTI (pelillistetty): QuestGame (HUD, tabletti, ankan puhekupla, ohjaus), Scene (maasto, vesi, metsä, paikat, herkut, pelisilmukka + kamera), models (low-poly-mallit koodilla), world (kartta, paikat, herkut, törmäykset), kit (paletti, mallien paisto)
+  components/flight/          DRONELENTO (varmuuskopio, #flight): FlightGame, world, Panels (kohteiden sisällöt – myös Kahvijahti käyttää näitä)
   components/game/
     StartScreen              aloitusruutu: maisema (HeroScene night), tunnus + nimi, valinta Normaali (auringonlasku) / Pelillistetty (revontuliyö, avaa äänen)
     StartSky, StartRaccoon   aloitusruudun taivas (tähdet, kuu, revontuliverhot, tähdenlento) · kortilta toiselle hyppäävä pesukarhu
