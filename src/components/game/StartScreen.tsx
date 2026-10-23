@@ -4,11 +4,10 @@ import { ArrowRight, Gamepad2, Newspaper, Volume2, VolumeX } from 'lucide-react'
 import { useLang } from '@/hooks/useLang'
 import { useSound } from '@/hooks/useSound'
 import { Logo } from '@/components/Logo'
-import { HeroScene } from '@/components/portfolio/Landscape'
 import type { Lang } from '@/content'
 import { cn } from '@/lib/utils'
+import { SKY_DURATION, StartBackdrop } from './StartBackdrop'
 import { StartRaccoon } from './StartRaccoon'
-import { StartSky } from './StartSky'
 
 export type Mode = 'normal' | 'game'
 const MODES: Mode[] = ['normal', 'game']
@@ -19,12 +18,9 @@ const THEME = { day: '#fde4cd', night: '#050a1e' }
 
 type Phase = 'idle' | 'loading' | 'out'
 
-/** Kerrokset, joiden päivä/yö-siirtymän pitää olla valmis ennen seuraavaa (hämärän keyframe-animaatio ja pinot) */
-const SKY_LAYERS = '.st-dusk, .st-night-sky, .hero-day-stack, .hero-night-stack'
-/** Tauko päivä/yö-siirtymien välissä (ms): valinnan vahvistuksen jälkeen lyhyt, selaillessa pidempi */
-const SETTLE = { picked: 40, browse: 280 }
-/** Kaikki päivä/yö-siirtymän kerrokset (kiihdytetään yhdessä, kun valinta vaihtuu kesken) */
-const SKY_ALL = `${SKY_LAYERS}, .st-stars, .st-moon, .st-aurora, .st-shoot, .hero-sun, .hero-clouds, .hero-birds, .hero-door, .hero-fireflies`
+/** Päivä/yö-siirtymän nopeus: ensimmäinen hämärä luonnollisella nopeudella, selaillessa reippaammin,
+    valinnan vahvistus kiihdyttää käynnissä olevan loppuun */
+const RATE = { first: 1, browse: 2, picked: 3 }
 
 function LangSwitch() {
   const { lang, setLang, t } = useLang()
@@ -49,12 +45,12 @@ function LangSwitch() {
 }
 
 /* Aloitusruutu: Järvi-Suomen maisema, jossa kävijä valitsee portfolion.
-   - Sama Higgsfield-maisema (HeroScene) kuin normaalin portfolion herossa: Normaali = kultainen auringonlasku,
-     Pelillistetty = revontuliyö (yötasot scripts/hero-night.py, revontulet ja tähdet StartSky.tsx).
-     Valinta vaihtaa vuorokaudenajan, joten kävijä näkee molempien tunnelman ennen valintaa.
+   - Sama Järvi-Suomen maisema kuin normaalin portfolion herossa: Normaali = kultainen auringonlasku,
+     Pelillistetty = revontuliyö. Siirtymä on Higgsfieldillä esirenderöity video (StartBackdrop.tsx), joka toistuu
+     sujuvasti ja kääntyy kesken saumattomasti. Valinta vaihtaa vuorokaudenajan, joten kävijä näkee molempien
+     tunnelman ennen valintaa.
    - Tunnus (morse-pääsiäismuna) ja nimi tulevat esiin, sitten valinta osuu Pelillistettyyn ja hämärä laskeutuu.
-   - Nopea edestakainen vaihto ei vilku: taivas vaihtuu vain kokonaisina siirtyminä (ks. sky alla), hiiri valitsee
-     vasta viipyessään kortilla ja pesukarhu hyppää seuraavaan korttiin vasta laskeuduttuaan.
+   - Hiiri valitsee vasta viipyessään kortilla, ja pesukarhu hyppää seuraavaan korttiin vasta laskeuduttuaan.
    - Pesukarhu istuu valitun kortin päällä ja hyppää kortilta toiselle (StartRaccoon.tsx).
    - Normaali: käyttöliittymä häipyy, portfolio piirtyy alle samaan maisemaan ja ruutu häivytetään sen päältä.
      Pelillistetty: ääni päälle (selaimet vaativat eleen), revontulet kiihtyvät, latauspalkki ja loft.
@@ -95,124 +91,27 @@ export function StartScreen({
     }
   }, [later])
 
-  /* Päivä ↔ yö. Valinta (kortti + pesukarhu) vaihtuu heti, mutta taivas seuraa sitä vain kokonaisina siirtyminä:
-     käynnissä olevaa siirtymää ei koskaan käännetä kesken, vaan uusi alkaa vasta, kun edellinen on valmis, ja se
-     kulkee aina viimeisimpään valintaan. Kesken käännetty siirtymä käynnistäisi hämäräkerroksen keyframe-
-     animaation alusta ja vaihtaisi pinojen näkyvyyden ja sekoitustilan kesken – se näkyi vilkkumisena.
-     Siirtymien väliin jää lisäksi pieni tauko, joten edestakainen heiluttelu ei saa taivasta vilkkumaan.
-     Vasta valinnan vahvistus (klikkaus/Enter) kiihdyttää käynnissä olevan siirtymän sujuvasti loppuun
-     (playbackRate). Ensimmäinen hämärä laskeutuu hitaasti (ellei kävijä ole jo valinnut). */
+  /* Päivä ↔ yö. Taustavideo kulkee aina viimeisimpään valintaan; kesken oleva siirtymä kääntyy saumattomasti
+     (StartBackdrop). Käyttöliittymän värit seuraavat sitä suuntaa, johon tausta oikeasti liikkuu (heading). */
   const want = revealed && (picked ?? sel) === 'game'
-  const [sky, setSky] = useState<{ night: boolean; dusk: number; dir?: 'in' | 'out' }>({ night: false, dusk: 2.8 })
-  const night = sky.night
-  const dusk = sky.dusk
-  /** onko taivas jo kertaalleen vaihtunut (sekoitustila tarvitaan vasta silloin) */
-  const skyStarted = useRef(false)
-  /** milloin edellinen siirtymä oikeasti päättyi (tauko lasketaan tästä, ei turhaa viivettä levosta) */
-  const skyEnded = useRef(0)
-  /** taivaan nykytila odottajille (go) */
-  const skyNow = useRef(false)
-  useEffect(() => {
-    skyNow.current = sky.night
-  }, [sky.night])
-  const touched = useRef(false)
-  const root = useRef<HTMLDivElement>(null)
-
-  /** Lupaus, joka täyttyy, kun annettujen kerrosten päivä/yö-animaatiot ja -siirtymät ovat oikeasti valmiita.
-      Raskaassa ruudussa ne voivat alkaa satoja millisekunteja Reactin tilamuutoksen jälkeen, joten kello ei riitä.
-      (getAnimations päivittää tyylit, joten juuri luodut siirtymät ovat mukana; päättymättömät luupit ohitetaan.) */
-  const settled = useCallback((selector: string) => {
-    const el = root.current
-    if (!el) return Promise.resolve()
-    const running = Array.from(el.querySelectorAll(selector))
-      .flatMap((n) => n.getAnimations())
-      .filter((a) => a.playState !== 'finished' && a.effect?.getTiming().iterations !== Infinity)
-    return Promise.all(running.map((a) => a.finished.catch(() => undefined))).then(() => undefined)
+  const [touched, setTouched] = useState(false)
+  const rate = picked ? RATE.picked : touched ? RATE.browse : RATE.first
+  const [night, setNight] = useState(false)
+  /** taustan lepotila odottajille (go): true = yö, false = päivä, null = liikkeellä */
+  const skyNow = useRef<boolean | null>(false)
+  const onRest = useCallback((n: boolean | null) => {
+    skyNow.current = n
   }, [])
 
-  /** Käynnissä oleva päivä/yö-siirtymä loppuun nopeammin – sujuva kiihdytys, ei katkoa eikä alusta aloitusta */
-  const hurry = useCallback((rate: number) => {
-    root.current?.querySelectorAll(SKY_ALL).forEach((n) =>
-      n.getAnimations().forEach((a) => {
-        if (a.playState === 'running' && a.effect?.getTiming().iterations !== Infinity && a.playbackRate < rate) a.updatePlaybackRate(rate)
-      }),
-    )
-  }, [])
-
-  /** Täyttyy, kun taivas on tilassa target ja sen siirtymä on valmis */
+  /** Täyttyy, kun tausta on levossa tilassa target */
   const skyAt = useCallback(
     (target: boolean) =>
       new Promise<void>((resolve) => {
-        const check = () => {
-          if (skyNow.current !== target) return void window.setTimeout(check, 80)
-          void settled(SKY_LAYERS).then(() => (skyNow.current === target ? resolve() : window.setTimeout(check, 80)))
-        }
+        const check = () => (skyNow.current === target ? resolve() : window.setTimeout(check, 60))
         check()
       }),
-    [settled],
+    [],
   )
-
-  /** Yöpinon kuvat ladattu ja purettu (kerran) */
-  const nightDecoded = useRef<Promise<void> | null>(null)
-  const nightReady = useCallback(() => {
-    if (!nightDecoded.current) {
-      const imgs = Array.from(root.current?.querySelectorAll<HTMLImageElement>('.hero-night-stack img') ?? [])
-      const all = Promise.all(imgs.map((img) => img.decode().catch(() => undefined))).then(() => undefined)
-      nightDecoded.current = Promise.race([all, new Promise<void>((r) => window.setTimeout(r, 2500))])
-    }
-    return nightDecoded.current
-  }, [])
-
-  useEffect(() => {
-    if (want === sky.night) return
-    let alive = true
-    const apply = () => {
-      if (!alive) return
-      skyStarted.current = true
-      setSky({ night: want, dusk: touched.current ? 1.1 : 2.8, dir: want ? 'in' : 'out' })
-    }
-    // edellinen siirtymä kiihdytetään ja odotetaan loppuun (hämärän keyframe-animaatio ja pinojen häivytys),
-    // sitten uusi. Ensimmäinen yö odottaa myös yökuvien purkua (enintään 2,5 s), ettei maisema ilmesty palasina.
-    if (picked) hurry(4)
-    let id = 0
-    void settled(SKY_LAYERS)
-      .then(() => (want ? nightReady() : undefined))
-      .then(() => {
-        if (!alive) return
-        // tauko vain peräkkäisten siirtymien väliin; levosta liikkeelle heti
-        const gap = picked ? SETTLE.picked : Math.max(0, skyEnded.current + SETTLE.browse - performance.now())
-        id = window.setTimeout(apply, gap)
-      })
-    return () => {
-      alive = false
-      window.clearTimeout(id)
-    }
-  }, [want, sky.night, picked, settled, hurry, nightReady])
-
-  /** Päivä/yö-siirtymä käynnissä → maiseman pinot ristihäivytetään plus-lighterillä (levossa ei tarvita).
-      Sekoitus poistetaan vasta, kun pinojen häivytys on oikeasti valmis – kesken poistettuna kaksi puoliksi
-      läpinäkyvää pinoa näkyisi hetken tummempana (välähdys). Varalla aikaraja, jos jokin siirtymä ei päättyisi. */
-  const [fading, setFading] = useState(false)
-  useEffect(() => {
-    if (!skyStarted.current) return
-    setFading(true)
-    let alive = true
-    const off = () => alive && setFading(false)
-    const raf = requestAnimationFrame(
-      () =>
-        void settled(SKY_LAYERS).then(() => {
-          if (alive) skyEnded.current = performance.now()
-          window.setTimeout(off, 120)
-        }),
-    )
-    const cap = window.setTimeout(off, dusk * 1000 + 2500)
-    return () => {
-      alive = false
-      cancelAnimationFrame(raf)
-      window.clearTimeout(cap)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [night])
 
   // Selaimen yläpalkin väri seuraa taivasta (palautetaan, ellei joku muu ole jo vaihtanut sitä)
   useEffect(() => {
@@ -229,7 +128,7 @@ export function StartScreen({
   const choose = useCallback(
     (mode: Mode) => {
       if (phase !== 'idle') return
-      touched.current = true
+      setTouched(true)
       setRevealed(true)
       setSel(mode)
     },
@@ -247,7 +146,7 @@ export function StartScreen({
     (mode: Mode) => {
       if (phase !== 'idle') return
       window.clearTimeout(hover.current)
-      touched.current = true
+      setTouched(true)
       setRevealed(true)
       setSel(mode)
       setPicked(mode)
@@ -302,20 +201,16 @@ export function StartScreen({
 
   return (
     <div
-      ref={root}
       className={cn(
         'start pf @container fixed inset-0 z-[60] overflow-hidden transition-opacity duration-700',
         phase === 'out' && 'pointer-events-none opacity-0',
       )}
       data-night={night ? '' : undefined}
       data-revealed={revealed ? '' : undefined}
-      data-dusk={sky.dir}
-      data-fading={fading ? '' : undefined}
       data-phase={phase}
-      style={{ '--dusk': `${dusk}s` } as CSSProperties}
+      style={{ '--dusk': `${(SKY_DURATION / rate).toFixed(2)}s` } as CSSProperties}
     >
-      <StartSky />
-      <HeroScene night={night} className="duration-1000 animate-in fade-in" />
+      <StartBackdrop night={want} rate={rate} excited={phase !== 'idle' && picked === 'game'} onHeading={setNight} onRest={onRest} />
 
       <div className="absolute inset-0 overflow-y-auto overflow-x-hidden">
         <div className="st-ui st-main relative flex min-h-full flex-col items-center px-4 pb-[clamp(88px,20svh,230px)] sm:px-6">
@@ -423,7 +318,7 @@ export function StartScreen({
           revealed ? 'opacity-100' : 'opacity-0',
         )}
       >
-        <p className="rounded-2xl bg-[#14081a]/50 px-3 py-1 text-center sm:rounded-full text-[0.7rem] font-medium text-[#ffe5d4]/90 backdrop-blur-sm">
+        <p className="rounded-2xl bg-[#14081a]/60 px-3 py-1 text-center sm:rounded-full text-[0.7rem] font-medium text-[#ffe5d4]/90">
           {t.start.hint}
         </p>
       </div>

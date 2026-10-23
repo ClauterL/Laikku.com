@@ -38,17 +38,23 @@ Claus Laikun portfoliosivusto pelivalikon muodossa (laikku.com). Rakenne ja kome
   Vain staattisille taustoille, ei `spot`-korteille; kuva ladataan heti sivun asetuttua (idle) ja animaatio pyörii
   koko ajan myös näkymän ulkopuolella satunnaisesta vaiheesta alkaen, joten eläimet ovat jo liikkeessä, kun niiden
   kohdalle vieritetään; vähennetty liike → paikallaan.
-- Aloitusruutu (`src/components/game/StartScreen.tsx`): taustana sama `HeroScene` (`night`-prop) kuin normaalin
-  portfolion herossa. Normaali-valinta = kultainen auringonlasku, Pelillistetty = revontuliyö: tasojen yöversiot
-  `public/images/hero-{taso}-night-{1280,2048,3840}.webp` generoidaan `scripts/hero-night.py`:llä (luminanssin
-  liukuväri tasoittain, saunan ovi valaistaan) – älä muokkaa käsin. Taivas (tähdet, kuu, revontulet, tähdenlento)
-  `StartSky.tsx`, pesukarhu valitun kortin päällä `StartRaccoon.tsx` (sama critter-raccoon-ruudukko, hyppy WAAPI:lla).
-  Värit `.start`-tokeneista (index.css, `data-night` + `--dusk`). Normaali-valinnassa portfolio piirtyy aloitusruudun
+- Aloitusruutu (`src/components/game/StartScreen.tsx`): taustana `StartBackdrop.tsx` – sama Järvi-Suomen maisema kuin
+  normaalin portfolion herossa, mutta päivä ↔ yö on **esirenderöity video** (ei kuvapinojen ristihäivytystä: kaksi
+  hero-pinoa revontulten ja sumennettujen korttien alla ylitti GPU-muistin → nykiminen, kadonneet kortit). Normaali-valinta =
+  kultainen auringonlasku, Pelillistetty = revontuliyö. Lähteet `assets-src/start/` (ei repossa): aloitusruudun kaappaukset
+  1920×1080 @2x ilman käyttöliittymää → Higgsfield MiniMax H3 2K (alku = päivä, loppu = yö) ja yön silmukka (alku = loppu =
+  siirtymän viimeinen ruutu) → `scripts/start-video.py` → `public/video/start-{dn,nd,loop}-{1280,1920}.{mp4,webm}`,
+  lepokuvat `public/images/start-{day,night}-*.webp` ja `src/data/start-sky.json` (generoituja – älä muokkaa käsin).
+  `nd` on `dn` ruutu ruudulta käänteisenä: suunta vaihtuu kesken hyppäämällä toisen videon peilikuvaruutuun, joten
+  siirtymää ei tarvitse odottaa loppuun. 16:9-kehys sijoitetaan hero-maiseman laatikkoon (`HERO_BOX`, kehys 96,154 % leveä,
+  vasen +1,923 %), joten maisema osuu täsmälleen portfolion heron kohdalle; videon yläpuolinen taivas täytetään videon
+  yläreunan värillä ruutu ruudulta + tähdillä. Elävät yksityiskohdat videon päällä: `Landscape.tsx` → `HeroLife`.
+  Ilman videota (vähennetty liike, Save-Data, virhe, estetty toisto) still-kuvat ristihäivytetään. Aloitusruudulla ei
+  backdrop-filteriä (liikkuvan videon päällä sumennus laskettaisiin joka ruudussa). Käyttöliittymän värit
+  (`.start[data-night]`, kesto `--dusk`) seuraavat suuntaa, johon tausta oikeasti liikkuu (`onHeading`). Hiiri valitsee
+  vasta viipyessään kortilla, vahvistus kiihdyttää siirtymän (`playbackRate`). Pesukarhu valitun kortin päällä
+  `StartRaccoon.tsx` (sama critter-raccoon-ruudukko, hyppy WAAPI:lla). Normaali-valinnassa portfolio piirtyy aloitusruudun
   alle samaan maisemaan ja ruutu häivytetään sen päältä (App: `onDone` → `onExited`).
-  Päivä ↔ yö vaihtuu vain kokonaisina siirtyminä (`StartScreen` → `sky`): kesken olevaa ei käännetä, seuraava alkaa
-  vasta kun selaimen animaatiot ovat oikeasti valmiit (`getAnimations().finished`) ja tauon jälkeen; hiiri valitsee vasta
-  viipyessään kortilla, vahvistus kiihdyttää käynnissä olevan siirtymän (`playbackRate`). Iltarusko soi `data-dusk`-
-  attribuutista (in/out vain siirtymän alkaessa) – ei data-night-sidonnaisena, joka käynnisti sen kesken alusta (vilkkui).
 - Pelillistetty portfolio = **Kahvijahti** (`src/components/quest`, osoite `#quest`): avoin low-poly-Järvi-Suomi
   React Three Fiberillä, isometrinen ortokamera (`Scene.tsx` → `YAW`/`PITCH`, näkymä vähintään `VIEW_H` × `VIEW_W`).
   Pesukarhu (oma hahmo: lämmin harmaa turkki, luumu naamio, oranssit lentäjänlasit, tabletti tassuissa – ei kopio
@@ -86,7 +92,8 @@ Claus Laikun portfoliosivusto pelivalikon muodossa (laikku.com). Rakenne ja kome
   Satama on jaettu kerroksiksi ja veneet leikattu `scripts/game-props.py`:llä (aja game-assets.py:n jälkeen).
   Suorituskyky: kaikki liike transform/opacity- tai pieninä SVG-animaatioina; piilossa olevan päivä/yö-pinon animaatiot
   pysäytetään; StartSky on eristetty (`isolate`), ettei revontulien screen-sekoitus pakota koko näkymää välipintaan,
-  ja päivällä revontulien animaatiot ja will-change ovat kokonaan pois.
+  ja päivällä revontulien animaatiot ja will-change ovat kokonaan pois. Taivas `StartSky.tsx`, yötasot
+  `public/images/hero-{taso}-night-*.webp` (`scripts/hero-night.py`, älä muokkaa käsin).
   Aitan (Tavarat) esineillä on omat kuvakkeensa `public/images/game/items/<id>.webp` (`images.ts` → `gameItems`,
   avain = goods-esineen id): Higgsfield GPT Image 2.5 samaan litteään auringonlaskutyyliin valkoiselle taustalle
   (yksi esine, ei tekstiä eikä logoja) → `scripts/game-items.py` (reunoilta täyttö + suljetut valkoiset aukot läpinäkyviksi).

@@ -13,8 +13,8 @@ Yläpalkin välilehdet: Taidot · Projektit · Tavarat · Kartta · Tehtävät �
 Sivu avautuu aloitusruutuun, jossa on tunnus – kuvake ihmisestä läppärin takana, näytöllä `<#>` ja
 pääsiäismunana SMART morsena – ja kävijä valitsee **Normaali** tai
 **Pelillistetty**. Aloitusruudun taustana on sama Järvi-Suomen maisema kuin normaalin portfolion herossa:
-Normaali-valinta näyttää kultaisen auringonlaskun, Pelillistetty revontuliyön, ja valitun kortin päällä
-istuva pesukarhu hyppää kortilta toiselle. Pelillistetty on **Kahvijahti** (`#quest`): avoin low-poly-Järvi-Suomi
+Normaali-valinta näyttää kultaisen auringonlaskun, Pelillistetty revontuliyön (siirtymä on Higgsfieldillä
+esirenderöity video, joka kääntyy kesken saumattomasti), ja valitun kortin päällä istuva pesukarhu hyppää kortilta toiselle. Pelillistetty on **Kahvijahti** (`#quest`): avoin low-poly-Järvi-Suomi
 isometrisessä 3D:ssä (React Three Fiber), jossa pesukarhu kiertää saarta tabletti tassuissa – yhdeksän paikkaa avaa
 portfolion osiot tabletissa – ja etsii kahvia, donitseja ja burritoja; katoilta ja vedestä ne haetaan dronella, ja
 kumiankka neuvoo (rubber duck debugging). Normaali on perinteinen yhden sivun portfolio (`#portfolio`, suora linkki
@@ -65,8 +65,9 @@ src/
   components/quest/           KAHVIJAHTI (pelillistetty): QuestGame (HUD, tabletti, ankan puhekupla, ohjaus), Scene (maasto, vesi, metsä, paikat, herkut, pelisilmukka + kamera), models (low-poly-mallit koodilla), world (kartta, paikat, herkut, törmäykset), kit (paletti, mallien paisto)
   components/flight/          DRONELENTO (varmuuskopio, #flight): FlightGame, world, Panels (kohteiden sisällöt – myös Kahvijahti käyttää näitä)
   components/game/
-    StartScreen              aloitusruutu: maisema (HeroScene night), tunnus + nimi, valinta Normaali (auringonlasku) / Pelillistetty (revontuliyö, avaa äänen)
-    StartSky, StartRaccoon   aloitusruudun taivas (tähdet, kuu, revontuliverhot, tähdenlento) · kortilta toiselle hyppäävä pesukarhu
+    StartScreen              aloitusruutu: tunnus + nimi, valinta Normaali (auringonlasku) / Pelillistetty (revontuliyö, avaa äänen)
+    StartBackdrop            aloitusruudun videotausta: päivä ↔ yö -video (scripts/start-video.py), yön silmukka, HeroLife-yksityiskohdat
+    StartSky, StartRaccoon   Dronelennon taivas (tähdet, kuu, revontuliverhot, tähdenlento) · kortilta toiselle hyppäävä pesukarhu
     GameShell                pelivalikon välilehdet, näppäimet (Q/E, M) ja 3D-loft (Esc loftissa → valikko)
     TopBar, BottomBar        valikko + välilehdet + ääni/kieli · näppäinvihjeet
     InventoryScreen          hahmo, slotit, kielipalkki, taso, HUD-slotit, reppu, tietokaista

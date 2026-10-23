@@ -523,29 +523,14 @@
 }
 
 
-/* hero-maiseman yö (vain aloitusruudulla: HeroScene night → data-night). Yöpino häivytetään kokonaisena
-   päiväpinon päälle; päiväpino piilotetaan vasta, kun yö on kokonaan näkyvissä. Kesto --dusk. */
-.pf .hero-day-stack, .pf .hero-night-stack { transition: opacity var(--dusk, 1.2s) ease, visibility 0s linear 0s; }
-/* plus-lighter: (1 − t)·päivä + t·yö myös läpikuultavissa reunapikseleissä – aito ristihäivytys ilman reunaviivoja.
-   Vain siirtymän ajan (data-fading aloitusruudun juuressa), levossa näkyy vain toinen pino. */
-[data-fading] .pf .hero-day-stack, [data-fading] .pf .hero-night-stack, .pf[data-fading] .hero-day-stack, .pf[data-fading] .hero-night-stack { mix-blend-mode: plus-lighter; }
-.pf .hero-night-stack { opacity: 0; visibility: hidden; transition: opacity var(--dusk, 1.2s) ease, visibility 0s linear var(--dusk, 1.2s); }
-.pf .hero-scene[data-night] .hero-night-stack { opacity: 1; visibility: visible; transition: opacity var(--dusk, 1.2s) ease, visibility 0s linear 0s; }
-.pf .hero-scene[data-night] .hero-day-stack { opacity: 0; visibility: hidden; transition: opacity var(--dusk, 1.2s) ease, visibility 0s linear var(--dusk, 1.2s); }
-/* aurinko nousee nopeasti; yöllä se laskee ensin vaarojen taakse ja hiipuu vasta sitten */
-.pf .hero-sun { transition: transform var(--dusk, 1.2s) cubic-bezier(0.3, 0, 0.2, 1), opacity calc(var(--dusk, 1.2s) * 0.4) ease; }
-.pf .hero-scene[data-night] .hero-sun {
-  transform: translateY(26%);
-  opacity: 0;
-  transition: transform var(--dusk, 1.2s) cubic-bezier(0.5, 0, 0.6, 1), opacity calc(var(--dusk, 1.2s) * 0.45) ease calc(var(--dusk, 1.2s) * 0.55);
-}
-.pf .hero-clouds, .pf .hero-birds { transition: opacity var(--dusk, 1.2s) ease; }
-.pf .hero-scene[data-night] .hero-clouds { opacity: 0.12; }
-.pf .hero-scene[data-night] .hero-birds { opacity: 0; }
-.pf .hero-door, .pf .hero-fireflies { opacity: 0; transition: opacity var(--dusk, 1.2s) ease; }
-.pf .hero-scene[data-night] .hero-door, .pf .hero-scene[data-night] .hero-fireflies { opacity: 1; transition-delay: calc(var(--dusk, 1.2s) * 0.5); }
-@keyframes hero-flicker { 0%, 100% { opacity: 0.92; } 35% { opacity: 0.72; } 52% { opacity: 1; } 71% { opacity: 0.8; } }
-.pf .hero-door > * { animation: hero-flicker 3.4s ease-in-out infinite; }
+/* Aloitusruudun videotaustan elävät yksityiskohdat (Landscape.tsx → HeroLife): päivän välke ja lintuparvi,
+   yön välke ja tulikärpäset. Päivä/yö .hero-scene[data-night] -attribuutista (StartBackdrop), kesto --dusk. */
+.pf .hero-birds, .pf .hero-glints-day, .pf .hero-glints-night { transition: opacity var(--dusk, 1.2s) ease; }
+.pf .hero-glints-night { opacity: 0; }
+.pf .hero-scene[data-night] .hero-glints-day, .pf .hero-scene[data-night] .hero-birds { opacity: 0; }
+.pf .hero-scene[data-night] .hero-glints-night { opacity: 1; }
+.pf .hero-fireflies { opacity: 0; transition: opacity var(--dusk, 1.2s) ease; }
+.pf .hero-scene[data-night] .hero-fireflies { opacity: 1; transition-delay: calc(var(--dusk, 1.2s) * 0.5); }
 @keyframes hero-firefly {
   0% { transform: translate(0, 0); opacity: 0; }
   18% { opacity: 1; }
@@ -555,7 +540,6 @@
 }
 .pf .hero-firefly { opacity: 0; animation: hero-firefly var(--fd, 8s) ease-in-out var(--fdl, 0s) infinite; }
 @media (prefers-reduced-motion: reduce) {
-  .pf .hero-door > * { animation: none; }
   .pf .hero-firefly { animation: none; opacity: 0.7; }
 }
 
@@ -569,7 +553,7 @@
   --st-ink: var(--pf-deep);
   --st-ink-2: rgba(58, 21, 48, 0.72);
   --st-line: rgba(58, 21, 48, 0.2);
-  --st-chip: rgba(255, 255, 255, 0.34);
+  --st-chip: rgba(255, 246, 238, 0.62);
   --st-on: var(--pf-sky);
   font-family: var(--font-body);
   color: var(--st-ink);
@@ -579,14 +563,15 @@
   --st-ink: #eaf3ff;
   --st-ink-2: rgba(214, 229, 250, 0.74);
   --st-line: rgba(200, 225, 255, 0.24);
-  --st-chip: rgba(8, 14, 34, 0.42);
+  --st-chip: rgba(8, 14, 34, 0.62);
   --st-on: #07102d;
   color-scheme: dark;
 }
 .start .st-ink, .start .st-ink-2, .start .st-chip { transition: color var(--dusk) ease, background-color var(--dusk) ease, border-color var(--dusk) ease; }
 .start .st-ink { color: var(--st-ink); }
 .start .st-ink-2 { color: var(--st-ink-2); }
-.start .st-chip { background: var(--st-chip); border: 1px solid var(--st-line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+/* ei backdrop-filteriä: liikkuvan videon päällä sumennus laskettaisiin joka ruudussa uudelleen */
+.start .st-chip { background: var(--st-chip); border: 1px solid var(--st-line); }
 
 /* taivas: päivä → yö ristihäivytyksenä, tähdet, kuu, revontulet, tähdenlento */
 .start .st-day { background: linear-gradient(180deg, #fde4cd 0%, #fdd6b5 42%, #fcc297 72%, #f9a874 100%); }
@@ -651,6 +636,18 @@
 }
 .start .st-meteor { position: absolute; height: 1.5px; width: clamp(70px, 9vw, 140px); border-radius: 9999px; transform-origin: 100% 50%; background: linear-gradient(90deg, transparent, rgba(220, 255, 245, 0.95)); filter: drop-shadow(0 0 4px rgba(170, 255, 230, 0.9)); animation: st-shoot 14s linear infinite; }
 
+/* videotausta (StartBackdrop): 16:9-kehys hero-maiseman laatikossa – kaappaushetkellä (1920 × 1080) maisema oli
+   104 % näkymän leveydestä ja keskitetty, joten kehys = 96,154 % laatikon leveydestä ja vasen reuna +1,923 %. Kerrosten näkyvyys
+   ja järjestys asetetaan suoraan (inline-tyylit). Videon yläpuolelle jäävä taivas (näkymä kapeampi kuin 16:9)
+   täytetään videon yläreunan värillä ja tähdillä; sauma häivytetään. */
+.start .sb-frame { position: absolute; bottom: 0; left: 1.9231%; width: 96.1538%; aspect-ratio: 16 / 9; }
+.start .sb-frame > img, .start .sb-frame > video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
+.start .sb-seam { position: absolute; inset: 0 0 auto; height: 8%; z-index: 100000; }
+.start .sb-fill, .start .sb-seam { display: none; }
+@media (max-aspect-ratio: 44 / 25) {
+  .start .sb-fill, .start .sb-seam { display: block; }
+}
+
 /* valintakortit: Normaali = persikkapaperi, Pelillistetty = yönsininen lasi + teal */
 .start .st-card {
   position: relative;
@@ -663,15 +660,13 @@
   text-align: left;
   cursor: pointer;
   outline: none;
-  backdrop-filter: blur(12px) saturate(1.25);
-  -webkit-backdrop-filter: blur(12px) saturate(1.25);
   transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.35s ease, border-color 0.35s ease, opacity 0.3s ease;
 }
 /* kumpikin kortti on ikkuna omaan maailmaansa: Normaali = auringonlaskun taivas, Pelillistetty = tähtiyö revontulineen */
 .start .st-card[data-mode='normal'] {
   background:
     radial-gradient(120% 90% at 88% 118%, rgba(249, 150, 100, 0.5), transparent 62%),
-    linear-gradient(165deg, rgba(255, 245, 236, 0.92), rgba(253, 218, 190, 0.88));
+    linear-gradient(165deg, rgba(255, 245, 236, 0.95), rgba(253, 218, 190, 0.93));
   border-color: rgba(58, 21, 48, 0.16);
   color: var(--pf-deep);
 }
@@ -685,7 +680,7 @@
     radial-gradient(1px 1px at 47% 52%, rgba(255, 255, 255, 0.7) 45%, transparent 100%),
     radial-gradient(1px 1px at 93% 58%, rgba(255, 255, 255, 0.7) 45%, transparent 100%),
     radial-gradient(90% 70% at 76% -12%, rgba(79, 209, 197, 0.3), transparent 66%),
-    linear-gradient(165deg, rgba(5, 9, 28, 0.9), rgba(14, 27, 60, 0.86));
+    linear-gradient(165deg, rgba(5, 9, 28, 0.93), rgba(14, 27, 60, 0.9));
   border-color: rgba(127, 211, 204, 0.28);
   color: #e8f2f6;
 }

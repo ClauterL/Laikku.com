@@ -1,4 +1,4 @@
-"""Hero-maiseman yöversio aloitusruudulle (Pelillistetty-valinta = revontuliyö).
+"""Hero-maiseman yöversio Dronelennolle (yö laskeutuu lennon aikana; aloitusruutu käyttää videota, start-video.py).
 
 Jokainen Higgsfield-taso (public/images/hero-{far,lake,mid,near,front}-3840.webp) väritetään
 luminanssin mukaan omalla liukuväripaletillaan (gradient map): mitä lähempänä katsojaa, sitä

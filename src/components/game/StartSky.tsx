@@ -1,6 +1,6 @@
-import { useId, useMemo } from 'react'
+import { useId, useMemo, type Ref } from 'react'
 
-/* Aloitusruudun taivas: päivän persikkaliukuväri (sama kuin normaalin portfolion herossa) ja sen päälle
+/* Dronelennon taivas: päivän persikkaliukuväri (sama kuin normaalin portfolion herossa) ja sen päälle
    häivytettävä revontuliyö – tähdet, kuunsirppi, kaksi revontuliverhoa ja harvakseltaan tähdenlento.
    Kaikki on staattista SVG:tä / CSS:ää: verhot rasteroidaan kerran ja niitä liikutetaan vain transformilla.
    Näkyvyys tulee .start[data-night] -säännöistä (index.css). */
@@ -115,8 +115,37 @@ function Moon() {
   )
 }
 
-export function StartSky() {
+/** Tähtitaivas neljänä tuikeryhmänä (myös aloitusruudun videotaustan yläpuolinen täyttö) */
+export function Stars({ className, ref }: { className?: string; ref?: Ref<HTMLDivElement> }) {
   const stars = useMemo(() => makeStars(120), [])
+  return (
+    <div ref={ref} className={className}>
+      {GROUPS.map(([t, d], g) => (
+        <div key={g} className="st-star-group" style={{ ['--t' as string]: `${t}s`, ['--dl' as string]: `${d}s` }}>
+          {stars
+            .filter((_, i) => i % GROUPS.length === g)
+            .map((s, i) => (
+              <span
+                key={i}
+                className="st-star"
+                style={{
+                  left: `${s.x}%`,
+                  top: `${s.y}%`,
+                  width: s.s,
+                  height: s.s,
+                  boxShadow: s.s > 1.9 ? '0 0 6px 1px rgba(220,235,255,0.7)' : undefined,
+                  ['--o' as string]: s.o,
+                }}
+              />
+            ))}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/** Dronelennon taivas */
+export function StartSky() {
   return (
     // isolate: revontulien screen-sekoitus rajautuu taivaaseen (maisema piirretään sen päälle joka tapauksessa).
     // Ilman sitä selain yhdistää koko näkymän välipintaan joka ruudussa – myös päivällä, kun revontulet ovat piilossa.
@@ -125,28 +154,7 @@ export function StartSky() {
       <div className="st-night-sky absolute inset-0" />
       {/* hämärä: violetti–roosa iltarusko vain siirtymän puolivälissä, ettei päivä ja yö sekoitu harmaaksi */}
       <div className="st-dusk absolute inset-0" />
-      <div className="st-stars absolute inset-0">
-        {GROUPS.map(([t, d], g) => (
-          <div key={g} className="st-star-group" style={{ ['--t' as string]: `${t}s`, ['--dl' as string]: `${d}s` }}>
-            {stars
-              .filter((_, i) => i % GROUPS.length === g)
-              .map((s, i) => (
-                <span
-                  key={i}
-                  className="st-star"
-                  style={{
-                    left: `${s.x}%`,
-                    top: `${s.y}%`,
-                    width: s.s,
-                    height: s.s,
-                    boxShadow: s.s > 1.9 ? '0 0 6px 1px rgba(220,235,255,0.7)' : undefined,
-                    ['--o' as string]: s.o,
-                  }}
-                />
-              ))}
-          </div>
-        ))}
-      </div>
+      <Stars className="st-stars absolute inset-0" />
       <Moon />
       <div className="st-aurora absolute inset-x-0 top-0 h-[66svh]">
         <Curtain seed={11} opts={CURTAIN_B} colors={['#8a7dff', '#4fd1c5', '#9dffd0']} className="st-curtain-b opacity-70" />

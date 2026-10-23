@@ -202,6 +202,27 @@ export const heroNight = {
   front: heroLayer('front-night'),
 }
 
+/** Aloitusruudun videotausta (scripts/start-video.py, Higgsfield MiniMax H3 -videoista, 16:9): auringonlasku →
+    revontuliyö (dn), sama ruutu ruudulta käänteisenä (nd) ja yön silmukka (loop); lepokuvat ovat siirtymän
+    ensimmäinen ja viimeinen ruutu. Kehys sijoitetaan hero-maiseman laatikkoon (StartBackdrop), leveys max(100vw, 923px). */
+const startStill = (n: 'day' | 'night') => ({
+  src: `/images/start-${n}-1920.webp`,
+  srcSet: `/images/start-${n}-1280.webp 1280w, /images/start-${n}-1920.webp 1920w, /images/start-${n}-2560.webp 2560w`,
+})
+export const startScene = {
+  width: 2560,
+  height: 1440,
+  sizes: '(max-width: 923px) 923px, 100vw',
+  day: startStill('day'),
+  night: startStill('night'),
+  /** ext: mp4 (H.264) tai webm (VP9, selaimet ilman H.264:ää) */
+  video: (w: 1280 | 1920, ext: 'mp4' | 'webm') => ({
+    dn: `/video/start-dn-${w}.${ext}`,
+    nd: `/video/start-nd-${w}.${ext}`,
+    loop: `/video/start-loop-${w}.${ext}`,
+  }),
+}
+
 /** Alaosioiden eläinvarjot: Higgsfield-videoista (Kling 3.0 / Seedance 2.5, aloitus = lopetusruutu) irrotetut siluetit
     ruudukkoina (valkoinen + alfa), käytetään CSS-maskina currentColor-värillä. Metatiedot src/data/critters.json:
     ruutu w×h, cols×rows, frames; peura/pesukarhu ms = kunkin ruudun kesto videon ajoituksella;
