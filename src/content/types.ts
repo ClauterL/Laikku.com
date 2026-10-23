@@ -239,7 +239,18 @@ export interface Content {
     links: { label: string; value: string; href: string }[]
     cv?: Link
     contactTitle: string
-    form: { name: string; email: string; message: string; submit: string; subject: string; hint: string }
+    form: {
+      name: string
+      email: string
+      message: string
+      submit: string
+      subject: string
+      hint: string
+      /** lähetys käynnissä / onnistui / epäonnistui (perään sähköpostilinkki varalle) */
+      sending: string
+      sent: string
+      error: string
+    }
     portrait: Img
     builtWith: string
     /** Koodeksi pelin tietokannan tapaan: kategoriat vasemmalla, merkintä keskellä, kuva oikealla */

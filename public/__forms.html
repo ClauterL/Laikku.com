@@ -1,0 +1,21 @@
+<!doctype html>
+<!-- Netlify Forms: lomakkeiden runko käännösaikaista tunnistusta varten. Varsinainen lomake on React-komponentissa
+     (portfolio/Sections.tsx → Contact) ja lähettää kentät tänne (src/lib/contact.ts) – kenttien nimet täsmälleen samat.
+     Ilmoitukset sähköpostiin asetetaan Netlifyssä: Forms → Form notifications. -->
+<html lang="fi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex" />
+    <title>Lomakkeet</title>
+  </head>
+  <body>
+    <form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
+      <input type="hidden" name="form-name" value="contact" />
+      <input type="hidden" name="subject" />
+      <input type="text" name="name" />
+      <input type="email" name="email" />
+      <textarea name="message"></textarea>
+      <input type="text" name="bot-field" />
+    </form>
+  </body>
+</html>

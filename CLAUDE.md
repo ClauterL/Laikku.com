@@ -6,7 +6,8 @@ Claus Laikun portfoliosivusto pelivalikon muodossa (laikku.com). Rakenne ja kome
 
 - Projektin polku käyttäjän koneella: `H:\Havaida\Laikku.com` (Windows, Git Bash → `cd /h/Havaida/Laikku.com`).
 - Node ≥ 22.12. `npm run dev` → http://localhost:5173.
-- GitHub-repo: `ClauterL/Laikku.com`, julkaisu GitHub Pagesiin (custom domain laikku.com).
+- GitHub-repo: `ClauterL/Laikku.com`; julkaisu Netlifyyn (projekti `laikku-com`): push `main`iin → laikku.com.
+  GitHub Pages -työnkulku (`deploy.yml`) ei ole käytössä (Pages pois päältä).
 - `v2/` on edellinen perinteinen portfolio (oma package.json) – ei kosketa, ellei pyydetä.
 
 ## Säännöt
@@ -106,4 +107,8 @@ Claus Laikun portfoliosivusto pelivalikon muodossa (laikku.com). Rakenne ja kome
 - Kartta on oikea maailmankartta omana SVG:nä (`src/data/world.json`, d3-geo + d3-zoom) AC-tyylillä:
   pergamenttimaa, teal-meri (`bg-map.webp`), fog of war merkkien ympärillä. Ei Leafletia, ei tiilipalvelimia.
 - Pidä sivu staattisena: ei backendia, ei evästeitä, ei kolmannen osapuolen skriptejä
-  (Google Fonts on ainoa ulkoinen resurssi).
+  (Google Fonts on ainoa ulkoinen resurssi). Poikkeus: normaalin portfolion yhteydenottolomake lähettää viestin
+  Netlify Formsilla (alustan ominaisuus, ei omaa palvelinkoodia): runko `public/__forms.html` (kenttien nimet samat kuin
+  lähetyksessä), lähetys `src/lib/contact.ts` (kehitystilassa ei lähetetä), roskapostiansa `bot-field`. Netlify lähettää
+  jokaisesta viestistä sähköpostin osoitteisiin claus.laikku@havaida.com ja claikku@gmail.com (Reply-To = kävijän
+  sähköposti); osoitteet asetetaan Netlifyssä: Forms → Form notifications.

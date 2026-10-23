@@ -24,6 +24,7 @@ import { TechIcon, hasTechIcon } from '@/components/TechIcon'
 import { useLang } from '@/hooks/useLang'
 import { images, links, pfIcons, type PortfolioSection, type Quest } from '@/content'
 import { SHOW_DRAFTS } from '@/lib/env'
+import { sendContact } from '@/lib/contact'
 import {
   ACTIVE_MIN,
   ACTIVE_POOL,
@@ -1002,15 +1003,33 @@ export function Contact() {
   const p = t.portfolio
   const c = t.codex
   const [form, setForm] = useState({ name: '', email: '', message: '' })
+  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const [copied, setCopied] = useState(false)
   const email = c.info[1]?.value ?? links.email
   const emailRef = useRef<HTMLAnchorElement>(null)
+  /** roskapostiansa (Netlify-honeypot): piilotettu kenttä, jota ihminen ei täytä */
+  const botRef = useRef<HTMLInputElement>(null)
 
-  function onSubmit(e: FormEvent) {
-    e.preventDefault()
-    const body = `${form.message}\n\n— ${form.name}${form.email ? ` (${form.email})` : ''}`
-    window.location.href = `mailto:${email}?subject=${encodeURIComponent(c.form.subject)}&body=${encodeURIComponent(body)}`
+  /** Kenttää muokattaessa edellinen "lähetetty" -ilmoitus poistuu */
+  const edit = (patch: Partial<typeof form>) => {
+    setForm((f) => ({ ...f, ...patch }))
+    if (status === 'sent') setStatus('idle')
   }
+
+  /** Viesti lähtee suoraan Netlify Formsin kautta (src/lib/contact.ts) – ei sähköpostiohjelmaa */
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault()
+    if (status === 'sending') return
+    setStatus('sending')
+    try {
+      await sendContact({ ...form, subject: `${c.form.subject} – ${form.name}`, botField: botRef.current?.value })
+      setStatus('sent')
+      setForm({ name: '', email: '', message: '' })
+    } catch {
+      setStatus('error')
+    }
+  }
+  const mailtoHref = `mailto:${email}?subject=${encodeURIComponent(c.form.subject)}&body=${encodeURIComponent(`${form.message}\n\n— ${form.name}${form.email ? ` (${form.email})` : ''}`)}`
 
   const copy = () => {
     const done = () => {
@@ -1069,10 +1088,17 @@ export function Contact() {
 
         <Reveal delay={100} as="form" onSubmit={onSubmit} className={cn(card, 'grid gap-4 p-6 sm:p-8')}>
           <h3 className="poster text-xl text-pf-ink">{c.contactTitle}</h3>
+          <input type="hidden" name="form-name" value="contact" />
+          <p className="sr-only" aria-hidden>
+            <label>
+              Bot field
+              <input ref={botRef} name="bot-field" tabIndex={-1} autoComplete="off" />
+            </label>
+          </p>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="grid gap-1.5 text-xs font-bold text-pf-ink-2">
               {c.form.name}
-              <input name="name" autoComplete="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={field} />
+              <input name="name" autoComplete="name" required value={form.name} onChange={(e) => edit({ name: e.target.value })} className={field} />
             </label>
             <label className="grid gap-1.5 text-xs font-bold text-pf-ink-2">
               {c.form.email}
@@ -1082,7 +1108,7 @@ export function Contact() {
                 autoComplete="email"
                 required
                 value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                onChange={(e) => edit({ email: e.target.value })}
                 className={field}
               />
             </label>
@@ -1095,17 +1121,28 @@ export function Contact() {
               required
               rows={6}
               value={form.message}
-              onChange={(e) => setForm({ ...form, message: e.target.value })}
+              onChange={(e) => edit({ message: e.target.value })}
               className={cn(field, 'resize-y')}
             />
           </label>
           <div className="flex flex-wrap items-center gap-4">
-            <button type="submit" className={btnPrimary}>
-              {c.form.submit}
-              <Send />
+            <button type="submit" disabled={status === 'sending'} className={cn(btnPrimary, 'disabled:cursor-wait disabled:opacity-70')}>
+              {status === 'sending' ? c.form.sending : c.form.submit}
+              {status === 'sent' ? <Check /> : <Send />}
             </button>
             <p className="text-xs text-pf-muted">{c.form.hint}</p>
           </div>
+          <p aria-live="polite" className={cn('text-sm font-semibold', status === 'error' ? 'text-pf-orange' : 'text-pf-sun', (status === 'idle' || status === 'sending') && 'sr-only')}>
+            {status === 'sent' && c.form.sent}
+            {status === 'error' && (
+              <>
+                {c.form.error}{' '}
+                <a href={mailtoHref} className="underline underline-offset-2 hover:text-pf-orange">
+                  {email}
+                </a>
+              </>
+            )}
+          </p>
         </Reveal>
       </div>
     </Section>
