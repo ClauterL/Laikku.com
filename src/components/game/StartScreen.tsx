@@ -108,6 +108,8 @@ export function StartScreen({
   const dusk = sky.dusk
   /** onko taivas jo kertaalleen vaihtunut (sekoitustila tarvitaan vasta silloin) */
   const skyStarted = useRef(false)
+  /** milloin edellinen siirtymä oikeasti päättyi (tauko lasketaan tästä, ei turhaa viivettä levosta) */
+  const skyEnded = useRef(0)
   /** taivaan nykytila odottajille (go) */
   const skyNow = useRef(false)
   useEffect(() => {
@@ -176,7 +178,10 @@ export function StartScreen({
     void settled(SKY_LAYERS)
       .then(() => (want ? nightReady() : undefined))
       .then(() => {
-        if (alive) id = window.setTimeout(apply, picked ? SETTLE.picked : SETTLE.browse)
+        if (!alive) return
+        // tauko vain peräkkäisten siirtymien väliin; levosta liikkeelle heti
+        const gap = picked ? SETTLE.picked : Math.max(0, skyEnded.current + SETTLE.browse - performance.now())
+        id = window.setTimeout(apply, gap)
       })
     return () => {
       alive = false
@@ -193,7 +198,13 @@ export function StartScreen({
     setFading(true)
     let alive = true
     const off = () => alive && setFading(false)
-    const raf = requestAnimationFrame(() => void settled('.hero-day-stack, .hero-night-stack').then(() => window.setTimeout(off, 120)))
+    const raf = requestAnimationFrame(
+      () =>
+        void settled(SKY_LAYERS).then(() => {
+          if (alive) skyEnded.current = performance.now()
+          window.setTimeout(off, 120)
+        }),
+    )
     const cap = window.setTimeout(off, dusk * 1000 + 2500)
     return () => {
       alive = false

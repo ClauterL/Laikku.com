@@ -850,6 +850,11 @@ export const en: Content = {
   quest: {
     title: 'Coffee quest',
     loading: 'Waking up the rubber duck',
+    noGl: {
+      title: '3D didn’t start',
+      text: 'Your browser couldn’t enable 3D graphics (WebGL) – often hardware acceleration is turned off. You can fly over the same Finnish lakeland in the 2D version or browse the classic portfolio.',
+      flight: 'Open the 2D version',
+    },
     places: {
       dock: 'Welcome to the pier! Open the tablet and I will explain the rules. Quack.',
       sauna: "Claus's story is told on the sauna benches. Steam, but no bugs.",

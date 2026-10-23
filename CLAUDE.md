@@ -62,6 +62,8 @@ Claus Laikun portfoliosivusto pelivalikon muodossa (laikku.com). Rakenne ja kome
   (`PerformanceMonitor`) varjot pois ja pikselitiheys 1. HUD-kuvat (herkut, ankka, pesukarhu) Higgsfield GPT Image 2.5
   → `scripts/game-items.py assets-src/quest public/images/quest` (`images.ts` → `questArt`). Edistyminen
   localStoragessa (`laikku-quest`: löydetyt herkut + nähdyt paikat).
+  Ilman WebGL:ää (`src/lib/webgl.ts` → `hasWebGL`) pelillistetty avaa suoraan 2D-Dronelennon, ja jos 3D kaatuu
+  käynnistyessä, `GlBoundary` näyttää vaihtoehdot (2D-versio / normaali) mustan ruudun sijaan.
 - Varmuuskopio: **Dronelento** (`src/components/flight`, avautuu vain osoitteella `#flight`): sivuttain vierivä Järvi-Suomi,
   jossa lennetään dronella pesukarhu kyydissä auringonlaskusta revontuliyöhön (yö laskeutuu kohdassa `NIGHT_ON`).
   Rannan yhdeksän kohdetta (`world.ts` → `STATIONS`) avaavat osiot (`Panels.tsx`, sisältö samoista fi/en-kentistä +

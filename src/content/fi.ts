@@ -861,6 +861,11 @@ export const fi: Content = {
   quest: {
     title: 'Kahvijahti',
     loading: 'Kumiankka herää',
+    noGl: {
+      title: '3D ei käynnistynyt',
+      text: 'Selaimesi ei saanut 3D-grafiikkaa (WebGL) käyttöön – usein näytönohjaimen kiihdytys on pois päältä. Voit lentää saman Järvi-Suomen 2D-versiona tai selata normaalia portfoliota.',
+      flight: 'Avaa 2D-versio',
+    },
     places: {
       dock: 'Tervetuloa laiturille! Avaa tabletti, niin kerron säännöt. Kvaak.',
       sauna: 'Saunan lauteilla kuulee Clausin tarinan. Löylyä, mutta ei bugeja.',

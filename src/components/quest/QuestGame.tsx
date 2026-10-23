@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent } from 'react'
+import { Component, useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent, type ReactNode } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { PerformanceMonitor } from '@react-three/drei'
 import * as Dialog from '@radix-ui/react-dialog'
-import { MapPin, Navigation, Newspaper, Volume2, VolumeX, X } from 'lucide-react'
+import { MapPin, Navigation, Newspaper, Plane, Volume2, VolumeX, X } from 'lucide-react'
 
 import { questArt, type Content, type FlightStation, type Lang, type QuestTreat } from '@/content'
 import { useLang } from '@/hooks/useLang'
@@ -11,6 +11,7 @@ import { Logo } from '@/components/Logo'
 import { useReducedMotion } from '@/components/portfolio/hooks'
 import { PANELS } from '@/components/flight/Panels'
 import { cn } from '@/lib/utils'
+import { FLIGHT_HASH } from '@/lib/routes'
 import { ScreenAnchor, World, newState, YAW, type GameEvents } from './Scene'
 import { EDGE_R, ISLANDS, LAKES, PLACES, TREATS, type Treat } from './world'
 
@@ -140,6 +141,43 @@ function Minimap({ seen, near, racRef, hintRef }: { seen: FlightStation[]; near:
       </g>
       <circle r={R - 0.8} fill="none" stroke="rgba(58,21,48,0.45)" strokeWidth={1.6} />
     </svg>
+  )
+}
+
+/** 3D:n kaatuminen (WebGL-kontekstia ei saada tms.) ei saa viedä koko sivua mustaksi: näytetään vaihtoehdot */
+class GlBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
+  state = { failed: false }
+  static getDerivedStateFromError() {
+    return { failed: true }
+  }
+  componentDidCatch(error: unknown) {
+    console.error('[quest] 3D ei käynnistynyt:', error)
+  }
+  render() {
+    return this.state.failed ? this.props.fallback : this.props.children
+  }
+}
+
+function NoGl({ onNormal }: { onNormal: () => void }) {
+  const { t } = useLang()
+  const g = t.quest.noGl
+  return (
+    <div className="absolute inset-0 z-30 grid place-items-center bg-[#f7c9a3] px-5">
+      <div className="fl-panel max-w-md p-6 text-center">
+        <p className="poster text-2xl leading-none">{g.title}</p>
+        <p className="fp-lead mt-3">{g.text}</p>
+        <div className="mt-5 flex flex-wrap justify-center gap-2">
+          <button type="button" className="fp-btn fp-btn-solid" onClick={() => (window.location.hash = FLIGHT_HASH)}>
+            <Plane className="size-4" aria-hidden />
+            {g.flight}
+          </button>
+          <button type="button" className="fp-btn" onClick={onNormal}>
+            <Newspaper className="size-4" aria-hidden />
+            {t.quest.hud.normal}
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -499,23 +537,25 @@ export default function QuestGame({ onNormal }: { onNormal: () => void }) {
 
   return (
     <div ref={root} className="start pf flight quest fixed inset-0 z-10 overflow-hidden select-none" data-ready={ready || undefined}>
-      <Canvas
-        className="qs-canvas"
-        orthographic
-        shadows
-        flat
-        dpr={low ? 1 : [1, 2]}
-        camera={{ position: [40, 40, 40], zoom: 30, near: 1, far: 260 }}
-        gl={{ antialias: true, powerPreference: 'high-performance' }}
-        onCreated={(st) => {
-          setReady(true)
-          if (import.meta.env.DEV) Object.assign((window as unknown as { __quest: object }).__quest, { three: st, setLow })
-        }}
-      >
-        {watch && <PerformanceMonitor bounds={() => [30, 60]} flipflops={1} onDecline={() => setLow(true)} />}
-        <World state={state} events={ev} visited={visited} low={low} />
-        <ScreenAnchor state={state} el={bubbleEl} />
-      </Canvas>
+      <GlBoundary fallback={<NoGl onNormal={onNormal} />}>
+        <Canvas
+          className="qs-canvas"
+          orthographic
+          shadows
+          flat
+          dpr={low ? 1 : [1, 2]}
+          camera={{ position: [40, 40, 40], zoom: 30, near: 1, far: 260 }}
+          gl={{ antialias: true, powerPreference: 'high-performance' }}
+          onCreated={(st) => {
+            setReady(true)
+            if (import.meta.env.DEV) Object.assign((window as unknown as { __quest: object }).__quest, { three: st, setLow })
+          }}
+        >
+          {watch && <PerformanceMonitor bounds={() => [30, 60]} flipflops={1} onDecline={() => setLow(true)} />}
+          <World state={state} events={ev} visited={visited} low={low} />
+          <ScreenAnchor state={state} el={bubbleEl} />
+        </Canvas>
+      </GlBoundary>
 
       {!ready && (
         <div className="pointer-events-none absolute inset-0 grid place-items-center">
