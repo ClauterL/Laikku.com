@@ -716,6 +716,7 @@ function Clouds() {
 function Treats({ state }: { state: GameState }) {
   const geos = useMemo(() => ({ coffee: treatGeometry('coffee'), donut: treatGeometry('donut'), burrito: treatGeometry('burrito') }), [])
   const refs = useRef<(THREE.Group | null)[]>([])
+  const steamRefs = useRef<(THREE.Group | null)[]>([])
   const pop = useRef<number[]>(TREATS.map(() => 1))
   useFrame(({ clock }, dt) => {
     const t = clock.elapsedTime
@@ -728,9 +729,20 @@ function Treats({ state }: { state: GameState }) {
       g.visible = k > 0.01
       if (!g.visible) return
       const item = g.children[0]
-      item.rotation.y = t * 1.6 + i
+      item.rotation.y = t * 1.1 + i
       item.position.y = 0.12 + Math.sin(t * 2.4 + i) * 0.1 + (1 - k) * 1.2
       item.scale.setScalar(1.6 * (got ? 1 + (1 - k) * 0.6 : 1) * (k < 1 ? k : 1))
+      // kahvin höyry nousee pystysuoraan, ei pyöri mukin mukana
+      const steam = steamRefs.current[i]
+      if (steam) {
+        steam.position.y = item.position.y + 0.5
+        steam.scale.setScalar(k < 1 ? k : 1)
+        steam.children.forEach((c, j) => {
+          const u = (t * 0.45 + j / steam.children.length + i * 0.37) % 1
+          c.position.set(Math.sin(u * 6 + j * 2) * 0.05, 0.1 + u * 0.55, 0)
+          c.scale.setScalar(0.04 + Math.sin(u * Math.PI) * 0.06)
+        })
+      }
     })
   })
   return (
@@ -746,6 +758,19 @@ function Treats({ state }: { state: GameState }) {
           <group>
             <mesh geometry={geos[tr.kind]} material={treatMaterial()} castShadow />
           </group>
+          {tr.kind === 'coffee' && (
+            <group
+              ref={(sg) => {
+                steamRefs.current[i] = sg
+              }}
+            >
+              {[0, 1, 2].map((j) => (
+                <mesh key={j} material={steamMaterial()}>
+                  <icosahedronGeometry args={[1, 0]} />
+                </mesh>
+              ))}
+            </group>
+          )}
           {!tr.drone && (
             <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.58, 0]}>
               <ringGeometry args={[0.42, 0.62, 20]} />
@@ -756,6 +781,12 @@ function Treats({ state }: { state: GameState }) {
       ))}
     </>
   )
+}
+
+let _steamMat: THREE.MeshBasicMaterial | null = null
+function steamMaterial() {
+  if (!_steamMat) _steamMat = new THREE.MeshBasicMaterial({ color: '#fff6ee', transparent: true, opacity: 0.45, depthWrite: false, toneMapped: false })
+  return _steamMat
 }
 
 let _treatMat: THREE.MeshLambertMaterial | null = null

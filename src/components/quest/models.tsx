@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 
@@ -42,13 +42,12 @@ export function rockGeometry() {
 export function treatGeometry(kind: QuestTreat) {
   if (kind === 'coffee')
     return bake([
-      { g: G.cyl(0.19, 0.16, 0.34, 10), c: PAL.white },
-      { g: G.cyl(0.165, 0.165, 0.02, 10), c: '#4a1f12', p: [0, 0.32, 0] },
-      { g: G.torus(0.09, 0.03, 5, 8), c: PAL.white, p: [0.2, 0.18, 0], r: [0, 0, 0] },
-      { g: G.cyl(0.21, 0.21, 0.05, 10), c: PAL.red, p: [0, 0.12, 0] },
-      { g: G.ball(0.05, 0), c: '#fff7f0', p: [0.02, 0.45, 0] },
-      { g: G.ball(0.04, 0), c: '#fff7f0', p: [-0.05, 0.55, 0.02] },
-      { g: G.ball(0.03, 0), c: '#fff7f0', p: [0.03, 0.64, -0.01] },
+      // muki, kahvin pinta hieman reunan alla reunarenkaan sisällä (ei samassa tasossa → ei välkettä)
+      { g: G.cyl(0.19, 0.16, 0.3, 12), c: PAL.white },
+      { g: G.cyl(0.16, 0.16, 0.02, 12), c: '#4a1f12', p: [0, 0.29, 0] },
+      { g: G.torus(0.175, 0.025, 4, 14), c: PAL.white, p: [0, 0.305, 0], r: [Math.PI / 2, 0, 0] },
+      { g: G.torus(0.085, 0.028, 5, 10), c: PAL.white, p: [0.215, 0.15, 0] },
+      { g: G.cyl(0.198, 0.19, 0.06, 12), c: PAL.red, p: [0, 0.09, 0] },
     ])
   if (kind === 'donut') {
     const parts: Part[] = [
@@ -370,23 +369,65 @@ const FUR_DARK = '#6c5864'
 const CREAM = '#f6dfcf'
 const MASK = '#3a1d33'
 
+type TailSegData = { len: number; r0: number; r1: number; c: string; curl: number }
+
+/** Yksi hännän nivel: pala + nivelpallo (ei rakoja taipuessa), seuraava nivel sisäkkäin palan päässä */
+function TailSeg({ segs, i, onRef }: { segs: TailSegData[]; i: number; onRef: (i: number, g: THREE.Group | null) => void }) {
+  const s = segs[i]
+  return (
+    <group
+      ref={(g) => onRef(i, g)}
+      rotation={[s.curl, 0, 0]}
+    >
+      <mesh material={flat(s.c)} position={[0, s.len / 2, 0]} castShadow>
+        <cylinderGeometry args={[s.r1, s.r0, s.len + 0.03, 8]} />
+      </mesh>
+      <mesh material={flat(s.c)} position={[0, s.len, 0]} scale={s.r1}>
+        <icosahedronGeometry args={[1, 1]} />
+      </mesh>
+      {i + 1 < segs.length && (
+        <group position={[0, s.len, 0]}>
+          <TailSeg segs={segs} i={i + 1} onRef={onRef} />
+        </group>
+      )}
+    </group>
+  )
+}
+
 /** Pesukarhu: oma hahmo (lämmin harmaa turkki, luumu naamio, oranssit lentäjänlasit otsalla), tabletti tassuissa */
 export function Raccoon({ motion }: { motion: Motion }) {
   const legL = useRef<THREE.Group>(null)
   const legR = useRef<THREE.Group>(null)
   const body = useRef<THREE.Group>(null)
-  const tail = useRef<THREE.Group>(null)
+  const tail = useRef<(THREE.Group | null)[]>([])
+  const tailPhase = useRef(0)
+  const setTailSeg = useCallback((i: number, g: THREE.Group | null) => {
+    tail.current[i] = g
+  }, [])
   const arms = useRef<THREE.Group>(null)
   const screen = useRef<THREE.MeshBasicMaterial>(null)
 
-  const tailParts = useMemo(() => {
-    const out: { p: [number, number, number]; r: number; c: string; s: number }[] = []
-    for (let i = 0; i < 6; i++) out.push({ p: [0, 0.06 + i * 0.13, -0.08 - i * 0.1], r: -0.75 - i * 0.07, c: i % 2 ? MASK : FUR, s: 1 - i * 0.08 })
-    return out
-  }, [])
+  /** Häntä: ketju sisäkkäisiä nivelpaloja (raidat vuorotellen), kaartuu ylös ja heiluu aaltona tyvestä kärkeen */
+  const tailSegs = useMemo(
+    () =>
+      Array.from({ length: 6 }, (_, i) => ({
+        len: 0.13,
+        r0: [0.1, 0.12, 0.125, 0.115, 0.1, 0.075][i],
+        r1: [0.12, 0.125, 0.115, 0.1, 0.075, 0.04][i],
+        c: i % 2 ? MASK : FUR,
+        curl: i === 0 ? 0 : 0.2,
+      })),
+    [],
+  )
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, delta) => {
     const t = clock.elapsedTime
+    // hännän vaihe kertyy nopeuden mukaan (ei t × taajuus → ei hyppäyksiä, kun kävely alkaa tai loppuu)
+    tailPhase.current += Math.min(0.05, delta) * (2.4 + motion.walk * 4.5)
+    const amp = 0.1 + motion.walk * 0.1
+    tail.current.forEach((g, i) => {
+      if (g) g.rotation.z = Math.sin(tailPhase.current - i * 0.6) * amp
+    })
     const sw = Math.sin(motion.phase) * 0.7 * motion.walk
     if (legL.current) legL.current.rotation.x = sw
     if (legR.current) legR.current.rotation.x = -sw
@@ -395,7 +436,6 @@ export function Raccoon({ motion }: { motion: Motion }) {
       body.current.rotation.z = Math.sin(motion.phase) * 0.06 * motion.walk
       body.current.rotation.x = 0.08 * motion.walk
     }
-    if (tail.current) tail.current.rotation.y = Math.sin(t * (2 + motion.walk * 4)) * (0.25 + motion.walk * 0.2)
     if (arms.current) arms.current.rotation.x = -0.35 - motion.tablet * 0.75
     if (screen.current) screen.current.color.setHSL(0.48, 0.65, 0.62 + Math.sin(t * 3) * 0.04 * motion.tablet)
   })
@@ -481,12 +521,8 @@ export function Raccoon({ motion }: { motion: Motion }) {
           </group>
         </group>
         {/* häntä renkaineen */}
-        <group ref={tail} position={[0, 0.42, -0.28]}>
-          {tailParts.map((p, i) => (
-            <mesh key={i} material={flat(p.c)} position={p.p} rotation={[p.r, 0, 0]} scale={p.s} castShadow>
-              <cylinderGeometry args={[0.11, 0.12, 0.15, 7]} />
-            </mesh>
-          ))}
+        <group position={[0, 0.4, -0.26]} rotation={[-1.15, 0, 0]}>
+          <TailSeg segs={tailSegs} i={0} onRef={setTailSeg} />
         </group>
       </group>
     </group>
