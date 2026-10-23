@@ -390,7 +390,8 @@ export function StartBackdrop({
     const onError = () => disableVideo()
 
     // ---------- lataus: ensin päivä → yö (ensimmäinen hämärä), sitten paluu ja silmukka ----------
-    const w = window.innerWidth >= 924 && Math.max(window.innerWidth, 923) * window.devicePixelRatio > 1400 ? 1920 : 1280
+    const w =
+      window.innerWidth >= 924 && Math.max(window.innerWidth, 923) * window.devicePixelRatio > 1400 ? 1920 : 1280
     const mp4 = v.dn.canPlayType('video/mp4; codecs="avc1.640028"') !== ''
     const webm = v.dn.canPlayType('video/webm; codecs="vp9"') !== ''
     if (!mp4 && !webm) s.video = false
@@ -484,9 +485,34 @@ export function StartBackdrop({
             draggable={false}
             decoding="async"
           />
-          <video ref={dn} muted playsInline preload="none" disablePictureInPicture disableRemotePlayback tabIndex={-1} />
-          <video ref={nd} muted playsInline preload="none" disablePictureInPicture disableRemotePlayback tabIndex={-1} />
-          <video ref={loop} muted playsInline loop preload="none" disablePictureInPicture disableRemotePlayback tabIndex={-1} />
+          <video
+            ref={dn}
+            muted
+            playsInline
+            preload="none"
+            disablePictureInPicture
+            disableRemotePlayback
+            tabIndex={-1}
+          />
+          <video
+            ref={nd}
+            muted
+            playsInline
+            preload="none"
+            disablePictureInPicture
+            disableRemotePlayback
+            tabIndex={-1}
+          />
+          <video
+            ref={loop}
+            muted
+            playsInline
+            loop
+            preload="none"
+            disablePictureInPicture
+            disableRemotePlayback
+            tabIndex={-1}
+          />
           <div ref={seam} className="sb-seam" />
         </div>
         <HeroLife />

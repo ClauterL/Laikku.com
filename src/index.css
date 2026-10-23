@@ -452,10 +452,13 @@
 }
 .pf .spot:hover::before { opacity: 1; }
 
-/* teknologiamarquee */
-@keyframes pf-marquee { to { transform: translateX(-50%); } }
-.pf .marquee-track { animation: pf-marquee var(--dur, 38s) linear infinite; }
-.pf .marquee:hover .marquee-track, .pf .marquee:focus-within .marquee-track, .pf .marquee-track[data-paused] { animation-play-state: paused; }
+/* liukuvat nauhat (Marquee.tsx): liike JS:llä transformina; painamalla ja vetämällä selattavissa.
+   pan-y: pystypyyhkäisy vierittää sivua, vaakaveto liikuttaa nauhaa */
+.pf .marquee { touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; }
+.pf .marquee[data-dragging] { cursor: grabbing; }
+.pf .marquee img { -webkit-user-drag: none; }
+.pf .marquee-track { will-change: transform; }
+@media (prefers-reduced-motion: reduce) { .pf .marquee { touch-action: auto; cursor: auto; } .pf .marquee-track { will-change: auto; } }
 
 /* drone leijuu, valot vilkkuvat */
 @keyframes pf-hover { 0%, 100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-10px) rotate(1.5deg); } }
@@ -518,7 +521,7 @@
   .pf .hero-glow, .pf .hero-cloud, .pf .hero-flock, .pf .hero-wing, .pf .hero-fly, .pf .hero-tilt, .pf .hero-prop { animation: none; }
   .pf .hero-glint { animation: none; opacity: 0.6; }
   .pf .hero-smoke { display: none; }
-  .pf .marquee-track, .pf .drone, .pf .blink, .pf .blink-2, .pf .shimmer, .pf .word-in { animation: none; }
+  .pf .drone, .pf .blink, .pf .blink-2, .pf .shimmer, .pf .word-in { animation: none; }
   .pf .blink, .pf .blink-2 { opacity: 1; }
 }
 

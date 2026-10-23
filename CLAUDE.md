@@ -38,6 +38,10 @@ Claus Laikun portfoliosivusto pelivalikon muodossa (laikku.com). Rakenne ja kome
   Vain staattisille taustoille, ei `spot`-korteille; kuva ladataan heti sivun asetuttua (idle) ja animaatio pyörii
   koko ajan myös näkymän ulkopuolella satunnaisesta vaiheesta alkaen, joten eläimet ovat jo liikkeessä, kun niiden
   kohdalle vieritetään; vähennetty liike → paikallaan.
+- Normaalin portfolion liukuvat nauhat (työkalut, suosittelijat) = `src/components/portfolio/Marquee.tsx`: sisältö kahdesti,
+  liike JS:llä transformina (ei CSS-animaatiota); painamalla ja vetämällä selattavissa hiirellä ja kosketuksella (inertia,
+  `touch-action: pan-y` → pystypyyhkäisy vierittää sivua), kosketuslevyn vaakavieritys / Shift + rulla; pysähtyy hiiren
+  ollessa päällä ja hetkeksi kosketuksen jälkeen. Vähennetty liike: natiivi vaakavieritys ilman kopioita.
 - Aloitusruutu (`src/components/game/StartScreen.tsx`): taustana `StartBackdrop.tsx` – sama Järvi-Suomen maisema kuin
   normaalin portfolion herossa, mutta päivä ↔ yö on **esirenderöity video** (ei kuvapinojen ristihäivytystä: kaksi
   hero-pinoa revontulten ja sumennettujen korttien alla ylitti GPU-muistin → nykiminen, kadonneet kortit). Normaali-valinta =

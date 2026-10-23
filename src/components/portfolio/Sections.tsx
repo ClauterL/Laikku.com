@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import {
   ArrowDown,
   ArrowUpRight,
@@ -45,6 +45,7 @@ import { cn } from '@/lib/utils'
 import { Reveal, spotHandlers, useCountUp, useInView, useReducedMotion } from './hooks'
 import { Critter, WalkingBear } from './Critters'
 import { HeroScene } from './Landscape'
+import { Marquee } from './Marquee'
 import { goToSection, sectionId } from './nav'
 
 const INFO_ICONS = [User, AtSign, MapPin, BadgeCheck]
@@ -421,21 +422,24 @@ export function Skills() {
 
       {hasLeetCode && <LeetCodeStats />}
 
-      {/* liukuva työkalunauha */}
-      <div className="marquee relative mt-14 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-        <ul className="marquee-track flex w-max gap-3 py-1 pr-3 motion-reduce:w-auto motion-reduce:flex-wrap">
-          {[...tools, ...tools].map((n, i) => (
+      {/* liukuva työkalunauha (vedettävissä, Marquee.tsx) */}
+      <Marquee
+        duration={38}
+        className="mt-14 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]"
+        trackClassName="gap-3 py-1 pr-3 motion-reduce:flex-wrap"
+        render={(copy) =>
+          tools.map((n) => (
             <li
-              key={`${n.name}-${i}`}
-              aria-hidden={i >= tools.length}
-              className={cn('flex shrink-0 items-center gap-2 rounded-full border border-pf-line bg-pf-bg/60 px-4 py-2', i >= tools.length && 'motion-reduce:hidden')}
+              key={n.name}
+              aria-hidden={copy || undefined}
+              className="flex shrink-0 items-center gap-2 rounded-full border border-pf-line bg-pf-bg/60 px-4 py-2"
             >
               {hasTechIcon(n.icon) && <TechIcon name={n.icon} className="size-4" />}
               <span className="text-sm font-bold text-pf-ink-2">{n.name}</span>
             </li>
-          ))}
-        </ul>
-      </div>
+          ))
+        }
+      />
     </Section>
   )
 }
@@ -908,15 +912,15 @@ export function Havaida() {
   )
 }
 
-/* ---------- Suosittelijat: liukuva nauha kuten työkaluissa ---------- */
+/* ---------- Suosittelijat: liukuva, vedettävä nauha kuten työkaluissa ---------- */
 export function References() {
   const { t } = useLang()
   const p = t.portfolio
   const r = t.codex.references
   const items = r.items.filter((it) => SHOW_DRAFTS || !it.draft)
   const [paused, setPaused] = useState(false)
-  // n. 40 px/s, jotta lainaukset ehtii lukea
-  const dur = `${Math.max(items.length, 3) * 9}s`
+  // n. 40 px/s, jotta lainaukset ehtii lukea; nauhaa voi myös vetää itse (Marquee)
+  const dur = Math.max(items.length, 3) * 9
 
   return (
     <Section id="refs" index="06" title={r.title} lead={r.lead} className="bg-pf-bg-2/40">
@@ -934,57 +938,50 @@ export function References() {
               {paused ? <Play className="size-5" /> : <Pause className="size-5" />}
             </button>
           </div>
-          <div className="marquee relative -mx-4 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)] motion-reduce:overflow-x-auto motion-reduce:[mask-image:none] sm:-mx-6">
-            <ul
-              className="marquee-track flex w-max py-1 pb-4"
-              data-paused={paused || undefined}
-              style={{ '--dur': dur } as CSSProperties}
-            >
-              {[...items, ...items].map((it, i) => {
-                const copy = i >= items.length
-                return (
-                  <li
-                    key={`${it.name}-${i}`}
-                    aria-hidden={copy || undefined}
-                    className={cn('w-[300px] shrink-0 pl-5 sm:w-[360px]', copy && 'motion-reduce:hidden')}
-                  >
-                    <figure className={cn(card, 'flex h-full flex-col overflow-hidden')}>
-                      {it.photo ? (
-                        <Picture image={{ ...it.photo, alt: copy ? '' : it.photo.alt, sizes: '(min-width: 640px) 340px, 280px' }} className="aspect-[4/3.4]" imgClassName="object-[50%_18%]" />
-                      ) : (
-                        <div className="poster grid aspect-[4/3.4] place-items-center bg-pf-bg text-5xl text-pf-orange">{it.name.slice(0, 1)}</div>
-                      )}
-                      <div className="flex flex-1 flex-col gap-4 p-5">
-                        <blockquote className="leading-relaxed text-pf-ink-2">
-                          <Quote className="mb-2 size-5 text-pf-orange" aria-hidden />
-                          {it.quote}
-                        </blockquote>
-                        <figcaption className="mt-auto">
-                          <p className="poster text-base text-pf-ink">{it.name}</p>
-                          {(it.role || it.org) && <p className="text-xs font-semibold text-pf-muted">{[it.role, it.org].filter(Boolean).join(' · ')}</p>}
-                          {it.href && (
-                            <a
-                              href={it.href}
-                              target="_blank"
-                              rel="noreferrer noopener"
-                              tabIndex={copy ? -1 : undefined}
-                              className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-pf-ink hover:text-pf-orange"
-                            >
-                              {r.profile}
-                              <ArrowUpRight className="size-3" />
-                            </a>
-                          )}
-                          {it.draft && (
-                            <p className="mt-3 w-fit rounded-lg border border-dashed border-pf-red/70 px-2 py-1 text-[0.62rem] font-bold uppercase tracking-[0.1em] text-pf-red">{r.draft}</p>
-                          )}
-                        </figcaption>
-                      </div>
-                    </figure>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
+          <Marquee
+            duration={dur}
+            paused={paused}
+            className="-mx-4 [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)] motion-reduce:[mask-image:none] sm:-mx-6"
+            trackClassName="py-1 pb-4"
+            render={(copy) =>
+              items.map((it) => (
+                <li key={it.name} aria-hidden={copy || undefined} className="w-[300px] shrink-0 pl-5 sm:w-[360px]">
+                  <figure className={cn(card, 'flex h-full flex-col overflow-hidden')}>
+                    {it.photo ? (
+                      <Picture image={{ ...it.photo, alt: copy ? '' : it.photo.alt, sizes: '(min-width: 640px) 340px, 280px' }} className="aspect-[4/3.4]" imgClassName="object-[50%_18%]" />
+                    ) : (
+                      <div className="poster grid aspect-[4/3.4] place-items-center bg-pf-bg text-5xl text-pf-orange">{it.name.slice(0, 1)}</div>
+                    )}
+                    <div className="flex flex-1 flex-col gap-4 p-5">
+                      <blockquote className="leading-relaxed text-pf-ink-2">
+                        <Quote className="mb-2 size-5 text-pf-orange" aria-hidden />
+                        {it.quote}
+                      </blockquote>
+                      <figcaption className="mt-auto">
+                        <p className="poster text-base text-pf-ink">{it.name}</p>
+                        {(it.role || it.org) && <p className="text-xs font-semibold text-pf-muted">{[it.role, it.org].filter(Boolean).join(' · ')}</p>}
+                        {it.href && (
+                          <a
+                            href={it.href}
+                            target="_blank"
+                            rel="noreferrer noopener"
+                            tabIndex={copy ? -1 : undefined}
+                            className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-pf-ink hover:text-pf-orange"
+                          >
+                            {r.profile}
+                            <ArrowUpRight className="size-3" />
+                          </a>
+                        )}
+                        {it.draft && (
+                          <p className="mt-3 w-fit rounded-lg border border-dashed border-pf-red/70 px-2 py-1 text-[0.62rem] font-bold uppercase tracking-[0.1em] text-pf-red">{r.draft}</p>
+                        )}
+                      </figcaption>
+                    </div>
+                  </figure>
+                </li>
+              ))
+            }
+          />
         </Reveal>
       ) : (
         <p className="max-w-2xl text-[1.05rem] leading-relaxed text-pf-ink-2">{r.empty}</p>
