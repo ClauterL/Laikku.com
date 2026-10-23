@@ -2,7 +2,7 @@ import { Component, useCallback, useEffect, useMemo, useRef, useState, type Poin
 import { Canvas } from '@react-three/fiber'
 import { PerformanceMonitor } from '@react-three/drei'
 import * as Dialog from '@radix-ui/react-dialog'
-import { MapPin, Navigation, Newspaper, Plane, Volume2, VolumeX, X } from 'lucide-react'
+import { MapPin, Navigation, Newspaper, RotateCcw, Volume2, VolumeX, X } from 'lucide-react'
 
 import { questArt, type Content, type FlightStation, type Lang, type QuestTreat } from '@/content'
 import { useLang } from '@/hooks/useLang'
@@ -11,7 +11,7 @@ import { Logo } from '@/components/Logo'
 import { useReducedMotion } from '@/components/portfolio/hooks'
 import { PANELS } from '@/components/flight/Panels'
 import { cn } from '@/lib/utils'
-import { FLIGHT_HASH } from '@/lib/routes'
+import { hasWebGL } from '@/lib/webgl'
 import { ScreenAnchor, World, newState, YAW, type GameEvents } from './Scene'
 import { EDGE_R, ISLANDS, LAKES, PLACES, TREATS, type Treat } from './world'
 
@@ -144,7 +144,7 @@ function Minimap({ seen, near, racRef, hintRef }: { seen: FlightStation[]; near:
   )
 }
 
-/** 3D:n kaatuminen (WebGL-kontekstia ei saada tms.) ei saa viedä koko sivua mustaksi: näytetään vaihtoehdot */
+/** 3D:n kaatuminen (WebGL-kontekstia ei saada tms.) ei saa viedä koko sivua mustaksi: näytetään ohje ja vaihtoehdot */
 class GlBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
   state = { failed: false }
   static getDerivedStateFromError() {
@@ -167,9 +167,9 @@ function NoGl({ onNormal }: { onNormal: () => void }) {
         <p className="poster text-2xl leading-none">{g.title}</p>
         <p className="fp-lead mt-3">{g.text}</p>
         <div className="mt-5 flex flex-wrap justify-center gap-2">
-          <button type="button" className="fp-btn fp-btn-solid" onClick={() => (window.location.hash = FLIGHT_HASH)}>
-            <Plane className="size-4" aria-hidden />
-            {g.flight}
+          <button type="button" className="fp-btn fp-btn-solid" onClick={() => window.location.reload()}>
+            <RotateCcw className="size-4" aria-hidden />
+            {g.retry}
           </button>
           <button type="button" className="fp-btn" onClick={onNormal}>
             <Newspaper className="size-4" aria-hidden />
@@ -209,6 +209,8 @@ export default function QuestGame({ onNormal }: { onNormal: () => void }) {
   const [toast, setToast] = useState<{ text: string; key: number; kind?: QuestTreat } | null>(null)
   const [touch, setTouch] = useState(() => window.matchMedia('(pointer: coarse)').matches)
   const [ready, setReady] = useState(false)
+  /** selain pystyy 3D:hen (tarkistetaan kerran) */
+  const gl = useMemo(() => hasWebGL(), [])
   /** heikko laite: ei varjoja, pikselitiheys 1 */
   const [low, setLow] = useState(false)
   /** suorituskykyä seurataan vasta, kun alun varjostinkäännökset ovat ohi */
@@ -537,27 +539,31 @@ export default function QuestGame({ onNormal }: { onNormal: () => void }) {
 
   return (
     <div ref={root} className="start pf flight quest fixed inset-0 z-10 overflow-hidden select-none" data-ready={ready || undefined}>
+      {/* ilman WebGL:ää ei yritetäkään (three.js kaatuisi): ohje + normaali versio */}
+      {!gl && <NoGl onNormal={onNormal} />}
       <GlBoundary fallback={<NoGl onNormal={onNormal} />}>
-        <Canvas
-          className="qs-canvas"
-          orthographic
-          shadows
-          flat
-          dpr={low ? 1 : [1, 2]}
-          camera={{ position: [40, 40, 40], zoom: 30, near: 1, far: 260 }}
-          gl={{ antialias: true, powerPreference: 'high-performance' }}
-          onCreated={(st) => {
-            setReady(true)
-            if (import.meta.env.DEV) Object.assign((window as unknown as { __quest: object }).__quest, { three: st, setLow })
-          }}
-        >
-          {watch && <PerformanceMonitor bounds={() => [30, 60]} flipflops={1} onDecline={() => setLow(true)} />}
-          <World state={state} events={ev} visited={visited} low={low} />
-          <ScreenAnchor state={state} el={bubbleEl} />
-        </Canvas>
+        {gl && (
+          <Canvas
+            className="qs-canvas"
+            orthographic
+            shadows
+            flat
+            dpr={low ? 1 : [1, 2]}
+            camera={{ position: [40, 40, 40], zoom: 30, near: 1, far: 260 }}
+            gl={{ antialias: true, powerPreference: 'high-performance' }}
+            onCreated={(st) => {
+              setReady(true)
+              if (import.meta.env.DEV) Object.assign((window as unknown as { __quest: object }).__quest, { three: st, setLow })
+            }}
+          >
+            {watch && <PerformanceMonitor bounds={() => [30, 60]} flipflops={1} onDecline={() => setLow(true)} />}
+            <World state={state} events={ev} visited={visited} low={low} />
+            <ScreenAnchor state={state} el={bubbleEl} />
+          </Canvas>
+        )}
       </GlBoundary>
 
-      {!ready && (
+      {gl && !ready && (
         <div className="pointer-events-none absolute inset-0 grid place-items-center">
           <p className="poster st-ink animate-pulse text-xl">{q.loading}…</p>
         </div>

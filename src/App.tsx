@@ -5,7 +5,6 @@ import { LangContext, useLangState } from '@/hooks/useLang'
 import { SoundContext, useSoundState } from '@/hooks/useSound'
 import { backgrounds, type TabId } from '@/content'
 import { FLIGHT_HASH, PORTFOLIO_HASH, QUEST_HASH, TAB_IDS, isGameHash, setHash } from '@/lib/routes'
-import { hasWebGL } from '@/lib/webgl'
 
 // Kumpikin portfolio on oma pakettinsa: normaalin valitsija ei lataa pelivalikkoa eikä 3D:tä, ja päinvastoin
 const loadPortfolio = () => import('@/components/portfolio/Portfolio')
@@ -24,8 +23,8 @@ type View = 'start' | Mode | 'flight' | 'loft'
 
 /** Vanha 3D-loft avautuu vain, jos sivulle tullaan sen osoitteella (#loft, #map …) – muuten pelillistetty = Kahvijahti */
 const LEGACY = isGameHash(window.location.hash)
-/** Dronelento avautuu osoitteella #flight – ja aina, jos selain ei pysty 3D:hen (Kahvijahti tarvitsee WebGL:n) */
-const FLIGHT = window.location.hash === FLIGHT_HASH || !hasWebGL()
+/** Dronelento avautuu vain osoitteella #flight */
+const FLIGHT = window.location.hash === FLIGHT_HASH
 
 /* Kaksi portfoliota samassa sivustossa: aloitusruutu kysyy, kumpi avataan.
    - Normaali (#portfolio): perinteinen yhden sivun portfolio, ei ääniä eikä 3D:tä.
@@ -50,13 +49,12 @@ export default function App() {
     window.scrollTo(0, 0)
   }, [sound])
 
-  /** Pelillistetty: Kahvijahti (ilman WebGL:ää 2D-Dronelento) */
+  /** Pelillistetty: Kahvijahti */
   const toGame = useCallback(() => {
     sound.start()
     sound.setAmbient(false)
-    const quest = hasWebGL()
-    setHash(quest ? QUEST_HASH : FLIGHT_HASH)
-    setView(quest ? 'game' : 'flight')
+    setHash(QUEST_HASH)
+    setView('game')
     window.scrollTo(0, 0)
   }, [sound])
 
@@ -101,7 +99,7 @@ export default function App() {
     const onHash = () => {
       const h = window.location.hash
       if (h === PORTFOLIO_HASH) setView((v) => (v === 'start' ? v : 'normal'))
-      else if (h === QUEST_HASH && hasWebGL()) setView((v) => (v === 'normal' || v === 'flight' ? 'game' : v))
+      else if (h === QUEST_HASH) setView((v) => (v === 'normal' || v === 'flight' ? 'game' : v))
       else if (h === FLIGHT_HASH) setView((v) => (v === 'normal' || v === 'game' ? 'flight' : v))
       else if (isGameHash(h)) setView((v) => (v === 'normal' ? 'loft' : v))
     }

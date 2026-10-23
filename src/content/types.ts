@@ -354,8 +354,8 @@ export interface Content {
   quest: {
     title: string
     loading: string
-    /** Selain ei pysty piirtämään 3D:tä → 2D-Dronelento tai normaali versio */
-    noGl: { title: string; text: string; flight: string }
+    /** Selain ei pysty piirtämään 3D:tä → ohje, uudelleenlataus tai normaali versio */
+    noGl: { title: string; text: string; retry: string }
     /** Ankan repliikki paikan luona */
     places: Record<FlightStation, string>
     /** Vihjeen paikka-ilmaus ("saunan katolla") */

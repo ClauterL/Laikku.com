@@ -863,8 +863,8 @@ export const fi: Content = {
     loading: 'Kumiankka herää',
     noGl: {
       title: '3D ei käynnistynyt',
-      text: 'Selaimesi ei saanut 3D-grafiikkaa (WebGL) käyttöön – usein näytönohjaimen kiihdytys on pois päältä. Voit lentää saman Järvi-Suomen 2D-versiona tai selata normaalia portfoliota.',
-      flight: 'Avaa 2D-versio',
+      text: 'Selaimesi ei saanut 3D-grafiikkaa (WebGL) käyttöön. Yleensä syy on, että näytönohjaimen kiihdytys on pois päältä – laita se päälle selaimen asetuksista ja lataa sivu uudelleen. Sillä välin voit selata normaalia portfoliota.',
+      retry: 'Lataa uudelleen',
     },
     places: {
       dock: 'Tervetuloa laiturille! Avaa tabletti, niin kerron säännöt. Kvaak.',
