@@ -45,6 +45,10 @@ Claus Laikun portfoliosivusto pelivalikon muodossa (laikku.com). Rakenne ja kome
   `StartSky.tsx`, pesukarhu valitun kortin päällä `StartRaccoon.tsx` (sama critter-raccoon-ruudukko, hyppy WAAPI:lla).
   Värit `.start`-tokeneista (index.css, `data-night` + `--dusk`). Normaali-valinnassa portfolio piirtyy aloitusruudun
   alle samaan maisemaan ja ruutu häivytetään sen päältä (App: `onDone` → `onExited`).
+  Päivä ↔ yö vaihtuu vain kokonaisina siirtyminä (`StartScreen` → `sky`): kesken olevaa ei käännetä, seuraava alkaa
+  vasta kun selaimen animaatiot ovat oikeasti valmiit (`getAnimations().finished`) ja tauon jälkeen; hiiri valitsee vasta
+  viipyessään kortilla, vahvistus kiihdyttää käynnissä olevan siirtymän (`playbackRate`). Iltarusko soi `data-dusk`-
+  attribuutista (in/out vain siirtymän alkaessa) – ei data-night-sidonnaisena, joka käynnisti sen kesken alusta (vilkkui).
 - Pelillistetty portfolio = **Kahvijahti** (`src/components/quest`, osoite `#quest`): avoin low-poly-Järvi-Suomi
   React Three Fiberillä, isometrinen ortokamera (`Scene.tsx` → `YAW`/`PITCH`, näkymä vähintään `VIEW_H` × `VIEW_W`).
   Pesukarhu (oma hahmo: lämmin harmaa turkki, luumu naamio, oranssit lentäjänlasit, tabletti tassuissa – ei kopio

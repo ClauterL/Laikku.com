@@ -19,6 +19,13 @@ const THEME = { day: '#fde4cd', night: '#050a1e' }
 
 type Phase = 'idle' | 'loading' | 'out'
 
+/** Kerrokset, joiden päivä/yö-siirtymän pitää olla valmis ennen seuraavaa (hämärän keyframe-animaatio ja pinot) */
+const SKY_LAYERS = '.st-dusk, .st-night-sky, .hero-day-stack, .hero-night-stack'
+/** Tauko päivä/yö-siirtymien välissä (ms): valinnan vahvistuksen jälkeen lyhyt, selaillessa pidempi */
+const SETTLE = { picked: 40, browse: 280 }
+/** Kaikki päivä/yö-siirtymän kerrokset (kiihdytetään yhdessä, kun valinta vaihtuu kesken) */
+const SKY_ALL = `${SKY_LAYERS}, .st-stars, .st-moon, .st-aurora, .st-shoot, .hero-sun, .hero-clouds, .hero-birds, .hero-door, .hero-fireflies`
+
 function LangSwitch() {
   const { lang, setLang, t } = useLang()
   return (
@@ -46,6 +53,8 @@ function LangSwitch() {
      Pelillistetty = revontuliyö (yötasot scripts/hero-night.py, revontulet ja tähdet StartSky.tsx).
      Valinta vaihtaa vuorokaudenajan, joten kävijä näkee molempien tunnelman ennen valintaa.
    - Tunnus (morse-pääsiäismuna) ja nimi tulevat esiin, sitten valinta osuu Pelillistettyyn ja hämärä laskeutuu.
+   - Nopea edestakainen vaihto ei vilku: taivas vaihtuu vain kokonaisina siirtyminä (ks. sky alla), hiiri valitsee
+     vasta viipyessään kortilla ja pesukarhu hyppää seuraavaan korttiin vasta laskeuduttuaan.
    - Pesukarhu istuu valitun kortin päällä ja hyppää kortilta toiselle (StartRaccoon.tsx).
    - Normaali: käyttöliittymä häipyy, portfolio piirtyy alle samaan maisemaan ja ruutu häivytetään sen päältä.
      Pelillistetty: ääni päälle (selaimet vaativat eleen), revontulet kiihtyvät, latauspalkki ja loft.
@@ -66,36 +75,131 @@ export function StartScreen({
   const [sel, setSel] = useState<Mode>('game')
   const [picked, setPicked] = useState<Mode | null>(null)
   const [cheer, setCheer] = useState(0)
-  /** Päivä ↔ yö -siirtymän kesto: ensimmäinen hämärä laskeutuu hitaasti, sen jälkeen vaihto on nopea */
-  const [dusk, setDusk] = useState(2.8)
   const buttons = useRef<Partial<Record<Mode, HTMLButtonElement | null>>>({})
   const grid = useRef<HTMLDivElement>(null)
   const timers = useRef<number[]>([])
-
-  const night = revealed && (picked ?? sel) === 'game'
-  /** Milloin päivä/yö viimeksi vaihtui – normaali odottaa, että aamu on ehtinyt valjeta */
-  const switched = useRef({ at: 0, ms: 0 })
+  /** hiiren viipymä kortin päällä ennen valintaa (ohi liukuva osoitin ei vaihda valintaa) */
+  const hover = useRef(0)
 
   const later = useCallback((ms: number, fn: () => void) => {
     timers.current.push(window.setTimeout(fn, ms))
   }, [])
 
-  // Nimi ja valinta tulevat esiin, kun tunnus on näkynyt hetken; ensimmäisen hämärän jälkeen nopeampi vaihto
+  // Nimi ja valinta tulevat esiin, kun tunnus on näkynyt hetken
   useEffect(() => {
     later(1400, () => setRevealed(true))
-    later(1400 + 3000, () => setDusk(1.1))
     const ids = timers.current
-    return () => ids.forEach((id) => window.clearTimeout(id))
+    return () => {
+      ids.forEach((id) => window.clearTimeout(id))
+      window.clearTimeout(hover.current)
+    }
   }, [later])
 
-  /** Päivä/yö-siirtymä käynnissä → maiseman pinot ristihäivytetään plus-lighterillä (levossa ei tarvita) */
+  /* Päivä ↔ yö. Valinta (kortti + pesukarhu) vaihtuu heti, mutta taivas seuraa sitä vain kokonaisina siirtyminä:
+     käynnissä olevaa siirtymää ei koskaan käännetä kesken, vaan uusi alkaa vasta, kun edellinen on valmis, ja se
+     kulkee aina viimeisimpään valintaan. Kesken käännetty siirtymä käynnistäisi hämäräkerroksen keyframe-
+     animaation alusta ja vaihtaisi pinojen näkyvyyden ja sekoitustilan kesken – se näkyi vilkkumisena.
+     Siirtymien väliin jää lisäksi pieni tauko, joten edestakainen heiluttelu ei saa taivasta vilkkumaan.
+     Vasta valinnan vahvistus (klikkaus/Enter) kiihdyttää käynnissä olevan siirtymän sujuvasti loppuun
+     (playbackRate). Ensimmäinen hämärä laskeutuu hitaasti (ellei kävijä ole jo valinnut). */
+  const want = revealed && (picked ?? sel) === 'game'
+  const [sky, setSky] = useState<{ night: boolean; dusk: number; dir?: 'in' | 'out' }>({ night: false, dusk: 2.8 })
+  const night = sky.night
+  const dusk = sky.dusk
+  /** onko taivas jo kertaalleen vaihtunut (sekoitustila tarvitaan vasta silloin) */
+  const skyStarted = useRef(false)
+  /** taivaan nykytila odottajille (go) */
+  const skyNow = useRef(false)
+  useEffect(() => {
+    skyNow.current = sky.night
+  }, [sky.night])
+  const touched = useRef(false)
+  const root = useRef<HTMLDivElement>(null)
+
+  /** Lupaus, joka täyttyy, kun annettujen kerrosten päivä/yö-animaatiot ja -siirtymät ovat oikeasti valmiita.
+      Raskaassa ruudussa ne voivat alkaa satoja millisekunteja Reactin tilamuutoksen jälkeen, joten kello ei riitä.
+      (getAnimations päivittää tyylit, joten juuri luodut siirtymät ovat mukana; päättymättömät luupit ohitetaan.) */
+  const settled = useCallback((selector: string) => {
+    const el = root.current
+    if (!el) return Promise.resolve()
+    const running = Array.from(el.querySelectorAll(selector))
+      .flatMap((n) => n.getAnimations())
+      .filter((a) => a.playState !== 'finished' && a.effect?.getTiming().iterations !== Infinity)
+    return Promise.all(running.map((a) => a.finished.catch(() => undefined))).then(() => undefined)
+  }, [])
+
+  /** Käynnissä oleva päivä/yö-siirtymä loppuun nopeammin – sujuva kiihdytys, ei katkoa eikä alusta aloitusta */
+  const hurry = useCallback((rate: number) => {
+    root.current?.querySelectorAll(SKY_ALL).forEach((n) =>
+      n.getAnimations().forEach((a) => {
+        if (a.playState === 'running' && a.effect?.getTiming().iterations !== Infinity && a.playbackRate < rate) a.updatePlaybackRate(rate)
+      }),
+    )
+  }, [])
+
+  /** Täyttyy, kun taivas on tilassa target ja sen siirtymä on valmis */
+  const skyAt = useCallback(
+    (target: boolean) =>
+      new Promise<void>((resolve) => {
+        const check = () => {
+          if (skyNow.current !== target) return void window.setTimeout(check, 80)
+          void settled(SKY_LAYERS).then(() => (skyNow.current === target ? resolve() : window.setTimeout(check, 80)))
+        }
+        check()
+      }),
+    [settled],
+  )
+
+  /** Yöpinon kuvat ladattu ja purettu (kerran) */
+  const nightDecoded = useRef<Promise<void> | null>(null)
+  const nightReady = useCallback(() => {
+    if (!nightDecoded.current) {
+      const imgs = Array.from(root.current?.querySelectorAll<HTMLImageElement>('.hero-night-stack img') ?? [])
+      const all = Promise.all(imgs.map((img) => img.decode().catch(() => undefined))).then(() => undefined)
+      nightDecoded.current = Promise.race([all, new Promise<void>((r) => window.setTimeout(r, 2500))])
+    }
+    return nightDecoded.current
+  }, [])
+
+  useEffect(() => {
+    if (want === sky.night) return
+    let alive = true
+    const apply = () => {
+      if (!alive) return
+      skyStarted.current = true
+      setSky({ night: want, dusk: touched.current ? 1.1 : 2.8, dir: want ? 'in' : 'out' })
+    }
+    // edellinen siirtymä kiihdytetään ja odotetaan loppuun (hämärän keyframe-animaatio ja pinojen häivytys),
+    // sitten uusi. Ensimmäinen yö odottaa myös yökuvien purkua (enintään 2,5 s), ettei maisema ilmesty palasina.
+    if (picked) hurry(4)
+    let id = 0
+    void settled(SKY_LAYERS)
+      .then(() => (want ? nightReady() : undefined))
+      .then(() => {
+        if (alive) id = window.setTimeout(apply, picked ? SETTLE.picked : SETTLE.browse)
+      })
+    return () => {
+      alive = false
+      window.clearTimeout(id)
+    }
+  }, [want, sky.night, picked, settled, hurry, nightReady])
+
+  /** Päivä/yö-siirtymä käynnissä → maiseman pinot ristihäivytetään plus-lighterillä (levossa ei tarvita).
+      Sekoitus poistetaan vasta, kun pinojen häivytys on oikeasti valmis – kesken poistettuna kaksi puoliksi
+      läpinäkyvää pinoa näkyisi hetken tummempana (välähdys). Varalla aikaraja, jos jokin siirtymä ei päättyisi. */
   const [fading, setFading] = useState(false)
   useEffect(() => {
-    switched.current = { at: performance.now(), ms: dusk * 1000 }
-    if (!revealed) return
+    if (!skyStarted.current) return
     setFading(true)
-    const id = window.setTimeout(() => setFading(false), dusk * 1000 + 150)
-    return () => window.clearTimeout(id)
+    let alive = true
+    const off = () => alive && setFading(false)
+    const raf = requestAnimationFrame(() => void settled('.hero-day-stack, .hero-night-stack').then(() => window.setTimeout(off, 120)))
+    const cap = window.setTimeout(off, dusk * 1000 + 2500)
+    return () => {
+      alive = false
+      cancelAnimationFrame(raf)
+      window.clearTimeout(cap)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [night])
 
@@ -114,28 +218,36 @@ export function StartScreen({
   const choose = useCallback(
     (mode: Mode) => {
       if (phase !== 'idle') return
+      touched.current = true
       setRevealed(true)
       setSel(mode)
-      setDusk((d) => Math.min(d, 1.1))
     },
     [phase],
   )
 
+  /** Hiiri: valitaan vasta, kun osoitin viipyy kortilla hetken (nopea liuku korttien yli ei vaihda mitään) */
+  const hoverIn = (mode: Mode) => {
+    window.clearTimeout(hover.current)
+    hover.current = window.setTimeout(() => choose(mode), 110)
+  }
+  const hoverOut = () => window.clearTimeout(hover.current)
+
   const go = useCallback(
     (mode: Mode) => {
       if (phase !== 'idle') return
+      window.clearTimeout(hover.current)
+      touched.current = true
       setRevealed(true)
       setSel(mode)
       setPicked(mode)
       setCheer((c) => c + 1)
-      setDusk((d) => Math.min(d, 1.1))
       setPhase('loading')
       const ready = Promise.resolve(onPick?.(mode)).catch(() => undefined)
       if (mode === 'game') {
         start()
         play('boot')
         // peli piirtyy aloitusruudun alle latauspalkin aikana, sitten ruutu häivytetään sen päältä
-        const min = new Promise((r) => window.setTimeout(r, 1650))
+        const min = Promise.all([skyAt(true), new Promise((r) => window.setTimeout(r, 1650))])
         const cap = new Promise((r) => window.setTimeout(r, 5000))
         void Promise.race([Promise.all([ready, min]), cap]).then(() => {
           onDone(mode)
@@ -144,10 +256,9 @@ export function StartScreen({
         })
         return
       }
-      // Normaali: odotetaan portfolion paketti (enintään 4 s) ja mahdollinen yö → päivä, sitten portfolio
+      // Normaali: odotetaan portfolion paketti (enintään 4 s) ja että aamu on valjennut, sitten portfolio
       // piirtyy tämän alle samaan maisemaan ja tämä häivytetään pois sen päältä.
-      const left = night ? Math.min(dusk, 1.1) * 1000 : switched.current.ms - (performance.now() - switched.current.at)
-      const min = new Promise((r) => window.setTimeout(r, Math.max(650, left + 80)))
+      const min = Promise.all([skyAt(false), new Promise((r) => window.setTimeout(r, 650))])
       const cap = new Promise((r) => window.setTimeout(r, 4000))
       void Promise.race([Promise.all([ready, min]), cap]).then(() => {
         onDone(mode)
@@ -155,7 +266,7 @@ export function StartScreen({
         later(260 + 720, () => onExited?.())
       })
     },
-    [phase, night, dusk, start, play, onPick, onDone, onExited, later],
+    [phase, start, play, onPick, onDone, onExited, later, skyAt],
   )
 
   // Näppäimet: nuolet vaihtavat valintaa, Enter/välilyönti aloittaa, 1/2 valitsee suoraan
@@ -180,12 +291,14 @@ export function StartScreen({
 
   return (
     <div
+      ref={root}
       className={cn(
         'start pf @container fixed inset-0 z-[60] overflow-hidden transition-opacity duration-700',
         phase === 'out' && 'pointer-events-none opacity-0',
       )}
       data-night={night ? '' : undefined}
       data-revealed={revealed ? '' : undefined}
+      data-dusk={sky.dir}
       data-fading={fading ? '' : undefined}
       data-phase={phase}
       style={{ '--dusk': `${dusk}s` } as CSSProperties}
@@ -242,7 +355,8 @@ export function StartScreen({
                       data-mode={mode}
                       data-active={sel === mode ? '' : undefined}
                       onClick={() => go(mode)}
-                      onMouseEnter={() => choose(mode)}
+                      onMouseEnter={() => hoverIn(mode)}
+                      onMouseLeave={hoverOut}
                       onFocus={() => choose(mode)}
                       aria-describedby="start-keys"
                       className="st-card"
@@ -272,7 +386,7 @@ export function StartScreen({
                 })}
               </div>
 
-              <p id="start-keys" className="st-ink-2 mt-5 hidden text-[0.64rem] font-bold uppercase tracking-[0.22em] sm:block">
+              <p id="start-keys" className="st-chip st-ink-2 mt-5 hidden rounded-full px-3 py-1 text-[0.64rem] font-bold uppercase tracking-[0.22em] sm:block">
                 {t.start.keys}
               </p>
             </div>

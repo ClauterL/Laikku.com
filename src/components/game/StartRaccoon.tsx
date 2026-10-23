@@ -33,7 +33,7 @@ export function StartRaccoon({
   const face = useRef<HTMLDivElement>(null)
   const body = useRef<HTMLDivElement>(null)
   const reduce = useReducedMotion()
-  const state = useRef({ x: 0, y: 0, placed: false, target, clip: 0, frame: 0, wait: 0, hopping: false })
+  const state = useRef({ x: 0, y: 0, placed: false, visible: false, target, want: target, clip: 0, frame: 0, wait: 0, hopping: false })
   const timers = useRef<{ clip: number; land: number }>({ clip: 0, land: 0 })
 
   // video: ruudut omalla ajoituksellaan, sitten tauko alkuasennossa. delay < 0 = pysäytä istuma-asentoon.
@@ -85,20 +85,15 @@ export function StartRaccoon({
     if (pos.current) pos.current.style.transform = `translate3d(${x}px, ${y}px, 0)`
   }
 
-  // valinnan vaihto → hyppy
-  useEffect(() => {
+  /** Hyppy kortille mode. Kesken hyppyä ei aloiteta uutta (se näkyisi teleporttina takaisin lähtöpaikkaan):
+      laskeuduttuaan pesukarhu katsoo, onko valinta ehtinyt vaihtua, ja hyppää tarvittaessa uudestaan. */
+  const hop = useRef<(mode: 'normal' | 'game') => void>(() => {})
+  hop.current = (mode) => {
     const st = state.current
-    const to = spot(target)
+    const to = spot(mode)
     if (!to) return
-    if (!st.placed || reduce || !visible) {
-      place(to.x, to.y)
-      setFace(to.side)
-      st.placed = true
-      st.target = target
-      return
-    }
-    if (st.target === target) return
-    st.target = target
+    st.target = mode
+    st.hopping = true
     const from = { x: st.x, y: st.y }
     const dist = Math.hypot(to.x - from.x, to.y - from.y)
     const flight = Math.min(900, 520 + dist * 0.35)
@@ -134,9 +129,35 @@ export function StartRaccoon({
     place(to.x, to.y)
     window.clearTimeout(timers.current.land)
     timers.current.land = window.setTimeout(() => {
+      st.hopping = false
+      if (st.want !== st.target && st.visible) {
+        hop.current(st.want) // valinta vaihtui ilmassa → seuraava hyppy heti
+        return
+      }
       setFace(to.side)
       playClip.current(rand(900, 2200))
-    }, T + 120)
+    }, D)
+  }
+
+  // valinnan vaihto → hyppy (tai paikalleen, jos ei vielä näkyvissä / vähennetty liike)
+  useEffect(() => {
+    const st = state.current
+    st.want = target
+    st.visible = visible
+    const to = spot(target)
+    if (!to) return
+    if (!st.placed || reduce || !visible) {
+      pos.current?.getAnimations().forEach((a) => a.cancel())
+      window.clearTimeout(timers.current.land)
+      st.hopping = false
+      place(to.x, to.y)
+      setFace(to.side)
+      st.placed = true
+      st.target = target
+      return
+    }
+    if (st.hopping || st.target === target) return
+    hop.current(target)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [target, visible, reduce])
 

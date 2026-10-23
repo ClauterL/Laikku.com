@@ -603,8 +603,11 @@
 }
 @keyframes st-dusk-in { 0%, 100% { opacity: 0; } 45% { opacity: 0.82; } }
 @keyframes st-dusk-out { 0%, 100% { opacity: 0; } 55% { opacity: 0.7; } }
-.start[data-revealed][data-night] .st-dusk { animation: st-dusk-in var(--dusk) ease-in-out both; }
-.start[data-revealed]:not([data-night]) .st-dusk { animation: st-dusk-out var(--dusk) ease-in-out both; }
+/* Iltarusko soi kerran jokaisessa päivä/yö-siirtymässä. Aloitusruutu kertoo siirtymän suunnan data-dusk-attribuutilla,
+   joka vaihtuu vain siirtymän alkaessa (ei paljastuksessa eikä kesken siirtymän) → animaatio ei koskaan ala kesken alusta.
+   Dronelento käyttää yhä data-revealed + data-night -paria. */
+.start[data-dusk='in'] .st-dusk, .flight[data-revealed][data-night] .st-dusk { animation: st-dusk-in var(--dusk) ease-in-out both; }
+.start[data-dusk='out'] .st-dusk, .flight[data-revealed]:not([data-night]) .st-dusk { animation: st-dusk-out var(--dusk) ease-in-out both; }
 /* päivällä yön kerrokset piiloon kokonaan (visibility), etteivät revontulien ja tähtien animaatiot kuormita turhaan */
 .start .st-night-sky, .start .st-stars, .start .st-moon, .start .st-aurora, .start .st-shoot {
   opacity: 0;
