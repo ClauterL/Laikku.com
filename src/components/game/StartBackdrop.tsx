@@ -80,8 +80,9 @@ export function StartBackdrop({
     /** video ladattu kokonaan kerran (loppuun soinut video ei enää ilmoita canplaythrough-tilaa) */
     ready: { dn: false, nd: false, loop: false },
     z: 2,
+    /** ylin (näkyvä) taso */
+    top: null as HTMLElement | null,
     raf: 0,
-    hide: 0,
     fadeEnd: 0,
     drive: () => {},
   })
@@ -130,20 +131,40 @@ export function StartBackdrop({
       if (!s.raf) s.raf = requestAnimationFrame(tick)
     }
 
-    /** el eteen (ms > 0: häivyttäen), muut piiloon kun se peittää ne */
+    /** el eteen (ms > 0: häivyttäen). Alemmat tasot piilotetaan vasta, kun el oikeasti peittää ne (transitionend) –
+        ei ajastimella: taustavälilehdellä siirtymä ei etene, ja ajastin olisi jättänyt näkyviin pelkän tyhjän. */
     const front = (el: HTMLElement, ms: number) => {
       el.style.zIndex = String(++s.z)
-      el.style.transition = ms ? `opacity ${ms}ms linear` : 'none'
-      el.style.opacity = '1'
-      window.clearTimeout(s.hide)
-      s.hide = window.setTimeout(() => {
+      s.top = el
+      const cover = () => {
+        if (s.top !== el) return
         for (const o of layers) {
-          if (o === el) continue
+          if (o === el || o.style.opacity === '0') continue
           o.style.transition = 'none'
           o.style.opacity = '0'
-          if (o instanceof HTMLVideoElement && !(s.clip && o === v[s.clip]) && !o.paused) o.pause()
+          if (o instanceof HTMLVideoElement && !(s.clip && o === v[s.clip])) {
+            if (!o.paused) o.pause()
+            // piilossa oleva siirtymävideo valmiiksi alkuun: seuraava siirtymä levosta alkaa ilman hakua
+            if (o !== v.loop && o.currentTime !== 0) o.currentTime = 0
+          }
         }
-      }, ms + 60)
+      }
+      if (ms && getComputedStyle(el).opacity !== '1') {
+        el.style.transition = `opacity ${ms}ms linear`
+        el.style.opacity = '1'
+        const end = (e: TransitionEvent) => {
+          if (e.target !== el || e.propertyName !== 'opacity') return
+          el.removeEventListener('transitionend', end)
+          el.removeEventListener('transitioncancel', end)
+          cover()
+        }
+        el.addEventListener('transitionend', end)
+        el.addEventListener('transitioncancel', end)
+      } else {
+        el.style.transition = 'none'
+        el.style.opacity = '1'
+        cover()
+      }
     }
 
     const play = (el: HTMLVideoElement) =>
@@ -159,6 +180,7 @@ export function StartBackdrop({
     /** Odota, että videon ruutu kohdassa t on näkyvissä (haku + ruudun esitys, varalla aikaraja) */
     const seek = (el: HTMLVideoElement, t: number) =>
       new Promise<void>((resolve) => {
+        if (!el.seeking && el.readyState >= 2 && Math.abs(el.currentTime - t) < 0.5 / FPS) return resolve()
         let done = false
         const fin = () => {
           if (done) return
@@ -210,7 +232,7 @@ export function StartBackdrop({
         o.style.transition = 'none'
         o.style.opacity = '0'
       }
-      window.clearTimeout(s.hide)
+      s.top = null
       loadNight()
       day.style.transition = 'none'
       day.style.opacity = '1'
@@ -402,7 +424,6 @@ export function StartBackdrop({
 
     return () => {
       cancelAnimationFrame(s.raf)
-      window.clearTimeout(s.hide)
       window.clearTimeout(s.fadeEnd)
       window.clearTimeout(later)
       day.removeEventListener('load', loadNight)
@@ -437,9 +458,8 @@ export function StartBackdrop({
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
       {/* korkeissa näkymissä videon yläpuolinen taivas: videon yläreunan väri + tähdet */}
-      <div ref={fill} className="sb-fill absolute inset-0">
-        <Stars ref={stars} className="sb-stars absolute inset-0" />
-      </div>
+      <div ref={fill} className="sb-fill absolute inset-0" />
+      <Stars ref={stars} className="sb-stars absolute inset-0" />
       <div ref={scene} className={cn('hero-scene', HERO_BOX)}>
         <div className="sb-frame">
           <img

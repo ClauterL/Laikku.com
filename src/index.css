@@ -643,10 +643,13 @@
 .start .sb-frame { position: absolute; bottom: 0; left: 1.9231%; width: 96.1538%; aspect-ratio: 16 / 9; }
 .start .sb-frame > img, .start .sb-frame > video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
 .start .sb-seam { position: absolute; inset: 0 0 auto; height: 8%; z-index: 100000; }
-.start .sb-fill, .start .sb-seam { display: none; }
+.start .sb-fill, .start .sb-stars, .start .sb-seam { display: none; }
 @media (max-aspect-ratio: 44 / 25) {
-  .start .sb-fill, .start .sb-seam { display: block; }
+  .start .sb-fill, .start .sb-stars, .start .sb-seam { display: block; }
 }
+/* omat tasot: väri ja läpinäkyvyys vaihtuvat joka ruudussa ilman, että käyttöliittymää maalataan uudelleen */
+.start .sb-fill, .start .sb-seam { will-change: transform; }
+.start .sb-stars { will-change: opacity; }
 
 /* valintakortit: Normaali = persikkapaperi, Pelillistetty = yönsininen lasi + teal */
 .start .st-card {
