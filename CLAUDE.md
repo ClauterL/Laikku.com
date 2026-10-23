@@ -8,6 +8,8 @@ Claus Laikun portfoliosivusto pelivalikon muodossa (laikku.com). Rakenne ja kome
 - Node ≥ 22.12. `npm run dev` → http://localhost:5173.
 - GitHub-repo: `ClauterL/Laikku.com`; julkaisu Netlifyyn (projekti `laikku-com`): push `main`iin → laikku.com.
   GitHub Pages -työnkulku (`deploy.yml`) ei ole käytössä (Pages pois päältä).
+- Commitit tehdään nimellä `Claus Laikku <ClauterL@users.noreply.github.com>` ilman Co-Authored-By- tai
+  Claude-Session-rivejä (historia kirjoitettu uudelleen 23.10.2026; varmuuskopio `_backup/` koneella, ei repossa).
 - `v2/` on edellinen perinteinen portfolio (oma package.json) – ei kosketa, ellei pyydetä.
 
 ## Säännöt
