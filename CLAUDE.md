@@ -128,10 +128,12 @@ Claus Laikun portfoliosivusto pelivalikon muodossa (laikku.com). Rakenne ja kome
 - Pidä sivu staattisena: ei backendia, ei evästeitä, ei kolmannen osapuolen skriptejä
   (Google Fonts on ainoa ulkoinen resurssi). Poikkeus: normaalin portfolion yhteydenottolomake lähettää viestin
   Netlify Formsilla: runko `public/__forms.html` (kenttien nimet samat kuin lähetyksessä), lähetys `src/lib/contact.ts`
-  (kehitystilassa ei lähetetä), roskapostiansa `bot-field`. Jokaisesta hyväksytystä viestistä Netlify ajaa funktion
-  `netlify/functions/submission-created.mts` (ainoa palvelinkoodi; tyypit `tsconfig.functions.json`), joka lähettää
-  sähköpostin lähettäjänä info@havaida.com osoitteisiin claus.laikku@havaida.com ja claikku@gmail.com (Reply-To =
-  kävijän sähköposti) Google Workspacen SMTP:llä (smtp.gmail.com, DKIM d=havaida.com). Tunnukset Netlifyn
-  ympäristömuuttujissa: `CONTACT_SMTP_USER` + `CONTACT_SMTP_PASS` (Googlen sovellussalasana); valinnaiset `CONTACT_FROM`,
-  `CONTACT_TO`, `CONTACT_SMTP_HOST`, `CONTACT_SMTP_PORT`. Muuttujan muutos vaatii uuden julkaisun. Viestit näkyvät myös
-  Netlifyssä: Forms → contact.
+  (kehitystilassa ei lähetetä), roskapostiansa `bot-field`, otsikko piilokentästä `subject`. Sähköpostin lähettävät nyt
+  Netlifyn omat lomakeilmoitukset (Forms → Submission notifications: claus.laikku@havaida.com ja claikku@gmail.com,
+  lähettäjä Netlify; asetettu 24.10.2026). Valmiina myös funktio `netlify/functions/submission-created.mts` (ainoa
+  palvelinkoodi; tyypit `tsconfig.functions.json`), joka lähettää viestin lähettäjänä info@havaida.com Google Workspacen
+  SMTP:llä, kun Netlifyn ympäristömuuttujiin lisätään `CONTACT_SMTP_USER` + `CONTACT_SMTP_PASS` (Googlen sovellussalasana,
+  käyttäjä lisää itse); valinnaiset `CONTACT_FROM`, `CONTACT_TO`, `CONTACT_SMTP_HOST`, `CONTACT_SMTP_PORT`. Muuttujan muutos
+  vaatii uuden julkaisun, ja silloin Netlifyn lomakeilmoitukset poistetaan (muuten viesti tulee kahdesti). Ilman tunnuksia
+  funktio ei tee mitään. Viestit näkyvät aina myös Netlifyssä: Forms → contact (roskapostiksi luokitellut erikseen,
+  niistä ei lähde ilmoitusta).

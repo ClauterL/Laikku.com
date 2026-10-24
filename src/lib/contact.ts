@@ -1,6 +1,8 @@
 /* Yhteydenottolomake Netlify Formsin kautta: viesti lähtee suoraan, ei sähköpostiohjelmaa eikä omaa palvelinta.
    Netlify tunnistaa lomakkeen rungosta public/__forms.html (kenttien nimet täsmälleen samat) ja lähettää jokaisesta
-   viestistä sähköposti-ilmoituksen (asetukset Netlifyssä: Forms → Form notifications). Reply-To = lähettäjän email-kenttä.
+   viestistä sähköposti-ilmoituksen osoitteisiin claus.laikku@havaida.com ja claikku@gmail.com (Netlifyssä: Forms →
+   Submission notifications; otsikko = piilokenttä subject). Valinnainen info@havaida.com-lähetys:
+   netlify/functions/submission-created.mts.
    Kehityspalvelimella (vite) ei lähetetä mitään: kentät tulostetaan konsoliin ja lähetys "onnistuu". */
 
 export type ContactMessage = {

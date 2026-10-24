@@ -1,7 +1,11 @@
 import nodemailer from 'nodemailer'
 import type { Context } from '@netlify/functions'
 
-/* Yhteydenottolomakkeen sähköposti. Netlify kutsuu tätä funktiota automaattisesti jokaisesta hyväksytystä
+/* Yhteydenottolomakkeen sähköposti lähettäjänä info@havaida.com (valinnainen). Nyt käytössä Netlifyn omat
+   lomakeilmoitukset (Forms → Submission notifications: claus.laikku@havaida.com ja claikku@gmail.com, lähettäjä Netlify);
+   kun alla olevat tunnukset lisätään, poista ne ilmoitukset, ettei viesti tule kahdesti.
+
+   Netlify kutsuu tätä funktiota automaattisesti jokaisesta hyväksytystä
    (ei roskapostiksi luokitellusta) lomakeviestistä – tiedostonimi submission-created on tapahtuman nimi.
    Viesti lähtee Google Workspacen SMTP:llä havaida.comin nimissä: Google allekirjoittaa sen DKIM:llä (d=havaida.com),
    joten havaida.comin DMARC-tarkistus menee läpi eikä viesti päädy roskapostiin.
@@ -38,8 +42,9 @@ export default async (req: Request, _context: Context) => {
   const user = Netlify.env.get('CONTACT_SMTP_USER')
   const pass = Netlify.env.get('CONTACT_SMTP_PASS')
   if (!user || !pass) {
-    console.error('[contact] CONTACT_SMTP_USER / CONTACT_SMTP_PASS puuttuu – viesti on tallessa vain Netlifyn Forms-näkymässä')
-    return new Response('smtp not configured', { status: 500 })
+    // ei virhe: sähköpostin hoitavat silloin Netlifyn omat lomakeilmoitukset (Forms → Submission notifications)
+    console.info('[contact] SMTP-tunnuksia ei ole asetettu – sähköpostin lähettävät Netlifyn lomakeilmoitukset')
+    return new Response('smtp not configured')
   }
 
   const d = sub.data ?? {}
