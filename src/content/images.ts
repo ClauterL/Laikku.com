@@ -168,11 +168,13 @@ export const links = {
   github: 'https://github.com/ClauterL',
   havaida: 'https://havaida.com',
   demot: 'https://havaida.com/demot/',
-  games: 'https://github.com/ClauterL/laikku-games',
   play: 'https://havaida-games.netlify.app',
   dev: 'https://laikku.dev',
   email: 'claikku@gmail.com',
-  repo: 'https://github.com/ClauterL/Laikku.com',
+  /** projektien selainversiot laikku.devissä (demodata, opas: pesukarhu + kumiankka). Lähdekoodiin ei linkitetä. */
+  waretrack: 'https://laikku.dev/waretrack/',
+  kerros: 'https://laikku.dev/kerros/',
+  nfc: 'https://laikku.dev/nfc/',
 }
 
 /** Normaalin portfolion hero-maisema: Higgsfieldillä tehty oma sommitelma (Järvi-Suomi auringonlaskussa),

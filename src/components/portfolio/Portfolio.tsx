@@ -286,9 +286,6 @@ export default function Portfolio({ onGame }: { onGame: () => void }) {
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm font-semibold">
-              <a href={links.repo} target="_blank" rel="noreferrer noopener" className="text-pf-ink-2 hover:text-pf-orange">
-                {t.ui.source}
-              </a>
               <a href={links.github} target="_blank" rel="noreferrer noopener" className="text-pf-ink-2 hover:text-pf-orange">
                 GitHub
               </a>

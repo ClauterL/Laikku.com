@@ -128,6 +128,7 @@ export const en: Content = {
         status: 'in progress',
         desc: 'Warehouse management with a 3D view: racks, pallets and stock levels in one scene, extended into a full WMS.',
         tech: ['React', 'Three.js', 'Supabase'],
+        links: [{ label: 'Try the demo', href: links.waretrack }],
       },
       {
         id: 'kerros',
@@ -139,6 +140,7 @@ export const en: Content = {
         status: 'in progress',
         desc: 'A dashboard for housing companies where the building is drawn as a 3D block from open map data.',
         tech: ['React', 'Three.js', 'OpenStreetMap'],
+        links: [{ label: 'Try the demo', href: links.kerros }],
       },
       {
         id: 'nfc',
@@ -150,6 +152,7 @@ export const en: Content = {
         status: 'in progress',
         desc: 'CardTap shares a business card phone to phone. DoorTap puts the house key on your phone with a custom ESP32 reader.',
         tech: ['NFC', 'React', 'ESP32'],
+        links: [{ label: 'See the showcase', href: links.nfc }],
       },
       {
         id: 'games',
@@ -161,7 +164,7 @@ export const en: Content = {
         status: 'released',
         desc: 'Ticket Slash, Network Connect, Access Crossing, Signal Command, Bug Breaker and Uptime Keeper – company-themed mini games built as a portfolio.',
         tech: ['React', 'Canvas', 'Vite'],
-        links: [{ label: 'GitHub', href: links.games }],
+        links: [{ label: 'Play in the browser', href: links.play }],
       },
     ],
     languages: [
@@ -628,7 +631,6 @@ export const en: Content = {
           { text: 'Classic portfolio (v2)', done: true },
           { text: 'Game-menu UI with sound', done: true },
         ],
-        links: [{ label: 'Source code', href: links.repo }],
       },
       {
         id: 'agents',
@@ -1066,7 +1068,7 @@ export const en: Content = {
         id: 'servers',
         name: 'Server rack',
         note: 'Code and repos',
-        link: { label: 'github.com/ClauterL', href: links.github, desc: 'Repositories, experiments and the source code of this very site.' },
+        link: { label: 'github.com/ClauterL', href: links.github, desc: 'GitHub profile: development activity and experiments.' },
       },
       { id: 'maker', name: 'Robot arm and 3D printer', note: 'Things I have built' },
       { id: 'window', name: 'Balcony and telescope', note: 'Travels and routes' },

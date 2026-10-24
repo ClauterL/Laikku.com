@@ -38,6 +38,10 @@ Claus Laikun portfoliosivusto pelivalikon muodossa (laikku.com). Rakenne ja kome
   Vain staattisille taustoille, ei `spot`-korteille; kuva ladataan heti sivun asetuttua (idle) ja animaatio pyörii
   koko ajan myös näkymän ulkopuolella satunnaisesta vaiheesta alkaen, joten eläimet ovat jo liikkeessä, kun niiden
   kohdalle vieritetään; vähennetty liike → paikallaan.
+- Projektien linkit vievät selainversioihin: WareTrack, Kerros ja NFC-esittely laikku.devissä (`images.ts` → `links.waretrack`,
+  `links.kerros`, `links.nfc`; demot ja pesukarhu/kumiankka-opas tehdään laikku.dev-repossa), Havaida Games
+  `links.play`. Projektikortin kuvake on linkki samaan osoitteeseen. **Lähdekoodiin (repoihin) ei linkitetä missään** –
+  vain GitHub-profiiliin (`links.github`); linjaus 24.10.2026.
 - Normaalin portfolion liukuvat nauhat (työkalut, suosittelijat) = `src/components/portfolio/Marquee.tsx`: sisältö kahdesti,
   liike JS:llä transformina (ei CSS-animaatiota); painamalla ja vetämällä selattavissa hiirellä ja kosketuksella (inertia,
   `touch-action: pan-y` → pystypyyhkäisy vierittää sivua), kosketuslevyn vaakavieritys / Shift + rulla; pysähtyy hiiren

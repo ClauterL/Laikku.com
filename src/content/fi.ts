@@ -129,6 +129,7 @@ export const fi: Content = {
         status: 'rakenteilla',
         desc: 'Varastonhallintaohjelma 3D-näkymällä: hyllyt, lavat ja saldot yhdessä näkymässä, laajennettuna kokonaiseksi WMS:ksi.',
         tech: ['React', 'Three.js', 'Supabase'],
+        links: [{ label: 'Kokeile demoa', href: links.waretrack }],
       },
       {
         id: 'kerros',
@@ -140,6 +141,7 @@ export const fi: Content = {
         status: 'rakenteilla',
         desc: 'Taloyhtiön hallinnan työpöytä, jossa talo piirretään 3D-kerrostalona avoimesta karttadatasta.',
         tech: ['React', 'Three.js', 'OpenStreetMap'],
+        links: [{ label: 'Kokeile demoa', href: links.kerros }],
       },
       {
         id: 'nfc',
@@ -151,6 +153,7 @@ export const fi: Content = {
         status: 'rakenteilla',
         desc: 'CardTap jakaa käyntikortin puhelimesta puhelimeen. DoorTap vie talon kulkuavaimen puhelimeen omalla ESP32-lukijalla.',
         tech: ['NFC', 'React', 'ESP32'],
+        links: [{ label: 'Katso esittely', href: links.nfc }],
       },
       {
         id: 'games',
@@ -162,7 +165,7 @@ export const fi: Content = {
         status: 'julkaistu',
         desc: 'Ticket Slash, Network Connect, Access Crossing, Signal Command, Bug Breaker ja Uptime Keeper – yritysteemaisia minipelejä, jotka tehtiin portfolioksi.',
         tech: ['React', 'Canvas', 'Vite'],
-        links: [{ label: 'GitHub', href: links.games }],
+        links: [{ label: 'Pelaa selaimessa', href: links.play }],
       },
     ],
     languages: [
@@ -629,7 +632,6 @@ export const fi: Content = {
           { text: 'Perinteinen portfolio (v2)', done: true },
           { text: 'Pelivalikko-UI äänillä', done: true },
         ],
-        links: [{ label: 'Lähdekoodi', href: links.repo }],
       },
       {
         id: 'agents',
@@ -1077,7 +1079,7 @@ export const fi: Content = {
         id: 'servers',
         name: 'Palvelinkaappi',
         note: 'Koodi ja repot',
-        link: { label: 'github.com/ClauterL', href: links.github, desc: 'Repot, kokeilut ja tämänkin sivuston lähdekoodi.' },
+        link: { label: 'github.com/ClauterL', href: links.github, desc: 'GitHub-profiili: kehitysaktiivisuus ja kokeilut.' },
       },
       { id: 'maker', name: 'Robottikäsi ja 3D-tulostin', note: 'Rakennetut projektit' },
       { id: 'window', name: 'Parveke ja kaukoputki', note: 'Matkat ja reitit' },

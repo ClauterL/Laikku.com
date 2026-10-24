@@ -156,9 +156,6 @@ export function TopBar({
                 />
               </label>
               <div className="flex flex-wrap gap-x-4 gap-y-1 pt-2 text-xs">
-                <a href={links.repo} target="_blank" rel="noreferrer noopener" className="text-brass hover:underline">
-                  {t.ui.source}
-                </a>
                 <a href={links.github} target="_blank" rel="noreferrer noopener" className="text-brass hover:underline">
                   {t.ui.github}
                 </a>

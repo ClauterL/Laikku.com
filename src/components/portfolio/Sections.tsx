@@ -638,6 +638,47 @@ function LeetCodeStats() {
 }
 
 /* ---------- Projektit ---------- */
+/** Projektin kuvake; jos projektilla on selainversio, kuvake on linkki siihen (uusi välilehti) */
+function ProjectIcon({ src, link, name }: { src: string; link?: { label: string; href: string }; name: string }) {
+  const img = (
+    <img
+      src={src}
+      alt=""
+      width={128}
+      height={128}
+      loading="lazy"
+      className="relative size-28 rounded-2xl object-cover shadow-lg shadow-black/30 ring-1 ring-pf-line-2 transition-transform duration-500 group-hover:-rotate-2 group-hover:scale-[1.04] sm:size-32"
+    />
+  )
+  const glow = (
+    <div className="absolute -inset-2 rounded-3xl bg-gradient-to-br from-pf-orange/25 to-pf-crimson/10 opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100" aria-hidden />
+  )
+  if (!link) {
+    return (
+      <div className="relative shrink-0">
+        {glow}
+        {img}
+      </div>
+    )
+  }
+  return (
+    <a
+      href={link.href}
+      target="_blank"
+      rel="noreferrer noopener"
+      aria-label={`${name}: ${link.label}`}
+      title={link.label}
+      className="relative shrink-0 self-start rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-pf-orange"
+    >
+      {glow}
+      {img}
+      <span className="absolute bottom-1.5 right-1.5 grid size-7 place-items-center rounded-full bg-pf-bg/85 text-pf-ink ring-1 ring-pf-line-2 transition-colors group-hover:bg-pf-orange group-hover:text-pf-bg" aria-hidden>
+        <ArrowUpRight className="size-4" />
+      </span>
+    </a>
+  )
+}
+
 export function Projects() {
   const { t } = useLang()
   const p = t.portfolio
@@ -675,17 +716,8 @@ export function Projects() {
             {...spotHandlers()}
             className={cn(card, 'spot group flex flex-col gap-5 overflow-hidden p-6 transition-colors hover:border-pf-line-2 sm:flex-row')}
           >
-            <div className="relative shrink-0">
-              <div className="absolute -inset-2 rounded-3xl bg-gradient-to-br from-pf-orange/25 to-pf-crimson/10 opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100" aria-hidden />
-              <img
-                src={pfIcons[it.id] ?? it.icon}
-                alt=""
-                width={128}
-                height={128}
-                loading="lazy"
-                className="relative size-28 rounded-2xl object-cover shadow-lg shadow-black/30 ring-1 ring-pf-line-2 transition-transform duration-500 group-hover:-rotate-2 group-hover:scale-[1.04] sm:size-32"
-              />
-            </div>
+            {/* kuvake vie suoraan projektin selainversioon (demo, esittely tai pelit) */}
+            <ProjectIcon src={pfIcons[it.id] ?? it.icon} link={it.links?.[0]} name={it.name} />
             <div className="flex min-w-0 flex-1 flex-col gap-3">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                 <h3 className="poster text-xl text-pf-ink">{it.name}</h3>
