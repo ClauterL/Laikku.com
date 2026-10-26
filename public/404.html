@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="fi" data-mode="notfound">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sivua ei löytynyt | laikku.com</title>
+<meta name="description" content="Sivua ei löytynyt laikku.comista.">
+<meta name="theme-color" content="#2b0d25">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  /* laikku.com 404 -sivu (sama ilme kuin laikku.devin 404-sivulla). Netlify näyttää tämän tuntemattomille
+     osoitteille. Kieli valitaan ennen ensimmäistä piirtoa: tallennettu valinta tai selaimen kieli. */
+  (function () {
+    var l = null;
+    try { l = localStorage.getItem('laikku:lang'); } catch (e) {}
+    if (l !== 'fi' && l !== 'en') l = (navigator.language || '').toLowerCase().indexOf('fi') === 0 ? 'fi' : 'en';
+    document.documentElement.lang = l;
+  })();
+</script>
+<style>
+:root {
+  --bg: #2b0d25; --bg-2: #22101e; --bg-3: #3a1a33; --line: #5a2349; --line-2: #6e2c55;
+  --ink: #ffe5d4; --ink-2: #f3c3ab; --muted: #c0939a;
+  --sky: #fde2cf; --sun: #f9b233; --amber: #f6913d; --orange: #f2733f; --red: #e04a3c; --crimson: #b02a45;
+  --plum: #6a1e47; --deep: #3a1530; --green: #3bb273;
+  --poster: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --body: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --gut: clamp(16px, 4vw, 40px);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--bg); -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column;
+  background:
+    radial-gradient(70% 40% at 50% 38%, rgba(242, 115, 63, 0.10), transparent 70%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg) 60%, var(--bg-2) 100%);
+  color: var(--ink); font: 500 16px/1.6 var(--body); overflow-x: hidden; -webkit-font-smoothing: antialiased;
+}
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; }
+p, h1 { margin: 0; }
+::selection { background: var(--orange); color: var(--bg); }
+:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; border-radius: 8px; }
+html[lang="fi"] [data-l="en"], html[lang="en"] [data-l="fi"] { display: none !important; }
+html[data-mode="down"] .m-nf, html[data-mode="notfound"] .m-down { display: none !important; }
+.wrap { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 var(--gut); }
+.mono { font-family: var(--mono); font-weight: 500; }
+
+/* yläpalkki: sama persikkapalkki kuin laikku.devissä ja /betatester-sivulla */
+.top {
+  position: sticky; top: 0; z-index: 10;
+  background: rgba(253, 226, 207, 0.86); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(106, 30, 71, 0.12); color: var(--bg-2);
+}
+.top .wrap { display: flex; align-items: center; gap: 14px; height: 62px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; min-width: 0; }
+.brand-mark { display: grid; place-items: center; width: 38px; height: 38px; flex: none; border-radius: 50%; background: var(--deep); box-shadow: 0 6px 16px -8px rgba(58, 21, 48, 0.8); }
+.brand-mark img { width: 26px; height: 26px; border-radius: 50%; }
+.brand-t b { display: block; font: 900 15px/1 var(--poster); font-stretch: 118%; text-transform: uppercase; letter-spacing: 0.02em; }
+.brand-t small { display: block; margin-top: 4px; font: 500 10.5px/1 var(--mono); letter-spacing: 0.22em; text-transform: uppercase; color: var(--plum); }
+.code-chip { font: 800 12.5px/1 var(--mono); padding: 7px 12px; border-radius: 999px; background: var(--deep); color: var(--ink); white-space: nowrap; }
+.code-chip b { color: var(--sun); font-weight: 800; }
+.lng { display: inline-flex; flex: none; margin-left: auto; padding: 3px; border: 1px solid rgba(58, 21, 48, 0.25); border-radius: 999px; background: rgba(255, 255, 255, 0.35); }
+.lng button { appearance: none; border: 0; background: transparent; cursor: pointer; font: 800 12px/1 var(--body); letter-spacing: 0.06em; color: var(--plum); padding: 7px 11px; border-radius: 999px; }
+.lng button[aria-pressed="true"] { background: var(--deep); color: var(--ink); }
+@media (max-width: 520px) { .code-chip { display: none; } .brand-t b { font-size: 13.5px; } }
+
+/* kuva: reunat liukuvat taustaan */
+main { flex: 1; }
+/* kuvan yläosa on tyhjää taustaa: rajataan siitä pala pois, ettei otsikko jää liian alas */
+.scene { position: relative; max-width: 1400px; margin: 0 auto; overflow: hidden; }
+.frame {
+  position: relative; width: 100%; aspect-ratio: 2688 / 1520; margin-top: -6%;
+  /* sivureunat pyöreällä maskilla + alareuna pehmeästi taustaan (ei näkyvää saumaa tekstin kohdalla) */
+  -webkit-mask-image: linear-gradient(180deg, #000 66%, transparent 97%), linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent), radial-gradient(120% 95% at 50% 46%, #000 58%, transparent 92%);
+  -webkit-mask-composite: source-in, source-in;
+  mask-image: linear-gradient(180deg, #000 66%, transparent 97%), linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent), radial-gradient(120% 95% at 50% 46%, #000 58%, transparent 92%);
+  mask-composite: intersect, intersect;
+}
+.frame img, .frame video { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; }
+/* animaatio (Higgsfield-video, saumaton silmukka) häivytetään kuvan päälle, kun se alkaa pyöriä;
+   ilman JS:ää, "vähennä liikettä" -asetuksella tai datansäästössä näkyy pelkkä kuva */
+.frame video { opacity: 0; transition: opacity 0.8s ease; }
+.frame video.on { opacity: 1; }
+@media (max-width: 640px) {
+  .frame { width: 112%; margin: -7% 0 0 -6%; }
+}
+
+.copy { position: relative; margin-top: clamp(-110px, -7vw, -20px); padding-bottom: clamp(36px, 6vw, 72px); text-align: center; }
+.pills { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 18px; }
+.pill {
+  display: inline-flex; align-items: center; gap: 8px; padding: 6px 13px; border-radius: 999px;
+  background: var(--deep); border: 1px solid var(--line-2); color: var(--ink);
+  font: 800 12.5px/1 var(--poster); font-stretch: 118%; letter-spacing: 0.14em; text-transform: uppercase;
+}
+.pill .mono { color: var(--sun); letter-spacing: 0; }
+.status { display: inline-flex; align-items: center; gap: 8px; padding: 6px 13px 6px 11px; border-radius: 999px; background: rgba(255, 229, 212, 0.08); border: 1px solid var(--line); font-size: 13px; font-weight: 700; color: var(--ink-2); }
+.status i { width: 8px; height: 8px; border-radius: 50%; background: #b9a19a; flex: none; }
+.status .st { display: none; }
+.status[data-state="checking"] .st-checking, .status[data-state="online"] .st-online, .status[data-state="offline"] .st-offline { display: inline; }
+.status[data-state="checking"] i { animation: blink 1s ease-in-out infinite; }
+.status[data-state="online"] i { background: var(--green); box-shadow: 0 0 0 3px rgba(59, 178, 115, 0.25); }
+.status[data-state="offline"] i { background: var(--amber); box-shadow: 0 0 0 3px rgba(246, 145, 61, 0.25); animation: blink 1.6s ease-in-out infinite; }
+@keyframes blink { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .status i { animation: none !important; } }
+
+h1 { font: 900 clamp(40px, 7.4vw, 92px)/0.9 var(--poster); font-stretch: 116%; text-transform: uppercase; letter-spacing: -0.01em; text-wrap: balance; }
+h1 .grad {
+  background: linear-gradient(90deg, var(--sun) 0%, var(--orange) 55%, var(--red) 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent; padding-bottom: 0.06em;
+}
+.lead { max-width: 38em; margin: 18px auto 0; font-size: clamp(16px, 1.5vw, 18.5px); line-height: 1.6; color: var(--ink-2); text-wrap: pretty; }
+.lead b { color: var(--ink); font-weight: 800; }
+.hint { max-width: 38em; margin: 12px auto 0; font-size: 14.5px; color: var(--muted); }
+.hint-online { display: none; color: #9fe0bd; }
+body[data-server="online"] .hint-online { display: block; }
+.hint-offline { display: none; color: #ffc59a; }
+body[data-server="offline"] .hint-offline { display: block; }
+.url {
+  display: inline-flex; max-width: 100%; margin: 0 auto 14px; padding: 7px 14px; border-radius: 10px;
+  background: #170a14; border: 1px solid var(--line); font: 500 clamp(13px, 1.4vw, 15px)/1.3 var(--mono);
+  color: var(--muted); overflow-wrap: anywhere; text-align: left;
+}
+.url b { color: var(--sun); font-weight: 500; }
+
+.cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 26px; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 50px; padding: 0 22px;
+  border-radius: 999px; text-decoration: none; cursor: pointer; font: 800 15.5px/1 var(--body);
+  transition: transform 0.15s, background 0.2s, border-color 0.2s;
+}
+.btn svg { width: 19px; height: 19px; flex: none; }
+.btn-primary { border: 0; color: var(--bg-2); background: linear-gradient(90deg, var(--sun), var(--orange)); box-shadow: 0 14px 30px -16px rgba(242, 115, 63, 0.9); }
+.btn-primary:hover { transform: translateY(-1px); }
+.btn-ghost { border: 1.5px solid var(--line-2); color: var(--ink); background: rgba(255, 229, 212, 0.04); }
+.btn-ghost:hover { border-color: var(--ink-2); background: rgba(255, 229, 212, 0.08); }
+@media (max-width: 420px) { .cta .btn { width: 100%; } }
+
+.term {
+  max-width: 560px; margin: 34px auto 0; text-align: left; border-radius: 16px; overflow: hidden;
+  background: #170a14; border: 1px solid var(--line); box-shadow: 0 30px 60px -36px rgba(0, 0, 0, 0.9);
+}
+.term-bar { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: #24101f; border-bottom: 1px solid var(--line); }
+.term-bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--line-2); }
+.term-bar i:nth-child(1) { background: var(--red); } .term-bar i:nth-child(2) { background: var(--sun); } .term-bar i:nth-child(3) { background: var(--green); }
+.term-bar span { margin-left: 8px; font: 500 12px/1 var(--mono); color: var(--muted); }
+.term pre { margin: 0; padding: 14px 16px 16px; overflow-x: auto; font: 500 13px/1.75 var(--mono); color: var(--ink-2); white-space: pre-wrap; word-break: break-word; }
+.term .p { color: var(--sun); } .term .k { color: var(--muted); } .term .e { color: #ff8a7a; } .term .o { color: #9fe0bd; }
+
+footer { border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; justify-content: space-between; padding-top: 18px; padding-bottom: 22px; }
+footer a { color: var(--ink-2); text-decoration: none; font-weight: 700; }
+footer a:hover { color: var(--ink); }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5M6.5 10v9h11v-9" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="M8.5 7 3.5 12l5 5M15.5 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <span class="brand-mark"><img src="/favicon.png" width="26" height="26" alt=""></span>
+      <span class="brand-t"><b>Claus Laikku</b><small>laikku.com</small></span>
+    </a>
+    <span class="code-chip"><b>404</b> · <span data-l="fi">sivua ei löydy</span><span data-l="en">page not found</span></span>
+    <div class="lng" role="group" aria-label="Kieli / Language">
+      <button type="button" data-set-lang="fi" lang="fi" aria-pressed="true">FI</button>
+      <button type="button" data-set-lang="en" lang="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <div class="scene"><div class="frame">
+    <picture>
+      <source type="image/webp" srcset="/images/404-haku-768.webp 768w, /images/404-haku-1280.webp 1280w, /images/404-haku-2048.webp 2048w" sizes="(max-width: 640px) 112vw, min(100vw, 1400px)">
+      <img src="/images/404-haku-1280.webp" width="1280" height="724" fetchpriority="high"
+           alt="Kumiankka etsii suurennuslasilla ja pesukarhu taskulampulla kadonnutta sivua, keskellä iso 404 / A rubber duck with a magnifying glass and a raccoon with a flashlight search for the missing page, a big 404 in the middle">
+    </picture>
+    <video muted loop playsinline preload="none" aria-hidden="true" tabindex="-1" data-src="/images/404-haku-anim"></video>
+  </div></div>
+
+  <div class="wrap copy">
+    <div class="pills">
+      <span class="pill"><span class="mono">&lt;/&gt;</span> <span data-l="fi">Etsintä käynnissä</span><span data-l="en">Search in progress</span></span>
+    </div>
+
+    <p class="url"><span id="url-host">laikku.com</span><b id="url-path">/</b></p>
+    <h1>
+      <span data-l="fi">Sivua ei <span class="grad">löytynyt.</span></span>
+      <span data-l="en">Page not <span class="grad">found.</span></span>
+    </h1>
+
+    <p class="lead" data-l="fi">Kumiankka etsi suurennuslasilla ja pesukarhu taskulampulla, mutta <b>tätä sivua ei ole laikku.comissa</b>. Linkki voi olla vanha tai osoitteessa on kirjoitusvirhe.</p>
+    <p class="lead" data-l="en">The rubber duck searched with a magnifying glass and the raccoon with a flashlight, but <b>this page doesn't exist on laikku.com</b>. The link may be old or the address has a typo.</p>
+
+    <div class="cta">
+      <a class="btn btn-primary" href="/"><svg aria-hidden="true"><use href="#i-home"/></svg><span data-l="fi">laikku.com-etusivulle</span><span data-l="en">Back to laikku.com</span></a>
+      <a class="btn btn-ghost" href="https://laikku.dev/"><svg aria-hidden="true"><use href="#i-code"/></svg><span data-l="fi">Omat työt – laikku.dev</span><span data-l="en">My work – laikku.dev</span></a>
+    </div>
+
+    <div class="term" aria-hidden="true">
+      <div class="term-bar"><i></i><i></i><i></i><span>~/laikku.com</span></div>
+      <pre><span class="p">$</span> curl -I https://<span id="host">laikku.com</span><span id="path">/</span>
+<span class="e">HTTP/2 404 Not Found</span>
+<span class="k">x-duck:</span>    searching… <span class="k">(0 results)</span>
+<span class="k">x-raccoon:</span> checked every box 📦
+<span class="k">x-tip:</span>     <span class="o">try the homepage →</span></pre>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© Claus Laikku · laikku.com</span>
+    <span><a href="/">laikku.com</a> · <a href="https://laikku.dev/">laikku.dev</a></span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+  var root = document.documentElement;
+  function setLang(l) {
+    root.lang = l;
+    try { localStorage.setItem('laikku:lang', l); } catch (e) {}
+    document.querySelectorAll('[data-set-lang]').forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.getAttribute('data-set-lang') === l));
+    });
+    document.title = l === 'fi' ? 'Sivua ei löytynyt | laikku.com' : 'Page not found | laikku.com';
+  }
+  document.querySelectorAll('[data-set-lang]').forEach(function (b) {
+    b.addEventListener('click', function () { setLang(b.getAttribute('data-set-lang')); });
+  });
+  setLang(root.lang === 'en' ? 'en' : 'fi');
+
+  // animaatio kuvan päälle (puhelimessa pienempi versio)
+  (function () {
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var saver = navigator.connection && navigator.connection.saveData;
+    var v = document.querySelector('.scene video');
+    if (reduce || saver || !v || !v.canPlayType) return;
+    var base = v.getAttribute('data-src') + '-' + (window.innerWidth <= 640 ? 854 : 1280);
+    [['webm', 'video/webm; codecs="vp9"'], ['mp4', 'video/mp4']].forEach(function (f) {
+      var src = document.createElement('source'); src.src = base + '.' + f[0]; src.type = f[1]; v.appendChild(src);
+    });
+    v.addEventListener('playing', function () { v.classList.add('on'); }, { once: true });
+    v.load();
+    var pr = v.play(); if (pr && pr.catch) pr.catch(function () {});
+  })();
+
+  // osoiterivi ja "terminaali" näyttävät haetun osoitteen (laikku.com tai clausl.com)
+  var host = location.host || 'laikku.com';
+  var shown = location.pathname.length > 60 ? location.pathname.slice(0, 57) + '…' : location.pathname;
+  document.getElementById('url-host').textContent = host;
+  document.getElementById('host').textContent = host;
+  document.getElementById('url-path').textContent = shown;
+  document.getElementById('path').textContent = shown;
+})();
+</script>
+</body>
+</html>
