@@ -730,7 +730,7 @@ export const en: Content = {
     lead: 'Who, where and how to reach me.',
     paragraphs: [
       'I’m Claus Laikku, a developer and entrepreneur from Jyväskylä, Finland. I founded Havaida Oy in summer 2026, work in smart lighting as a technical specialist and study ICT engineering at JAMK.',
-      'From forest trails to drones, from the golf course to skydiving. Adventure doesn’t wait, and the compass already points to the next shore.',
+      'From forest trails to drones, from the golf course to skydiving – always wherever curiosity leads.',
     ],
     quote: 'Who decided that?',
     info: [
