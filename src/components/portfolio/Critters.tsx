@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react'
 
-import { critterSprites, gameArt } from '@/content'
-import deerExtra from '@/data/critters-extra.json'
+import { critterSprites } from '@/content'
 import { cn } from '@/lib/utils'
 import { useReducedMotion } from './hooks'
 
@@ -54,25 +53,6 @@ function armSoon(el: HTMLElement, s: Sheet) {
 
 type ClipKind = 'deer' | 'raccoon'
 
-/* ---------- Pesukarhu: seuraa hiirtä katseellaan ----------
-   Lepotilassa pesukarhu pesee tassujaan (critter-ruudukko). Kun hiirtä liikutetaan, se vaihtuu lennon pesukarhun
-   Higgsfield-klippiin "look" (katse nousee ylös, ruudut siirretään korkeuskulman mukaan) ja peilautuu oikealle,
-   kun hiiri on sen oikealla puolella; 2,5 s liikkumattomuuden jälkeen palataan tassujen pesuun. */
-const LOOK = gameArt.raccoon
-const LOOK_START = LOOK.clips.look.start
-const LOOK_RAMP = 38 // klipin alkuosa, jossa pää nousee ylös ja pysähtyy
-const WATCH_IDLE_MS = 2500
-const HEAD = { x: 0.36, y: 0.3 } // pään kohta (osuus ruudusta), josta katsesuunta lasketaan
-
-/* ---------- Peura: säikähtää klikkauksesta ----------
-   Klikkaus: hätkähdys (pieni hyppy) → Higgsfield-video peuran pakenemisesta (pää ylös, loikat vasemmalle ulos
-   kuvasta) lepoasennon päälle → piilossa → takaisin DEER_RETURN_MS klikkauksesta. */
-const FLEE = deerExtra.deerFlee
-const DEER_RETURN_MS = 20_000
-const FLEE_MS = 42 // pakoruudun kesto (video 24 fps)
-const FLEE_SPEED = 1.35 // nopeutus videon omaan etenemiseen verrattuna
-const BASE_DEER = { rump: 0.893, feet: 0.993, alertH: 148, cellH: 150 } // laiduntavan peuran lepoasento (critter-deer, ruutu 0)
-
 /** Peura ja pesukarhu: videon ruudut sen omalla ajoituksella, sitten lyhyt tauko alkuasennossa (video alkaa ja
     päättyy samaan). Aloittaa satunnaisesta ruudusta heti, ettei eläimiä nähdä seisomassa odottamassa. */
 export function Critter({ kind, className }: { kind: ClipKind; className?: string }) {
@@ -83,182 +63,20 @@ export function Critter({ kind, className }: { kind: ClipKind; className?: strin
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    const base = el.querySelector<HTMLElement>('.cp-base')!
-    const extra = el.querySelector<HTMLElement>('.cp-extra')! // raccoon: look-kerros, deer: pako-kerros
     let i = Math.floor(Math.random() * s.frames) // eläimet eivät ole samassa vaiheessa
-    show(base, s, reduce ? 0 : i)
-    const unarms = [armSoon(base, s)]
-    let frozen = false // pysäyttää perusanimaation
-    const cleanups: Array<() => void> = []
-
-    /* ----- pesukarhu: katse seuraa hiirtä ----- */
-    if (kind === 'raccoon' && !reduce) {
-      arm(extra, LOOK)
-      show(extra, LOOK, LOOK_START)
-      let watching = false
-      let tp = 0 // tavoite: katseen nousu 0…1
-      let tf = 1 // tavoite: suunta (1 = vasemmalle kuten videossa, -1 = peilattu oikealle)
-      let p = 0
-      let f = 1
-      let raf = 0
-      let idleT = 0
-      const setLayers = (look: boolean) => {
-        base.style.visibility = look ? 'hidden' : 'visible'
-        extra.style.visibility = look ? 'visible' : 'hidden'
-        frozen = look
-      }
-      const frame = () => {
-        raf = 0
-        p += (tp - p) * 0.2
-        f += (tf - f) * 0.25
-        show(extra, LOOK, LOOK_START + Math.round(p * LOOK_RAMP))
-        el.style.transform = `scaleX(${f.toFixed(3)})`
-        const settled = Math.abs(tp - p) < 0.01 && Math.abs(tf - f) < 0.02
-        if (!watching && settled) {
-          el.style.transform = ''
-          setLayers(false)
-          return
-        }
-        raf = requestAnimationFrame(frame)
-      }
-      const onMove = (e: PointerEvent) => {
-        const r = el.getBoundingClientRect()
-        if (r.width === 0) return
-        const dx = e.clientX - (r.left + r.width * HEAD.x)
-        const dy = e.clientY - (r.top + r.height * HEAD.y)
-        if (!watching) {
-          watching = true
-          setLayers(true)
-        }
-        if (dx > r.width * 0.35) tf = -1
-        else if (dx < -r.width * 0.05) tf = 1
-        const elev = (Math.atan2(-dy, Math.max(Math.abs(dx), 40)) * 180) / Math.PI // asteina, ylös = positiivinen
-        tp = Math.max(0, Math.min(1, (elev - 4) / 46))
-        window.clearTimeout(idleT)
-        idleT = window.setTimeout(() => {
-          watching = false
-          tp = 0
-          tf = 1
-          if (!raf) raf = requestAnimationFrame(frame)
-        }, WATCH_IDLE_MS)
-        if (!raf) raf = requestAnimationFrame(frame)
-      }
-      window.addEventListener('pointermove', onMove, { passive: true })
-      cleanups.push(() => {
-        window.removeEventListener('pointermove', onMove)
-        window.clearTimeout(idleT)
-        cancelAnimationFrame(raf)
-      })
-    }
-
-    /* ----- peura: säikähtää klikkauksesta ----- */
-    if (kind === 'deer') {
-      let back = 0
-      let step = 0
-      const anims: Animation[] = []
-      const onClick = () => {
-        if (frozen) return
-        frozen = true
-        show(base, s, 0) // pää ylös, korvat pystyssä
-        el.style.cursor = 'default'
-        const gone = () => {
-          extra.style.visibility = 'hidden'
-          el.style.visibility = 'hidden'
-        }
-        if (reduce) {
-          base.style.visibility = 'hidden'
-          gone()
-        } else {
-          // pako-kerros lepoasennon peuran päälle: oikea reuna (peräpää) ja jalat samaan kohtaan
-          const bw = el.offsetWidth
-          const bh = el.offsetHeight
-          const k = (BASE_DEER.alertH / FLEE.deerH) * (bh / BASE_DEER.cellH) // pako-solun pikseli → näytön pikseli
-          const lw = FLEE.w * k
-          const lh = FLEE.h * k
-          extra.style.width = `${lw}px`
-          extra.style.height = `${lh}px`
-          extra.style.left = `${BASE_DEER.rump * bw - FLEE.rump * lw}px`
-          extra.style.top = `${BASE_DEER.feet * bh - FLEE.feet * lh}px`
-          arm(extra, FLEE)
-          extra.style.transformOrigin = `50% ${FLEE.feet * 100 - 8}%` // peuran vartalon keskikohta (ruudut vakautettu keskelle)
-          show(extra, FLEE, 0)
-          // hätkähdys: pieni hyppy ylös ennen kuin loikat alkavat
-          const startle = el.animate(
-            [{ transform: 'translateY(0)' }, { transform: `translateY(${-bh * 0.14}px)`, offset: 0.45 }, { transform: 'translateY(0)' }],
-            { duration: 300, easing: 'ease-out' },
-          )
-          anims.push(startle)
-          // vaihto pakokerrokseen hypyn huipulla, jolloin asennon muutos jää hypyn peittoon
-          step = window.setTimeout(() => {
-            base.style.visibility = 'hidden'
-            extra.style.visibility = 'visible'
-            let n = 0 // ruutulaskuri: alku (säikähdys → 1. loikka) ja sen jälkeen loikkasykli silmukkana
-            let pos = 0 // kuljettu matka vasemmalle (px)
-            const air = FLEE.lift
-            const cycleLen = FLEE.cycleB - FLEE.cycleA
-            const hop = bh * 0.5 // lisäkaaren korkeus (videon oma pystyliike päälle)
-            const startX = el.getBoundingClientRect().left + BASE_DEER.rump * bw // peräpään paikka ruudulla lähdössä
-            const play = () => {
-              const idx = n < FLEE.cycleA ? n : FLEE.cycleA + ((n - FLEE.cycleA) % cycleLen)
-              show(extra, FLEE, idx)
-              // eteneminen: videon oma vauhti (sykleissä keskiarvo), hieman nopeutettuna
-              pos += (n < FLEE.cycleA ? FLEE.dx[idx] : FLEE.cycleDx) * k * FLEE_SPEED
-              // loikkakaari: ilmassa-aste nostaa peuraa, nokka nousee noustessa ja laskee laskeutuessa
-              const l = air[idx] ?? 0
-              const dl = (air[Math.min(FLEE.frames - 1, idx + 1)] ?? l) - (air[Math.max(0, idx - 1)] ?? l)
-              extra.style.transform = `translate(${(-pos).toFixed(1)}px, ${(-l * hop).toFixed(1)}px) rotate(${(dl * 14).toFixed(1)}deg)`
-              n += 1
-              if (startX - pos < -lw || n > 600) {
-                gone() // peura on loikannut ruudun vasemman reunan yli
-                return
-              }
-              step = window.setTimeout(play, FLEE_MS)
-            }
-            play()
-          }, 130)
-        }
-        // takaisin 20 s klikkauksesta
-        back = window.setTimeout(() => {
-          window.clearTimeout(step)
-          anims.forEach((a) => a.cancel())
-          extra.style.visibility = 'hidden'
-          base.style.visibility = 'visible'
-          el.style.visibility = 'visible'
-          i = 0
-          frozen = false
-          el.style.cursor = 'pointer'
-          if (!reduce) el.animate([{ opacity: 0, transform: 'translateX(60px)' }, { opacity: 1, transform: 'translateX(0)' }], { duration: 1400, easing: 'ease-out' })
-        }, DEER_RETURN_MS)
-      }
-      el.style.cursor = 'pointer'
-      el.addEventListener('click', onClick)
-      cleanups.push(() => {
-        el.removeEventListener('click', onClick)
-        window.clearTimeout(back)
-        window.clearTimeout(step)
-        anims.forEach((a) => a.cancel())
-      })
-    }
-
-    const cleanup = () => {
-      unarms.forEach((u) => u())
-      cleanups.forEach((c) => c())
-    }
-    if (reduce) return cleanup
+    show(el, s, reduce ? 0 : i)
+    const unarm = armSoon(el, s)
+    if (reduce) return unarm
     let timer = 0
     let wait = 0
     const tick = () => {
-      if (frozen) {
-        timer = window.setTimeout(tick, 120)
-        return
-      }
       if (wait > 0) {
         const w = wait
         wait = 0
         timer = window.setTimeout(tick, w)
         return
       }
-      show(base, s, i)
+      show(el, s, i)
       const ms = s.ms[i] ?? 42
       i = (i + 1) % s.frames
       if (i === 0) wait = rand(600, 2400)
@@ -266,20 +84,12 @@ export function Critter({ kind, className }: { kind: ClipKind; className?: strin
     }
     tick()
     return () => {
-      cleanup()
+      unarm()
       window.clearTimeout(timer)
     }
-  }, [reduce, s, kind])
+  }, [reduce, s])
 
-  return (
-    <div ref={ref} className={cn('critter', className)} style={{ aspectRatio: `${s.w} / ${s.h}` }} aria-hidden>
-      <div className="cp-base absolute inset-0" />
-      <div
-        className="cp-extra absolute"
-        style={kind === 'raccoon' ? { inset: 0, visibility: 'hidden' } : { visibility: 'hidden' }}
-      />
-    </div>
-  )
+  return <div ref={ref} className={cn('critter', className)} style={{ aspectRatio: `${s.w} / ${s.h}` }} aria-hidden />
 }
 
 /** Karhu: viisi Higgsfield-klippiä samassa koordinaatistossa – kävelysykli, pysähdys seisomaan, lähtö,

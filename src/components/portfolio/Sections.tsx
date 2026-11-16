@@ -879,7 +879,7 @@ export function Now() {
       <div className="relative mb-4 mt-12">
         <h3 className="text-xs font-bold uppercase tracking-[0.22em] text-pf-orange">{p.now.side}</h3>
         {/* peura laiduntaa korttien reunalla */}
-        <Critter kind="deer" className="absolute -bottom-4 right-8 z-10 h-[68px] cursor-pointer text-pf-line-2" />
+        <Critter kind="deer" className="pointer-events-none absolute -bottom-4 right-8 h-[68px] text-pf-line-2" />
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {q.side.map((s, i) => (
