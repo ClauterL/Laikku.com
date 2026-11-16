@@ -69,7 +69,8 @@ const HEAD = { x: 0.36, y: 0.3 } // pään kohta (osuus ruudusta), josta katsesu
    kuvasta) lepoasennon päälle → piilossa → takaisin DEER_RETURN_MS klikkauksesta. */
 const FLEE = deerExtra.deerFlee
 const DEER_RETURN_MS = 20_000
-const FLEE_MS = 52 // pakoruudun kesto (videossa 42 ms): hieman hitaampi, jolloin loikat ehtivät näkyä
+const FLEE_MS = 42 // pakoruudun kesto (video 24 fps)
+const FLEE_SPEED = 1.35 // nopeutus videon omaan etenemiseen verrattuna
 const BASE_DEER = { rump: 0.893, feet: 0.993, alertH: 148, cellH: 150 } // laiduntavan peuran lepoasento (critter-deer, ruutu 0)
 
 /** Peura ja pesukarhu: videon ruudut sen omalla ajoituksella, sitten lyhyt tauko alkuasennossa (video alkaa ja
@@ -179,7 +180,7 @@ export function Critter({ kind, className }: { kind: ClipKind; className?: strin
           extra.style.left = `${BASE_DEER.rump * bw - FLEE.rump * lw}px`
           extra.style.top = `${BASE_DEER.feet * bh - FLEE.feet * lh}px`
           arm(extra, FLEE)
-          extra.style.transformOrigin = `${(FLEE.rump - 0.13) * 100}% ${FLEE.feet * 100 - 8}%` // peuran vartalon keskikohta
+          extra.style.transformOrigin = `50% ${FLEE.feet * 100 - 8}%` // peuran vartalon keskikohta (ruudut vakautettu keskelle)
           show(extra, FLEE, 0)
           // hätkähdys: pieni hyppy ylös ennen kuin loikat alkavat
           const startle = el.animate(
@@ -191,25 +192,28 @@ export function Critter({ kind, className }: { kind: ClipKind; className?: strin
           step = window.setTimeout(() => {
             base.style.visibility = 'hidden'
             extra.style.visibility = 'visible'
-            let n = 0
+            let n = 0 // ruutulaskuri: alku (säikähdys → 1. loikka) ja sen jälkeen loikkasykli silmukkana
+            let pos = 0 // kuljettu matka vasemmalle (px)
             const air = FLEE.lift
-            const hop = bh * 0.55 // loikan korkeus
+            const cycleLen = FLEE.cycleB - FLEE.cycleA
+            const hop = bh * 0.5 // lisäkaaren korkeus (videon oma pystyliike päälle)
+            const startX = el.getBoundingClientRect().left + BASE_DEER.rump * bw // peräpään paikka ruudulla lähdössä
             const play = () => {
-              show(extra, FLEE, n)
+              const idx = n < FLEE.cycleA ? n : FLEE.cycleA + ((n - FLEE.cycleA) % cycleLen)
+              show(extra, FLEE, idx)
+              // eteneminen: videon oma vauhti (sykleissä keskiarvo), hieman nopeutettuna
+              pos += (n < FLEE.cycleA ? FLEE.dx[idx] : FLEE.cycleDx) * k * FLEE_SPEED
               // loikkakaari: ilmassa-aste nostaa peuraa, nokka nousee noustessa ja laskee laskeutuessa
-              const l = air[n] ?? 0
-              const dl = (air[Math.min(FLEE.frames - 1, n + 1)] ?? l) - (air[Math.max(0, n - 1)] ?? l)
-              extra.style.transform = `translateY(${(-l * hop).toFixed(1)}px) rotate(${(dl * 14).toFixed(1)}deg)`
+              const l = air[idx] ?? 0
+              const dl = (air[Math.min(FLEE.frames - 1, idx + 1)] ?? l) - (air[Math.max(0, idx - 1)] ?? l)
+              extra.style.transform = `translate(${(-pos).toFixed(1)}px, ${(-l * hop).toFixed(1)}px) rotate(${(dl * 14).toFixed(1)}deg)`
               n += 1
-              if (n >= FLEE.frames) {
-                gone()
+              if (startX - pos < -lw || n > 600) {
+                gone() // peura on loikannut ruudun vasemman reunan yli
                 return
               }
               step = window.setTimeout(play, FLEE_MS)
             }
-            // viimeiset ruudut häivytetään, koska peura katoaa ruudukon reunaan
-            const total = FLEE.frames * FLEE_MS
-            anims.push(extra.animate([{ opacity: 1 }, { opacity: 1, offset: 0.72 }, { opacity: 0 }], { duration: total, easing: 'linear' }))
             play()
           }, 130)
         }
