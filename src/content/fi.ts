@@ -740,7 +740,7 @@ export const fi: Content = {
     lead: 'Kuka, missä ja miten minut tavoittaa.',
     paragraphs: [
       'Olen Claus Laikku, kehittäjä ja yrittäjä Jyväskylästä. Perustin Havaida Oy:n kesällä 2026, työskentelen älyvalaistuksen parissa teknisenä asiantuntijana ja opiskelen tieto- ja viestintätekniikkaa JAMKissa.',
-      'Kun näyttö sammuu, näppäimistö vaihtuu pitkämiekkaan, sukellusmaskiin tai golfmailaan – tai polkuun syvälle metsään. Seikkailu ei odota, ja kompassi osoittaa jo seuraavaa rantaa kohti.',
+      'Metsän poluilta droneihin, golfkentältä laskuvarjohyppyihin – aina sinne, minne uteliaisuus vie.',
     ],
     quote: 'Kuka niin päätti?',
     info: [
