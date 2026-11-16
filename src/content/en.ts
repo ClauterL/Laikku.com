@@ -172,7 +172,7 @@ export const en: Content = {
       { id: 'typescript', kind: 'lang', name: 'TypeScript', tag: 'Typed code', icon: icons.typescript, logo: 'typescript', rarity: 'epic', level: 85, desc: 'Typed app code and content models you can trust.' },
       { id: 'node', kind: 'lang', name: 'Node.js', tag: 'Server & scripts', icon: icons.node, logo: 'nodejs', rarity: 'epic', level: 80, desc: 'APIs, build tooling and automation scripts.' },
       { id: 'supabase', kind: 'lang', name: 'Supabase', tag: 'Database & auth', icon: icons.supabase, logo: 'supabase', rarity: 'rare', level: 75, desc: 'Postgres, auth and realtime in SaaS projects.' },
-      { id: 'tailwind', kind: 'lang', name: 'Tailwind', tag: 'Styling', icon: icons.tailwind, logo: 'tailwind', rarity: 'epic', level: 90, desc: 'Tailwind v4 + shadcn/ui – fast, consistent UI.' },
+      { id: 'postgresql', kind: 'lang', name: 'PostgreSQL', tag: 'Database', icon: icons.supabase, logo: 'postgresql', rarity: 'epic', level: 75, desc: 'Relational database, SQL queries and schemas in SaaS projects.' },
       { id: 'python', kind: 'lang', name: 'Python', tag: 'Data & prototypes', icon: icons.python, logo: 'python', rarity: 'rare', level: 65, desc: 'Data processing, scripts and quick experiments.' },
     ],
   },

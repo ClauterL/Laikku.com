@@ -173,7 +173,7 @@ export const fi: Content = {
       { id: 'typescript', kind: 'lang', name: 'TypeScript', tag: 'Tyypitetty koodi', icon: icons.typescript, logo: 'typescript', rarity: 'epic', level: 85, desc: 'Tyypitetty sovelluskoodi ja sisältömallit, joihin voi luottaa.' },
       { id: 'node', kind: 'lang', name: 'Node.js', tag: 'Palvelin & skriptit', icon: icons.node, logo: 'nodejs', rarity: 'epic', level: 80, desc: 'API:t, build-työkalut ja automaatioskriptit.' },
       { id: 'supabase', kind: 'lang', name: 'Supabase', tag: 'Tietokanta & auth', icon: icons.supabase, logo: 'supabase', rarity: 'rare', level: 75, desc: 'Postgres, kirjautuminen ja realtime SaaS-projekteissa.' },
-      { id: 'tailwind', kind: 'lang', name: 'Tailwind', tag: 'Ulkoasu', icon: icons.tailwind, logo: 'tailwind', rarity: 'epic', level: 90, desc: 'Tailwind v4 + shadcn/ui – nopea, yhtenäinen ulkoasu.' },
+      { id: 'postgresql', kind: 'lang', name: 'PostgreSQL', tag: 'Tietokanta', icon: icons.supabase, logo: 'postgresql', rarity: 'epic', level: 75, desc: 'Relaatiotietokanta, SQL-kyselyt ja skeemat SaaS-projekteissa.' },
       { id: 'python', kind: 'lang', name: 'Python', tag: 'Data & prototyypit', icon: icons.python, logo: 'python', rarity: 'rare', level: 65, desc: 'Datankäsittely, skriptit ja nopeat kokeilut.' },
     ],
   },
