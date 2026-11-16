@@ -673,7 +673,7 @@ export const en: Content = {
         type: 'side',
         title: 'Engineering degree (JAMK)',
         status: 'active',
-        progress: 60,
+        progress: 90,
         desc: 'ICT engineering. Graduating 2027–28.',
         objectives: [
           { text: 'Software design and testing', done: true },
@@ -687,7 +687,7 @@ export const en: Content = {
         title: 'Move to Split',
         status: 'planned',
         progress: 15,
-        desc: 'A new home base in Croatia in 2027.',
+        desc: 'A new home base in Croatia in 2031.',
         objectives: [
           { text: 'Country and company structure chosen', done: true },
           { text: 'Apartment and workshop', done: false },

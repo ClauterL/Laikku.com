@@ -674,7 +674,7 @@ export const fi: Content = {
         type: 'side',
         title: 'Insinööritutkinto (JAMK)',
         status: 'active',
-        progress: 60,
+        progress: 90,
         desc: 'Tieto- ja viestintätekniikka. Valmistuminen 2027–28.',
         objectives: [
           { text: 'Ohjelmistosuunnittelu ja testaus', done: true },
@@ -688,7 +688,7 @@ export const fi: Content = {
         title: 'Muutto Splitiin',
         status: 'planned',
         progress: 15,
-        desc: 'Uusi tukikohta Kroatiassa vuonna 2027.',
+        desc: 'Uusi tukikohta Kroatiassa vuonna 2031.',
         objectives: [
           { text: 'Maa ja yritysrakenne valittu', done: true },
           { text: 'Asunto ja työpaja', done: false },
