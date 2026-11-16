@@ -37,6 +37,11 @@ with tempfile.TemporaryDirectory() as d:
     ys, xs = np.where(first)
     rump, feet, top = xs.max() * S, ys.max() * S, ys.min() * S
     n = len(cells)
+    # ilmassa-aste (0 = jalat maassa, 1 = täysi ojennus): siluetin leveys, jolla loikkakaaret (translateY) tahdistetaan ruutuihin
+    wd = np.array([(np.ptp(np.where((c > 128).any(axis=0))[0]) if (c > 128).any() else 0) for c in cells], dtype=float)
+    wd = (wd - wd.min()) / max(1e-6, wd.max() - wd.min())
+    pad = np.pad(wd, 1, mode="edge")
+    lift = (0.25 * pad[:-2] + 0.5 * pad[1:-1] + 0.25 * pad[2:]) ** 1.4
     rows = (n + COLS - 1) // COLS
     sheet = np.zeros((rows * ch, COLS * cw, 4), dtype=np.uint8)
     sheet[..., :3] = 255
@@ -50,6 +55,7 @@ with tempfile.TemporaryDirectory() as d:
             "src": "/images/critter-deer-flee.webp", "w": cw, "h": ch, "cols": COLS, "rows": rows, "frames": n,
             "ms": [42] * n, "rump": round(float(rump) / cw, 4), "feet": round(float(feet) / ch, 4),
             "deerH": round(float(feet - top), 1),
+            "lift": [round(float(v), 3) for v in lift],
         }
     }
     (ROOT / "src" / "data" / "critters-extra.json").write_text(json.dumps(meta, indent=1), encoding="utf-8")
