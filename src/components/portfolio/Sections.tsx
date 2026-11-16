@@ -290,10 +290,22 @@ export function About() {
               <h3 className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-pf-orange">{c.book.sections.free}</h3>
               <p className="leading-relaxed text-pf-ink-2">{c.paragraphs[1]}</p>
             </div>
-            <figure className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-pf-crimson via-pf-red to-pf-orange p-5 text-pf-sky">
-              <Quote className="mb-2 size-6 opacity-80" aria-hidden />
-              <blockquote className="text-lg font-bold leading-snug [font-family:var(--font-poster)]">{c.quote}</blockquote>
-              <figcaption className="mt-3 text-xs font-bold uppercase tracking-[0.2em] opacity-80">— {t.name}</figcaption>
+            <figure className="relative isolate min-h-72 overflow-hidden rounded-2xl bg-pf-crimson p-5 text-pf-sky">
+              {/* Higgsfield-kuvitus: kämmen ja etusormi osoittavat aurinkoa */}
+              <img
+                src="/images/quote-sun-640.webp"
+                srcSet="/images/quote-sun-640.webp 640w, /images/quote-sun.webp 1168w"
+                sizes="(min-width: 640px) 40vw, 100vw"
+                alt=""
+                aria-hidden
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 -z-20 size-full object-cover object-[50%_40%]"
+              />
+              <div className="absolute inset-0 -z-10 bg-gradient-to-b from-pf-crimson/85 via-pf-crimson/35 to-transparent" aria-hidden />
+              <Quote className="mb-2 size-6 opacity-90" aria-hidden />
+              <blockquote className="text-lg font-bold leading-snug [font-family:var(--font-poster)] [text-shadow:0_1px_12px_rgb(0_0_0/0.35)]">{c.quote}</blockquote>
+              <figcaption className="mt-3 text-xs font-bold uppercase tracking-[0.2em] opacity-90 [text-shadow:0_1px_10px_rgb(0_0_0/0.35)]">— {t.name}</figcaption>
             </figure>
           </Reveal>
         </div>
