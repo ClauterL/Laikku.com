@@ -47,7 +47,7 @@ export const en: Content = {
     level: { value: '25', label: 'Level', caption: 'Builder' },
     slots: [
       { id: 'study', name: 'Studies', icon: icons.study, meter: 4, caption: 'JAMK · ICT engineering' },
-      { id: 'adventure', name: 'Adventure', icon: icons.adventure, meter: 3, caption: 'Next stop: Split' },
+      { id: 'adventure', name: 'Adventure', icon: icons.adventure, meter: 3, caption: 'Next stop: abroad in 2031' },
     ],
     bag: {
       title: 'Bag',
@@ -458,7 +458,7 @@ export const en: Content = {
       { name: 'Caribbean Sea', lat: 15.0, lon: -75.0, size: 'sm' },
     ],
     routes: [
-      { id: 'move', label: 'Jyväskylä → Split 2027', kind: 'travel', points: [[25.75, 62.24], [16.44, 43.51]] },
+      { id: 'move', label: 'Move abroad 2031', kind: 'travel', points: [[25.75, 62.24], [16.44, 43.51]] },
     ],
     ui: { zoomIn: 'Zoom in', zoomOut: 'Zoom out', reset: 'Whole map', fog: 'Unexplored area', explored: 'Explored', coords: 'Position' },
     markers: [
@@ -473,8 +473,8 @@ export const en: Content = {
       },
       {
         id: 'split',
-        name: 'Split',
-        caption: 'Heading there 2027 · Croatia',
+        name: 'Abroad',
+        caption: 'Heading there 2031 · Moving abroad',
         lat: 43.51,
         lon: 16.44,
         kind: 'travel',
@@ -865,7 +865,7 @@ export const en: Content = {
       shed: "All the gear lives in the granary. Don't ask how many spare cables are kept just in case.",
       harbor: 'The Havaida ship sails from this harbour. The captain is not a duck. Yet.',
       campfire: 'Quests and goals get discussed by the fire. And marshmallows.',
-      tower: 'You can see far from the tower – all the way to Split if you squint.',
+      tower: 'You can see far from the tower – all the way abroad if you squint.',
       lighthouse: "The lighthouse always answers. Get in touch – I can't write emails, only quack.",
     },
     where: {
@@ -956,7 +956,7 @@ export const en: Content = {
       shed: { name: 'Granary', section: 'Items', teaser: 'All the gear lives in the granary: PC parts and tools.' },
       harbor: { name: 'Harbour', section: 'Havaida', teaser: 'The Havaida ship sails from this harbour.' },
       campfire: { name: 'Campfire', section: 'Quests', teaser: 'Quests and goals get discussed by the fire.' },
-      tower: { name: 'Lookout', section: 'Map', teaser: 'You can see far from the tower – all the way to Split.' },
+      tower: { name: 'Lookout', section: 'Map', teaser: 'You can see far from the tower – all the way abroad.' },
       lighthouse: { name: 'Lighthouse', section: 'Contact', teaser: 'The lighthouse always answers. Get in touch!' },
     },
     hud: {

@@ -48,7 +48,7 @@ export const fi: Content = {
     level: { value: '25', label: 'Taso', caption: 'Rakentaja' },
     slots: [
       { id: 'study', name: 'Opinnot', icon: icons.study, meter: 4, caption: 'JAMK · ICT-insinööri' },
-      { id: 'adventure', name: 'Seikkailu', icon: icons.adventure, meter: 3, caption: 'Seuraava etappi: Split' },
+      { id: 'adventure', name: 'Seikkailu', icon: icons.adventure, meter: 3, caption: 'Seuraava etappi: ulkomaille 2031' },
     ],
     bag: {
       title: 'Reppu',
@@ -459,7 +459,7 @@ export const fi: Content = {
       { name: 'Karibianmeri', lat: 15.0, lon: -75.0, size: 'sm' },
     ],
     routes: [
-      { id: 'move', label: 'Jyväskylä → Split 2027', kind: 'travel', points: [[25.75, 62.24], [16.44, 43.51]] },
+      { id: 'move', label: 'Muutto ulkomaille 2031', kind: 'travel', points: [[25.75, 62.24], [16.44, 43.51]] },
     ],
     ui: { zoomIn: 'Lähennä', zoomOut: 'Loitonna', reset: 'Koko kartta', fog: 'Tutkimaton alue', explored: 'Tutkittu', coords: 'Sijainti' },
     markers: [
@@ -474,8 +474,8 @@ export const fi: Content = {
       },
       {
         id: 'split',
-        name: 'Split',
-        caption: 'Suunta 2027 · Kroatia',
+        name: 'Ulkomaat',
+        caption: 'Suunta 2031 · Muutto ulkomaille',
         lat: 43.51,
         lon: 16.44,
         kind: 'travel',
@@ -876,7 +876,7 @@ export const fi: Content = {
       shed: 'Aitassa on kaikki kamat. Älä kysy, montako kaapelia on tallessa varmuuden vuoksi.',
       harbor: 'Satamasta lähtee Havaida Oy:n laiva. Kapteenina ei ole ankka. Vielä.',
       campfire: 'Nuotiolla puhutaan tehtävistä ja tavoitteista. Ja vaahtokarkeista.',
-      tower: 'Tornista näkee kauas – Splitiin asti, jos siristää.',
+      tower: 'Tornista näkee kauas – ulkomaille asti, jos siristää.',
       lighthouse: 'Majakka vastaa aina. Ota yhteyttä – minä en osaa kirjoittaa sähköpostia, vain kvaakata.',
     },
     where: {
@@ -967,7 +967,7 @@ export const fi: Content = {
       shed: { name: 'Aitta', section: 'Tavarat', teaser: 'Aitassa on kaikki kamat: koneen osat ja työkalut.' },
       harbor: { name: 'Satama', section: 'Havaida', teaser: 'Satamasta lähtee Havaida Oy:n laiva.' },
       campfire: { name: 'Nuotio', section: 'Tehtävät', teaser: 'Nuotiolla puhutaan tehtävistä ja tavoitteista.' },
-      tower: { name: 'Näkötorni', section: 'Kartta', teaser: 'Tornista näkee kauas – Splitiin asti.' },
+      tower: { name: 'Näkötorni', section: 'Kartta', teaser: 'Tornista näkee kauas – ulkomaille asti.' },
       lighthouse: { name: 'Majakka', section: 'Yhteystiedot', teaser: 'Majakka vastaa aina. Ota yhteyttä!' },
     },
     hud: {
