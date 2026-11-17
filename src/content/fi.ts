@@ -458,9 +458,7 @@ export const fi: Content = {
       { name: 'Tyynimeri', lat: 5.0, lon: -140.0, size: 'lg' },
       { name: 'Karibianmeri', lat: 15.0, lon: -75.0, size: 'sm' },
     ],
-    routes: [
-      { id: 'move', label: 'Muutto ulkomaille 2031', kind: 'travel', points: [[25.75, 62.24], [16.44, 43.51]] },
-    ],
+    routes: [],
     ui: { zoomIn: 'Lähennä', zoomOut: 'Loitonna', reset: 'Koko kartta', fog: 'Tutkimaton alue', explored: 'Tutkittu', coords: 'Sijainti' },
     markers: [
       {
@@ -471,15 +469,6 @@ export const fi: Content = {
         lon: 25.75,
         kind: 'home',
         desc: 'Koti, työpaja, JAMK ja Havaida Oy. Täältä käsin rakennetaan.',
-      },
-      {
-        id: 'split',
-        name: 'Ulkomaat',
-        caption: 'Suunta 2031 · Muutto ulkomaille',
-        lat: 43.51,
-        lon: 16.44,
-        kind: 'travel',
-        desc: 'Seuraava tukikohta Adrianmeren rannalla.',
       },
       {
         id: 'helsinki',
@@ -1165,6 +1154,6 @@ export const fi: Content = {
     source: 'Lähdekoodi',
     github: 'GitHub',
     copyright: `© ${year} Claus Laikku`,
-    place: 'Jyväskylä → ulkomaille',
+    place: 'Muutto ulkomaille 2031',
   },
 }

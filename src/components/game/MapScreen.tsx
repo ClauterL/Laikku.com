@@ -553,22 +553,24 @@ export function MapScreen() {
               </div>
             ))}
           </div>
-          <div className="mt-2 border-t border-line/70 px-1 pt-2">
-            {routes.map((r) => (
-              <p
-                key={r.id}
-                className="flex items-center gap-2 py-1 text-[0.68rem] uppercase tracking-[0.14em] text-muted-foreground"
-              >
-                <span
-                  className={cn(
-                    'h-0 w-5 border-t-2',
-                    r.kind === 'travel' ? 'border-dashed border-ember-2' : 'border-dotted border-teal-2',
-                  )}
-                />
-                {r.label}
-              </p>
-            ))}
-          </div>
+          {routes.length > 0 && (
+            <div className="mt-2 border-t border-line/70 px-1 pt-2">
+              {routes.map((r) => (
+                <p
+                  key={r.id}
+                  className="flex items-center gap-2 py-1 text-[0.68rem] uppercase tracking-[0.14em] text-muted-foreground"
+                >
+                  <span
+                    className={cn(
+                      'h-0 w-5 border-t-2',
+                      r.kind === 'travel' ? 'border-dashed border-ember-2' : 'border-dotted border-teal-2',
+                    )}
+                  />
+                  {r.label}
+                </p>
+              ))}
+            </div>
+          )}
         </div>
       </aside>
     </div>

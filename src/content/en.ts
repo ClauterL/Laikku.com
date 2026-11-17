@@ -457,9 +457,7 @@ export const en: Content = {
       { name: 'Pacific Ocean', lat: 5.0, lon: -140.0, size: 'lg' },
       { name: 'Caribbean Sea', lat: 15.0, lon: -75.0, size: 'sm' },
     ],
-    routes: [
-      { id: 'move', label: 'Move abroad 2031', kind: 'travel', points: [[25.75, 62.24], [16.44, 43.51]] },
-    ],
+    routes: [],
     ui: { zoomIn: 'Zoom in', zoomOut: 'Zoom out', reset: 'Whole map', fog: 'Unexplored area', explored: 'Explored', coords: 'Position' },
     markers: [
       {
@@ -470,15 +468,6 @@ export const en: Content = {
         lon: 25.75,
         kind: 'home',
         desc: 'Home, workshop, JAMK and Havaida Oy. This is where things get built.',
-      },
-      {
-        id: 'split',
-        name: 'Abroad',
-        caption: 'Heading there 2031 · Moving abroad',
-        lat: 43.51,
-        lon: 16.44,
-        kind: 'travel',
-        desc: 'The next home base on the Adriatic coast.',
       },
       {
         id: 'helsinki',
@@ -1154,6 +1143,6 @@ export const en: Content = {
     source: 'Source code',
     github: 'GitHub',
     copyright: `© ${year} Claus Laikku`,
-    place: 'Jyväskylä → abroad',
+    place: 'Moving abroad 2031',
   },
 }
