@@ -685,10 +685,10 @@ export const fi: Content = {
       {
         id: 'split',
         type: 'side',
-        title: 'Muutto Splitiin',
+        title: 'Muutto ulkomaille',
         status: 'planned',
         progress: 15,
-        desc: 'Uusi tukikohta Kroatiassa vuonna 2031.',
+        desc: 'Uusi tukikohta ulkomailla vuonna 2031.',
         objectives: [
           { text: 'Maa ja yritysrakenne valittu', done: true },
           { text: 'Asunto ja työpaja', done: false },
@@ -1165,6 +1165,6 @@ export const fi: Content = {
     source: 'Lähdekoodi',
     github: 'GitHub',
     copyright: `© ${year} Claus Laikku`,
-    place: 'Jyväskylä → Split 2027',
+    place: 'Jyväskylä → ulkomaille',
   },
 }

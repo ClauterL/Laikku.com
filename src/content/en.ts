@@ -684,10 +684,10 @@ export const en: Content = {
       {
         id: 'split',
         type: 'side',
-        title: 'Move to Split',
+        title: 'Move abroad',
         status: 'planned',
         progress: 15,
-        desc: 'A new home base in Croatia in 2031.',
+        desc: 'A new home base abroad in 2031.',
         objectives: [
           { text: 'Country and company structure chosen', done: true },
           { text: 'Apartment and workshop', done: false },
@@ -1154,6 +1154,6 @@ export const en: Content = {
     source: 'Source code',
     github: 'GitHub',
     copyright: `© ${year} Claus Laikku`,
-    place: 'Jyväskylä → Split 2027',
+    place: 'Jyväskylä → abroad',
   },
 }
